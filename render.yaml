@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: aoas-web
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RESEND_API_KEY
+        sync: false
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/health
+
+
+
