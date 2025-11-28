@@ -10,16 +10,23 @@ const PORT = process.env.PORT || 3000;
 const RESEND_API_KEY = process.env.RESEND_API_KEY?.trim();
 
 if (!RESEND_API_KEY) {
-  console.error('❌ ERROR: RESEND_API_KEY is not set in .env file!');
-  console.error('Please add RESEND_API_KEY=your_api_key to your .env file');
-  process.exit(1);
+  console.error('❌ ERROR: RESEND_API_KEY is not set!');
+  console.error('Please add RESEND_API_KEY as an environment variable');
+  // Don't exit on Vercel - let it handle the error gracefully
+  if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+    process.exit(1);
+  }
 }
 
-// Initialize Resend with API key
-const resend = new Resend(RESEND_API_KEY);
+// Initialize Resend with API key (only if available)
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
-console.log('✅ Resend API initialized successfully');
-console.log(`✅ API Key loaded: ${RESEND_API_KEY.substring(0, 10)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}`);
+if (RESEND_API_KEY) {
+  console.log('✅ Resend API initialized successfully');
+  console.log(`✅ API Key loaded: ${RESEND_API_KEY.substring(0, 10)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}`);
+} else {
+  console.warn('⚠️ RESEND_API_KEY not set - email functionality will not work');
+}
 
 // Middleware
 app.use(cors());
@@ -62,6 +69,14 @@ app.post('/api/contact', async (req, res) => {
     const sanitizedName = sanitizeHtml(name);
     const sanitizedEmail = sanitizeHtml(email);
     const sanitizedMessage = sanitizeHtml(message);
+
+    if (!resend || !RESEND_API_KEY) {
+      console.error('❌ Resend API key not configured');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Email service not configured. Please set RESEND_API_KEY environment variable.' 
+      });
+    }
 
     console.log(`📧 Attempting to send email from ${email} (${name})`);
 
@@ -137,10 +152,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`✅ Resend API Key is configured`);
-  console.log(`📧 Contact form endpoint: http://localhost:${PORT}/api/contact`);
-  console.log(`\nReady to receive contact form submissions!\n`);
-});
+// Export for Vercel serverless functions
+module.exports = app;
+
+// Only listen if not on Vercel (for local development)
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`✅ Resend API Key is configured`);
+    console.log(`📧 Contact form endpoint: http://localhost:${PORT}/api/contact`);
+    console.log(`\nReady to receive contact form submissions!\n`);
+  });
+}
 
