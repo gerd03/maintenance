@@ -9,6 +9,9 @@
     <meta name="keywords"
         content="virtual assistants, NDIS support, administrative services, Australian business, healthcare administration">
     <title>AOAS - Attainment Office Administrative Services</title>
+    <!-- Performance: Preload critical resources -->
+    <link rel="preload" href="style.css" as="style">
+    <link rel="preload" href="script.js" as="script">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -24,7 +27,10 @@
             <div class="header-content">
                 <div class="logo">
                     <img src="AOAS Logo/AOASLOGO.png" alt="AOAS Logo" class="logo-icon">
-                    <span class="logo-text">Attainment Office Administrative Services</span>
+                    <span class="logo-text">
+                        <span class="logo-text-full">Attainment Office Administrative Services</span>
+                        <span class="logo-text-short">AOAS</span>
+                    </span>
                 </div>
                 <div class="header-actions">
                     <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank" class="header-social" aria-label="Facebook">
@@ -224,47 +230,25 @@
             <div class="partners-carousel-wrapper">
                 <div class="partners-carousel">
                     <div class="partner-logo">
-                        <img src="PARTNERS/HOPERECOVERY.png" alt="HOPERECOVERY">
+                        <img src="PARTNERS/HOPERECOVERY.png" alt="HOPERECOVERY" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-logo">
-                        <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison">
+                        <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-logo">
-                        <img src="PARTNERS/HEALTHCARE.png" alt="HEALTHCARE">
+                        <img src="PARTNERS/HEALTHCARE.png" alt="HEALTHCARE" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-logo">
-                        <img src="PARTNERS/ALANACARE.png" alt="ALANACARE">
+                        <img src="PARTNERS/ALANACARE.png" alt="ALANACARE" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-logo">
-                        <img src="PARTNERS/NDIS.png" alt="NDIS">
+                        <img src="PARTNERS/NDIS.png" alt="NDIS" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-logo">
-                        <img src="PARTNERS/BRIGHTERLIVING.png" alt="BRIGHTER LIVING">
+                        <img src="PARTNERS/BRIGHTERLIVING.png" alt="BRIGHTER LIVING" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-logo">
-                        <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="YOU MATTER SOLUTIONS">
-                    </div>
-                    <!-- Duplicate for seamless loop -->
-                    <div class="partner-logo">
-                        <img src="PARTNERS/HOPERECOVERY.png" alt="HOPERECOVERY">
-                    </div>
-                    <div class="partner-logo">
-                        <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison">
-                    </div>
-                    <div class="partner-logo">
-                        <img src="PARTNERS/HEALTHCARE.png" alt="HEALTHCARE">
-                    </div>
-                    <div class="partner-logo">
-                        <img src="PARTNERS/ALANACARE.png" alt="ALANACARE">
-                    </div>
-                    <div class="partner-logo">
-                        <img src="PARTNERS/NDIS.png" alt="NDIS">
-                    </div>
-                    <div class="partner-logo">
-                        <img src="PARTNERS/BRIGHTERLIVING.png" alt="BRIGHTER LIVING">
-                    </div>
-                    <div class="partner-logo">
-                        <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="YOU MATTER SOLUTIONS">
+                        <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="YOU MATTER SOLUTIONS" loading="lazy" decoding="async">
                     </div>
                 </div>
             </div>
