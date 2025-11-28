@@ -31,7 +31,11 @@ if (RESEND_API_KEY) {
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // Serve static files
+
+// Serve static files (only for local development, Vercel handles this)
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  app.use(express.static('.'));
+}
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
