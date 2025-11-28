@@ -536,12 +536,12 @@ body::before {
 }
 
 .text-orange {
-    color: #007e39;
+    color: #005f2b;
     font-weight: var(--font-weight-semibold);
 }
 
 .text-highlight-orange {
-    color: #008a0b;
+    color: #005f2b;
     font-weight: var(--font-weight-extrabold);
 }
 
@@ -550,7 +550,7 @@ body::before {
     font-weight: var(--font-weight-extrabold);
 }
 
-.text-highlight-green {    color: #007e39;
+.text-highlight-green {    color: #005f2b;
     font-weight: var(--font-weight-extrabold);
 }
 
@@ -1221,8 +1221,13 @@ body::before {
 .partners-carousel {
     display: flex;
     gap: var(--spacing-sm);
-    width: fit-content;
+    width: max-content;
     will-change: transform;
+    animation: partners-scroll var(--partners-loop-duration, 24s) linear infinite;
+}
+
+.partners-carousel:hover {
+    animation-play-state: paused;
 }
 
 .partner-logo {
@@ -1259,6 +1264,15 @@ body::before {
     width: auto;
     height: auto;
     object-fit: contain;
+}
+
+@keyframes partners-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-1 * var(--partners-loop-distance, 50%)));
+    }
 }
 
 .partners-featured {

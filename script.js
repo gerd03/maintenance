@@ -727,14 +727,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Partners Carousel - continuous infinite auto-scroll
     const partnersCarousel = document.querySelector('.partners-carousel');
-    const partnersWrapper = document.querySelector('.partners-carousel-wrapper');
 
-    if (partnersCarousel && partnersWrapper) {
+    if (partnersCarousel) {
         const waitForPartnerImages = () => {
             const images = partnersCarousel.querySelectorAll('img');
-            if (!images.length) {
-                return Promise.resolve();
-            }
+            if (!images.length) return Promise.resolve();
 
             const loaders = Array.from(images).map(img => {
                 if (img.complete && img.naturalWidth > 0) {
@@ -753,57 +750,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const initializePartnersCarousel = async () => {
             await waitForPartnerImages();
 
-            if (!partnersCarousel.dataset.loopReady) {
-                const originalItems = Array.from(partnersCarousel.children);
-                const singleSetWidth = partnersCarousel.scrollWidth;
+            if (partnersCarousel.dataset.loopReady) return;
 
-                if (!singleSetWidth || !originalItems.length) {
-                    return;
-                }
+            const originalItems = Array.from(partnersCarousel.children);
+            if (!originalItems.length) return;
 
-                let currentWidth = singleSetWidth;
-                const minWidth = partnersWrapper.offsetWidth * 3;
+            const singleSetWidth = partnersCarousel.scrollWidth;
+            if (!singleSetWidth) return;
 
-                while (currentWidth < minWidth) {
-                    originalItems.forEach(item => {
-                        const clone = item.cloneNode(true);
-                        clone.setAttribute('aria-hidden', 'true');
-                        partnersCarousel.appendChild(clone);
-                    });
-                    currentWidth = partnersCarousel.scrollWidth;
-                }
+            const fragment = document.createDocumentFragment();
+            originalItems.forEach(item => {
+                const clone = item.cloneNode(true);
+                clone.setAttribute('aria-hidden', 'true');
+                fragment.appendChild(clone);
+            });
 
-                partnersCarousel.dataset.loopReady = singleSetWidth;
-            }
+            partnersCarousel.appendChild(fragment);
 
-            const baseWidth = Number(partnersCarousel.dataset.loopReady) || partnersCarousel.scrollWidth;
-            if (!baseWidth) {
-                return;
-            }
+            const speed = 60; // pixels per second
+            const duration = singleSetWidth / speed;
 
-            let position = 0;
-            let lastTimestamp = 0;
-            let animationFrame;
-            const speed = 40; // pixels per second
-
-            const animate = (timestamp) => {
-                if (!lastTimestamp) lastTimestamp = timestamp;
-                const delta = timestamp - lastTimestamp;
-                lastTimestamp = timestamp;
-
-                position -= (speed * delta) / 1000;
-                if (position <= -baseWidth) {
-                    position += baseWidth;
-                }
-
-                partnersCarousel.style.transform = `translateX(${position}px)`;
-                animationFrame = requestAnimationFrame(animate);
-            };
-
-            if (!partnersCarousel.dataset.looping) {
-                partnersCarousel.dataset.looping = 'true';
-                animationFrame = requestAnimationFrame(animate);
-            }
+            partnersCarousel.style.setProperty('--partners-loop-distance', `${singleSetWidth}px`);
+            partnersCarousel.style.setProperty('--partners-loop-duration', `${duration}s`);
+            partnersCarousel.dataset.loopReady = 'true';
         };
 
         initializePartnersCarousel();
