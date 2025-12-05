@@ -3,6 +3,35 @@
   "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/careers.js": {
+      "maxDuration": 30
+    },
+    "api/contact.js": {
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/careers",
+      "methods": [
+        "POST",
+        "OPTIONS"
+      ],
+      "dest": "/api/careers.js",
+      "headers": {
+        "x-vercel-payload-limit": "52428800"
+      }
+    },
+    {
+      "src": "/api/contact",
+      "methods": [
+        "POST",
+        "OPTIONS"
+      ],
+      "dest": "/api/contact.js"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
@@ -10,4 +39,3 @@
     }
   ]
 }
-
