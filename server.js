@@ -86,7 +86,7 @@ app.post('/api/contact', async (req, res) => {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: 'AOAS WEB Receive Mail <onboarding@resend.dev>', // Note: For production, verify your domain in Resend dashboard
+      from: 'AOAS Contact Form <noreply@attainmentofficeadserv.org>',
       to: ['support@attainmentofficeadserv.org'],
       subject: `New Contact Form Submission from ${sanitizedName}`,
       html: `
@@ -225,7 +225,7 @@ app.post('/api/careers', async (req, res) => {
 
     // Prepare email options
     const emailOptions = {
-      from: 'AOAS WEB Receive Mail <onboarding@resend.dev>',
+      from: 'AOAS Career Application <noreply@attainmentofficeadserv.org>',
       to: ['support@attainmentofficeadserv.org'],
       subject: `New Career Application from ${sanitizedData.fullName}`,
 
