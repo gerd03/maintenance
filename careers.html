@@ -769,6 +769,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="coverLetter">Cover Letter</label>
+                    <input type="file" id="coverLetter" name="coverLetter" accept=".pdf,.doc,.docx">
+                    <small>PDF, Word (Max 10MB) - Optional but recommended</small>
+                </div>
+
+                <div class="form-group">
                     <label for="resume">Resume & Portfolio</label>
                     <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                         required>
@@ -778,6 +784,84 @@
                 <div class="form-group">
                     <label for="whyHireYou">Why should we consider you?</label>
                     <textarea id="whyHireYou" name="whyHireYou" rows="4" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Are you able and willing to adjust your work hours or schedule in response to changing
+                        operational needs?</label>
+                    <div class="radio-options-vertical">
+                        <label class="radio-option">
+                            <input type="radio" name="flexibleSchedule" value="Yes" required>
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="flexibleSchedule" value="No">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Are you legally authorized to work in this country?</label>
+                    <div class="radio-options-vertical">
+                        <label class="radio-option">
+                            <input type="radio" name="workAuthorization" value="Yes" required>
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="workAuthorization" value="No">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Are you willing to work on weekends or holidays if needed?</label>
+                    <div class="radio-options-vertical">
+                        <label class="radio-option">
+                            <input type="radio" name="weekendAvailability" value="Yes" required>
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="weekendAvailability" value="No">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Do you have reliable transportation to and from work?</label>
+                    <div class="radio-options-vertical">
+                        <label class="radio-option">
+                            <input type="radio" name="reliableTransportation" value="Yes" required>
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="reliableTransportation" value="No">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Have you ever been terminated from a job?</label>
+                    <div class="radio-options-vertical">
+                        <label class="radio-option">
+                            <input type="radio" name="previousTermination" value="Yes" required>
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="previousTermination" value="No">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="relevantSkills">List relevant skills for the position you're applying for</label>
+                    <textarea id="relevantSkills" name="relevantSkills" rows="4"
+                        placeholder="e.g., Customer service, Microsoft Office, Data entry, Communication skills, etc."
+                        required></textarea>
                 </div>
 
                 <div class="form-group">

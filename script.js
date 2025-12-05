@@ -958,6 +958,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const whyHireYou = document.getElementById('whyHireYou').value.trim();
         const compensation = document.getElementById('compensation').value.trim();
 
+        // New fields
+        const flexibleSchedule = document.querySelector('input[name="flexibleSchedule"]:checked')?.value;
+        const workAuthorization = document.querySelector('input[name="workAuthorization"]:checked')?.value;
+        const weekendAvailability = document.querySelector('input[name="weekendAvailability"]:checked')?.value;
+        const reliableTransportation = document.querySelector('input[name="reliableTransportation"]:checked')?.value;
+        const previousTermination = document.querySelector('input[name="previousTermination"]:checked')?.value;
+        const relevantSkills = document.getElementById('relevantSkills').value.trim();
+        const coverLetterFile = document.getElementById('coverLetter').files[0];
+
         // Get modal from main page
         const customModal = {
             modal: document.getElementById('customModal'),
@@ -1055,6 +1064,55 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Validate new Yes/No questions
+        if (!flexibleSchedule) {
+            customModal.show('Required Selection', 'Please answer if you are willing to adjust your work hours.', 'error');
+            return;
+        }
+
+        if (!workAuthorization) {
+            customModal.show('Required Selection', 'Please answer if you are legally authorized to work in this country.', 'error');
+            return;
+        }
+
+        if (!weekendAvailability) {
+            customModal.show('Required Selection', 'Please answer if you are willing to work on weekends or holidays.', 'error');
+            return;
+        }
+
+        if (!reliableTransportation) {
+            customModal.show('Required Selection', 'Please answer if you have reliable transportation to work.', 'error');
+            return;
+        }
+
+        if (!previousTermination) {
+            customModal.show('Required Selection', 'Please answer if you have ever been terminated from a job.', 'error');
+            return;
+        }
+
+        // Check if relevant skills is provided
+        if (!relevantSkills) {
+            customModal.show('Required Field', 'Please list your relevant skills for the position.', 'error');
+            return;
+        }
+
+        // Validate cover letter file if provided (optional)
+        if (coverLetterFile) {
+            if (coverLetterFile.size > maxFileSize) {
+                customModal.show('File Too Large', 'Cover letter file must be smaller than 10MB. Please compress or use a different file.', 'error');
+                return;
+            }
+            const coverLetterAllowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ];
+            if (!coverLetterAllowedTypes.includes(coverLetterFile.type)) {
+                customModal.show('Invalid File Type', 'Cover letter must be a PDF or Word document.', 'error');
+                return;
+            }
+        }
+
 
         // Disable submit button and show loading state
         const submitButton = careersForm.querySelector('button[type="submit"]');
@@ -1063,13 +1121,24 @@ document.addEventListener('DOMContentLoaded', function () {
         submitButton.textContent = 'UPLOADING...';
 
         try {
-            // Convert file to base64
+            // Convert resume file to base64
             const fileReader = new FileReader();
             const fileData = await new Promise((resolve, reject) => {
                 fileReader.onload = () => resolve(fileReader.result);
                 fileReader.onerror = () => reject(new Error('Failed to read file'));
                 fileReader.readAsDataURL(resumeFile);
             });
+
+            // Convert cover letter to base64 if provided
+            let coverLetterData = null;
+            if (coverLetterFile) {
+                const coverLetterReader = new FileReader();
+                coverLetterData = await new Promise((resolve, reject) => {
+                    coverLetterReader.onload = () => resolve(coverLetterReader.result);
+                    coverLetterReader.onerror = () => reject(new Error('Failed to read cover letter file'));
+                    coverLetterReader.readAsDataURL(coverLetterFile);
+                });
+            }
 
             // Determine API URL
             const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -1094,7 +1163,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     resumeFileName: resumeFile.name,
                     resumeFileType: resumeFile.type,
                     whyHireYou,
-                    compensation
+                    compensation,
+                    // New fields
+                    flexibleSchedule,
+                    workAuthorization,
+                    weekendAvailability,
+                    reliableTransportation,
+                    previousTermination,
+                    relevantSkills,
+                    coverLetter: coverLetterData,
+                    coverLetterFileName: coverLetterFile?.name || null,
+                    coverLetterFileType: coverLetterFile?.type || null
                 })
             });
 
@@ -1127,11 +1206,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('.option-button.selected').forEach(btn => {
                     btn.classList.remove('selected');
                 });
-
-                // Redirect to home page after 3 seconds
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 3000);
             } else {
                 customModal.show(
                     'Error',

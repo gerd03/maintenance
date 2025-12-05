@@ -53,7 +53,17 @@ module.exports = async (req, res) => {
       resumeFileName,
       resumeFileType,
       whyHireYou,
-      compensation
+      compensation,
+      // New fields
+      flexibleSchedule,
+      workAuthorization,
+      weekendAvailability,
+      reliableTransportation,
+      previousTermination,
+      relevantSkills,
+      coverLetter,
+      coverLetterFileName,
+      coverLetterFileType
     } = req.body;
 
     // Validate required fields
@@ -84,7 +94,15 @@ module.exports = async (req, res) => {
       yearsExperience: sanitizeHtml(yearsExperience),
       resumeFileName: sanitizeHtml(resumeFileName),
       whyHireYou: sanitizeHtml(whyHireYou),
-      compensation: sanitizeHtml(compensation)
+      compensation: sanitizeHtml(compensation),
+      // New fields
+      flexibleSchedule: sanitizeHtml(flexibleSchedule),
+      workAuthorization: sanitizeHtml(workAuthorization),
+      weekendAvailability: sanitizeHtml(weekendAvailability),
+      reliableTransportation: sanitizeHtml(reliableTransportation),
+      previousTermination: sanitizeHtml(previousTermination),
+      relevantSkills: sanitizeHtml(relevantSkills),
+      coverLetterFileName: sanitizeHtml(coverLetterFileName)
     };
 
     if (!resend || !RESEND_API_KEY) {
@@ -97,12 +115,19 @@ module.exports = async (req, res) => {
 
     console.log(`📧 Attempting to send career application from ${email} (${fullName})`);
 
-    // Decode base64 file data
+    // Decode base64 file data for resume
     let attachmentContent = null;
     if (resume && resumeFileName) {
       // Remove data URL prefix (e.g., "data:application/pdf;base64,")
       const base64Data = resume.split(',')[1];
       attachmentContent = Buffer.from(base64Data, 'base64');
+    }
+
+    // Decode base64 file data for cover letter
+    let coverLetterContent = null;
+    if (coverLetter && coverLetterFileName) {
+      const base64Data = coverLetter.split(',')[1];
+      coverLetterContent = Buffer.from(base64Data, 'base64');
     }
 
     // Prepare email options
@@ -159,10 +184,43 @@ module.exports = async (req, res) => {
             </table>
 
             <h3 style="color: #22c55e; border-bottom: 2px solid #22c55e; padding-bottom: 10px;">
+              Screening Questions
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #1a1a1a; width: 70%;">Willing to adjust work hours/schedule:</td>
+                <td style="padding: 10px 0; color: ${sanitizedData.flexibleSchedule === 'Yes' ? '#22c55e' : '#ef4444'}; font-weight: bold;">${sanitizedData.flexibleSchedule || 'Not answered'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #1a1a1a;">Legally authorized to work:</td>
+                <td style="padding: 10px 0; color: ${sanitizedData.workAuthorization === 'Yes' ? '#22c55e' : '#ef4444'}; font-weight: bold;">${sanitizedData.workAuthorization || 'Not answered'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #1a1a1a;">Willing to work weekends/holidays:</td>
+                <td style="padding: 10px 0; color: ${sanitizedData.weekendAvailability === 'Yes' ? '#22c55e' : '#ef4444'}; font-weight: bold;">${sanitizedData.weekendAvailability || 'Not answered'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #1a1a1a;">Has reliable transportation:</td>
+                <td style="padding: 10px 0; color: ${sanitizedData.reliableTransportation === 'Yes' ? '#22c55e' : '#ef4444'}; font-weight: bold;">${sanitizedData.reliableTransportation || 'Not answered'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #1a1a1a;">Previously terminated from a job:</td>
+                <td style="padding: 10px 0; color: ${sanitizedData.previousTermination === 'No' ? '#22c55e' : '#ef4444'}; font-weight: bold;">${sanitizedData.previousTermination || 'Not answered'}</td>
+              </tr>
+            </table>
+
+            <h3 style="color: #22c55e; border-bottom: 2px solid #22c55e; padding-bottom: 10px;">
               Experience & Skills
             </h3>
             <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
               <p style="margin: 0; color: #4b5563; white-space: pre-wrap; line-height: 1.6;">${sanitizedData.experience || 'Not provided'}</p>
+            </div>
+
+            <h3 style="color: #22c55e; border-bottom: 2px solid #22c55e; padding-bottom: 10px;">
+              Relevant Skills
+            </h3>
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+              <p style="margin: 0; color: #4b5563; white-space: pre-wrap; line-height: 1.6;">${sanitizedData.relevantSkills || 'Not provided'}</p>
             </div>
 
             <h3 style="color: #22c55e; border-bottom: 2px solid #22c55e; padding-bottom: 10px;">
@@ -173,11 +231,15 @@ module.exports = async (req, res) => {
             </div>
 
             <h3 style="color: #22c55e; border-bottom: 2px solid #22c55e; padding-bottom: 10px;">
-              Resume & Portfolio
+              Attachments
             </h3>
             <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
               <p style="margin: 0; color: #1a1a1a; font-weight: bold;">Resume Attached:</p>
               <p style="margin: 5px 0 0 0; color: #4b5563;">${sanitizedData.resumeFileName || 'resume'}</p>
+              ${sanitizedData.coverLetterFileName ? `
+              <p style="margin: 15px 0 0 0; color: #1a1a1a; font-weight: bold;">Cover Letter Attached:</p>
+              <p style="margin: 5px 0 0 0; color: #4b5563;">${sanitizedData.coverLetterFileName}</p>
+              ` : ''}
             </div>
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
@@ -207,9 +269,21 @@ Availability: ${availability || 'Not specified'}
 Years of Experience: ${yearsExperience || 'Not specified'}
 Expected Compensation: ${compensation || 'Not specified'}
 
+SCREENING QUESTIONS
+-------------------
+Willing to adjust work hours/schedule: ${flexibleSchedule || 'Not answered'}
+Legally authorized to work: ${workAuthorization || 'Not answered'}
+Willing to work weekends/holidays: ${weekendAvailability || 'Not answered'}
+Has reliable transportation: ${reliableTransportation || 'Not answered'}
+Previously terminated from a job: ${previousTermination || 'Not answered'}
+
 EXPERIENCE & SKILLS
 -------------------
 ${experience || 'Not provided'}
+
+RELEVANT SKILLS
+---------------
+${relevantSkills || 'Not provided'}
 
 WHY HIRE THIS CANDIDATE?
 ------------------------
@@ -221,12 +295,21 @@ Received on ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })} (
       `,
     };
 
-    // Add attachment if available
+    // Add attachments
+    emailOptions.attachments = [];
+
     if (attachmentContent && resumeFileName) {
-      emailOptions.attachments = [{
+      emailOptions.attachments.push({
         filename: resumeFileName,
         content: attachmentContent
-      }];
+      });
+    }
+
+    if (coverLetterContent && coverLetterFileName) {
+      emailOptions.attachments.push({
+        filename: coverLetterFileName,
+        content: coverLetterContent
+      });
     }
 
     // Send email using Resend
@@ -262,3 +345,4 @@ Received on ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })} (
     });
   }
 };
+
