@@ -1,3 +1,33 @@
+// =====================================================
+// PERFORMANCE DETECTION FOR LOW-END DEVICES
+// =====================================================
+const isLowEndDevice = (() => {
+    // Check for low memory (navigator.deviceMemory is in GB, undefined on unsupported)
+    const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 2;
+    // Check for low CPU cores
+    const lowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2;
+    // Check for mobile/touch device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Check for slow connection
+    const slowConnection = navigator.connection &&
+        (navigator.connection.saveData ||
+            navigator.connection.effectiveType === 'slow-2g' ||
+            navigator.connection.effectiveType === '2g');
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Consider device low-end if any 2+ conditions are true, or reduced motion is preferred
+    const lowEndScore = [lowMemory, lowCPU, isMobile, slowConnection].filter(Boolean).length;
+    const isLowEnd = prefersReducedMotion || lowEndScore >= 2;
+
+    if (isLowEnd) {
+        console.log('Low-end device detected - disabling heavy animations');
+        document.documentElement.classList.add('low-end-device');
+    }
+
+    return isLowEnd;
+})();
+
 // Hero Slideshow Functionality
 document.addEventListener('DOMContentLoaded', function () {
     const slides = document.querySelectorAll('.hero-slide');
@@ -39,86 +69,108 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (heroDescription) {
-        // Description has typing animation
-        // Store the original HTML structure
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = heroDescription.innerHTML;
-        const textNodes = [];
+        // Skip typing animation on low-end devices - just show the content
+        if (isLowEndDevice) {
+            heroDescription.style.opacity = '1';
+        } else {
+            // Description has typing animation
+            // Store the original HTML structure
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = heroDescription.innerHTML;
+            const textNodes = [];
 
-        // Extract text content while preserving HTML structure
-        function extractText(node, parentTag = '') {
-            if (node.nodeType === Node.TEXT_NODE) {
-                textNodes.push({
-                    type: 'text',
-                    content: node.textContent,
-                    parentTag: parentTag
-                });
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                const tagName = node.tagName.toLowerCase();
-                const openTag = `<${tagName}${node.className ? ` class="${node.className}"` : ''}>`;
-                const closeTag = `</${tagName}>`;
+            // Extract text content while preserving HTML structure
+            function extractText(node, parentTag = '') {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    textNodes.push({
+                        type: 'text',
+                        content: node.textContent,
+                        parentTag: parentTag
+                    });
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    const tagName = node.tagName.toLowerCase();
+                    const openTag = `<${tagName}${node.className ? ` class="${node.className}"` : ''}>`;
+                    const closeTag = `</${tagName}>`;
 
-                textNodes.push({
-                    type: 'openTag',
-                    content: openTag
-                });
+                    textNodes.push({
+                        type: 'openTag',
+                        content: openTag
+                    });
 
-                Array.from(node.childNodes).forEach(child => {
-                    extractText(child, tagName);
-                });
+                    Array.from(node.childNodes).forEach(child => {
+                        extractText(child, tagName);
+                    });
 
-                textNodes.push({
-                    type: 'closeTag',
-                    content: closeTag
-                });
-            }
-        }
-
-        Array.from(tempDiv.childNodes).forEach(node => {
-            extractText(node);
-        });
-
-        // Clear the description
-        heroDescription.innerHTML = '';
-        heroDescription.style.opacity = '1';
-
-        let nodeIndex = 0;
-        let charIndex = 0;
-        const typingSpeed = 20; // milliseconds per character
-
-        function typeNext() {
-            if (nodeIndex >= textNodes.length) {
-                return;
-            }
-
-            const currentNode = textNodes[nodeIndex];
-
-            if (currentNode.type === 'openTag' || currentNode.type === 'closeTag') {
-                heroDescription.innerHTML += currentNode.content;
-                nodeIndex++;
-                return typeNext();
-            }
-
-            if (currentNode.type === 'text') {
-                if (charIndex < currentNode.content.length) {
-                    heroDescription.innerHTML += currentNode.content[charIndex];
-                    charIndex++;
-                    setTimeout(typeNext, typingSpeed);
-                } else {
-                    charIndex = 0;
-                    nodeIndex++;
-                    return typeNext();
+                    textNodes.push({
+                        type: 'closeTag',
+                        content: closeTag
+                    });
                 }
-            } else {
-                nodeIndex++;
-                return typeNext();
             }
-        }
 
-        // Start typing after title appears
-        setTimeout(() => {
-            typeNext();
-        }, 1000);
+            Array.from(tempDiv.childNodes).forEach(node => {
+                extractText(node);
+            });
+
+            // Clear the description
+            heroDescription.innerHTML = '';
+            heroDescription.style.opacity = '1';
+
+            let nodeIndex = 0;
+            let charIndex = 0;
+            const typingSpeed = 5; // milliseconds per character (fast typing - ~3 seconds total)
+            let lastTime = 0;
+
+            function typeNext(timestamp) {
+                // Use requestAnimationFrame for smoother, consistent timing
+                if (!lastTime) lastTime = timestamp;
+
+                const elapsed = timestamp - lastTime;
+
+                // Only type when enough time has passed
+                if (elapsed < typingSpeed) {
+                    requestAnimationFrame(typeNext);
+                    return;
+                }
+
+                lastTime = timestamp;
+
+                if (nodeIndex >= textNodes.length) {
+                    return;
+                }
+
+                const currentNode = textNodes[nodeIndex];
+
+                if (currentNode.type === 'openTag' || currentNode.type === 'closeTag') {
+                    heroDescription.innerHTML += currentNode.content;
+                    nodeIndex++;
+                    // Continue immediately for tags (no delay)
+                    requestAnimationFrame(typeNext);
+                    return;
+                }
+
+                if (currentNode.type === 'text') {
+                    if (charIndex < currentNode.content.length) {
+                        heroDescription.innerHTML += currentNode.content[charIndex];
+                        charIndex++;
+                        requestAnimationFrame(typeNext);
+                    } else {
+                        charIndex = 0;
+                        nodeIndex++;
+                        // Continue immediately when moving to next node
+                        requestAnimationFrame(typeNext);
+                    }
+                } else {
+                    nodeIndex++;
+                    requestAnimationFrame(typeNext);
+                }
+            }
+
+            // Start typing after title appears
+            setTimeout(() => {
+                requestAnimationFrame(typeNext);
+            }, 1000);
+        }
     }
 
     // Why Choose Us Image Carousel
@@ -263,6 +315,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // FAQ Accordion Functionality
 document.addEventListener('DOMContentLoaded', function () {
+    // Handle hash navigation on page load (for cross-page links like from careers.html)
+    if (window.location.hash) {
+        const hash = window.location.hash;
+        const target = document.querySelector(hash);
+
+        if (target) {
+            // Wait a moment for the page to fully load
+            setTimeout(() => {
+                const headerOffset = 100; // Offset for fixed header
+                const elementPosition = target.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+    }
+
     const faqItems = document.querySelectorAll('.faq-item');
 
     faqItems.forEach(item => {
@@ -795,6 +867,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const partnersCarousel = document.querySelector('.partners-carousel');
 
     if (partnersCarousel) {
+        // Force load all partner images (remove lazy loading)
+        const partnerImages = partnersCarousel.querySelectorAll('img');
+        partnerImages.forEach(img => {
+            img.loading = 'eager';
+        });
+
         const waitForPartnerImages = () => {
             const images = partnersCarousel.querySelectorAll('img');
             if (!images.length) return Promise.resolve();
@@ -807,6 +885,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     const done = () => resolve();
                     img.addEventListener('load', done, { once: true });
                     img.addEventListener('error', done, { once: true });
+                    // Timeout fallback in case image never loads
+                    setTimeout(done, 3000);
                 });
             });
 
@@ -814,6 +894,9 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const initializePartnersCarousel = async () => {
+            // Pause animation during setup
+            partnersCarousel.style.animationPlayState = 'paused';
+
             await waitForPartnerImages();
 
             if (partnersCarousel.dataset.loopReady) return;
@@ -824,21 +907,29 @@ document.addEventListener('DOMContentLoaded', function () {
             const singleSetWidth = partnersCarousel.scrollWidth;
             if (!singleSetWidth) return;
 
+            // Clone items twice for seamless infinite loop
             const fragment = document.createDocumentFragment();
-            originalItems.forEach(item => {
-                const clone = item.cloneNode(true);
-                clone.setAttribute('aria-hidden', 'true');
-                fragment.appendChild(clone);
-            });
+            for (let i = 0; i < 2; i++) {
+                originalItems.forEach(item => {
+                    const clone = item.cloneNode(true);
+                    clone.setAttribute('aria-hidden', 'true');
+                    fragment.appendChild(clone);
+                });
+            }
 
             partnersCarousel.appendChild(fragment);
 
-            const speed = 60; // pixels per second
+            const speed = 50; // pixels per second (slower = smoother)
             const duration = singleSetWidth / speed;
 
             partnersCarousel.style.setProperty('--partners-loop-distance', `${singleSetWidth}px`);
             partnersCarousel.style.setProperty('--partners-loop-duration', `${duration}s`);
             partnersCarousel.dataset.loopReady = 'true';
+
+            // Resume animation after a brief delay
+            requestAnimationFrame(() => {
+                partnersCarousel.style.animationPlayState = 'running';
+            });
         };
 
         initializePartnersCarousel();

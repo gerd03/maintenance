@@ -61,33 +61,136 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: 120px;
+    /* Account for fixed header height */
 }
 
-/* Performance Optimizations for Low-End Devices */
+/* ==============================================
+   AGGRESSIVE PERFORMANCE OPTIMIZATIONS FOR MOBILE
+   Targets low-end devices (1GB RAM phones)
+   ============================================== */
+
+/* Disable ALL expensive effects on mobile */
 @media (max-width: 768px) {
 
-    /* Reduce expensive effects on mobile */
-    .hero-background-overlay {
-        animation: none !important;
+    /* CRITICAL: Disable backdrop-filter completely - causes constant GPU repainting */
+    *,
+    *::before,
+    *::after {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
-    /* Optimize backdrop filters */
+    /* Disable ALL CSS animations on mobile for performance */
+    .hero-background-overlay,
+    .hero-title,
     .hero-card,
-    .contact-form-wrapper {
-        backdrop-filter: blur(50px) !important;
-        -webkit-backdrop-filter: blur(50px) !important;
+    .about-description,
+    .mission-vision-description,
+    .value-card,
+    .faq-item,
+    [class*="animate"] {
+        animation: none !important;
+        animation-delay: 0s !important;
+        transition: opacity 0.2s ease, transform 0.2s ease !important;
     }
 
-    /* Reduce box shadows for better performance */
+    /* Remove complex box shadows - use simple ones */
     .hero-card,
     .mission-vision-card,
-    .contact-form-wrapper {
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+    .contact-form-wrapper,
+    .value-card,
+    .about-text,
+    .btn-primary {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
     }
 
-    /* Disable parallax on mobile */
-    .hero-slideshow {
+    /* Disable parallax and transforms on mobile */
+    .hero-slideshow,
+    .hero-card,
+    .btn-primary:hover {
         transform: none !important;
+    }
+
+    /* Hide overlay on mobile for clearer visuals */
+    .hero-background-overlay {
+        display: none !important;
+    }
+
+    /* Add slight blur to hero slide images on mobile */
+    .hero-slide img,
+    .hero-slide.active img {
+        filter: blur(2px) !important;
+        -webkit-filter: blur(2px) !important;
+    }
+
+    /* Disable hover effects on touch devices */
+    .btn-primary:hover,
+    .hero-card:hover,
+    .value-card:hover,
+    .mission-vision-card:hover {
+        transform: none !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* SOLID WHITE BACKGROUND for hero card - clear readable text */
+    .hero-card {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+    }
+
+    /* Make hero text fully opaque and clear */
+    .hero-title,
+    .hero-description,
+    .hero-card * {
+        opacity: 1 !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+        text-shadow: none !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        transform: translateZ(0) !important;
+        backface-visibility: hidden !important;
+    }
+
+    /* Ensure highlighted words stay green on mobile */
+    .hero-card .text-highlight-orange,
+    .hero-card .text-highlight-green {
+        color: #005f2b !important;
+    }
+
+    .hero-card {
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        transform: translateZ(0) !important;
+        backface-visibility: hidden !important;
+        border: 2px solid #22c55e !important;
+    }
+
+    /* Use simpler backgrounds */
+    body {
+        background: #f8fdf8 !important;
+        background-attachment: scroll !important;
+    }
+
+    body::before {
+        display: none !important;
+    }
+
+    /* Optimize section backgrounds */
+    .section:not(.section-light):not(.section-dark),
+    .section-light {
+        background: #ffffff !important;
+        backdrop-filter: none !important;
+    }
+
+    /* Enable hardware acceleration for scrolling */
+    .hero,
+    .section,
+    .container {
+        will-change: auto;
+        contain: layout style;
     }
 }
 
@@ -101,6 +204,40 @@ html {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* JavaScript-detected low-end device - disable ALL heavy effects */
+.low-end-device,
+.low-end-device *,
+.low-end-device *::before,
+.low-end-device *::after {
+    animation: none !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.1s !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+}
+
+.low-end-device body {
+    background: #f8fdf8 !important;
+}
+
+.low-end-device body::before {
+    display: none !important;
+}
+
+.low-end-device .hero-slide img {
+    filter: none !important;
+}
+
+.low-end-device .hero-card,
+.low-end-device .mission-vision-card,
+.low-end-device .value-card,
+.low-end-device .contact-form-wrapper {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
 }
 
 body {
@@ -379,14 +516,14 @@ body::before {
     object-fit: cover;
     object-position: center center;
     background: var(--light-bg);
-    filter: blur(3px);
-    -webkit-filter: blur(3px);
+    filter: blur(2px);
+    -webkit-filter: blur(2px);
     transition: filter 0.5s ease;
 }
 
 .hero-slide.active img {
-    filter: blur(10px);
-    -webkit-filter: blur(10px);
+    filter: blur(2px);
+    -webkit-filter: blur(2px);
 }
 
 .hero-background-overlay {
@@ -435,19 +572,16 @@ body::before {
 
 .hero-card {
     max-width: 650px;
-    background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.2) 0%,
-            rgba(255, 255, 255, 0.12) 50%,
-            rgba(255, 255, 255, 0.18) 100%);
+    background: #ffffff;
     padding: var(--spacing-xxl) var(--spacing-xl);
     border-radius: 24px;
     box-shadow:
         0 25px 80px rgba(0, 0, 0, 0.15),
         0 10px 30px rgba(34, 197, 94, 0.1),
-        inset 0 1px 0 rgb(0, 0, 0);
-    backdrop-filter: blur(500px) saturate(160%);
-    -webkit-backdrop-filter: blur(14px) saturate(160%);
-    border: 2px solid rgb(0, 0, 0);
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 2px solid #22c55e;
     transform: translateY(0);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     /* Removed floating animation to prevent text flickering */
@@ -481,12 +615,9 @@ body::before {
     box-shadow:
         0 35px 100px rgba(34, 197, 94, 0.2),
         0 15px 40px rgba(255, 109, 31, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    border-color: rgba(255, 255, 255, 0.5);
-    background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(255, 255, 255, 0.2) 50%,
-            rgba(255, 255, 255, 0.25) 100%);
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border-color: #16a34a;
+    background: #ffffff;
 }
 
 .hero-title {
@@ -494,38 +625,17 @@ body::before {
     font-weight: var(--font-weight-extrabold);
     line-height: 1.1;
     margin-bottom: var(--spacing-md);
-    color: var(--text-dark);
-    text-shadow:
-        0 2px 10px rgba(255, 255, 255, 0.8),
-        0 1px 5px rgba(255, 255, 255, 0.6);
+    color: #1a1a1a;
+    text-shadow: none;
     letter-spacing: -1px;
     opacity: 0;
-    animation: fadeInUp 1s ease-out 0.3s forwards, titleGlow 3s ease-in-out infinite 1.3s;
-}
-
-@keyframes titleGlow {
-
-    0%,
-    100% {
-        text-shadow:
-            0 2px 10px rgba(255, 255, 255, 0.8),
-            0 1px 5px rgba(255, 255, 255, 0.6),
-            0 0 20px rgba(34, 197, 94, 0.3);
-    }
-
-    50% {
-        text-shadow:
-            0 2px 10px rgba(255, 255, 255, 0.8),
-            0 1px 5px rgba(255, 255, 255, 0.6),
-            0 0 30px rgba(34, 197, 94, 0.5),
-            0 0 40px rgba(255, 109, 31, 0.3);
-    }
+    animation: fadeInUp 1s ease-out 0.3s forwards;
 }
 
 .hero-description {
     font-size: 1.15rem;
     line-height: 1.9;
-    color: var(--text-dark);
+    color: #1a1a1a;
     margin-bottom: var(--spacing-lg);
     font-weight: var(--font-weight-medium);
     opacity: 1;
@@ -690,7 +800,7 @@ body::before {
             rgba(255, 255, 255, 0.6) 0%,
             rgba(240, 253, 244, 0.3) 100%);
     border-radius: 16px;
-    border-left: 4px solid var(--primary-green);
+    border: 2px solid #22c55e;
     box-shadow: 0 4px 15px rgba(34, 197, 94, 0.08);
     transition: all 0.3s ease;
 }
@@ -723,15 +833,15 @@ body::before {
 .about-description:hover {
     transform: translateX(5px) translateY(0);
     box-shadow: 0 6px 20px rgba(34, 197, 94, 0.12);
-    border-left-color: var(--orange-vibrant);
+    border-color: #fb923c;
 }
 
 .about-description:nth-child(2) {
-    border-left-color: var(--orange-vibrant);
+    border-color: #fb923c;
 }
 
 .about-description:nth-child(3) {
-    border-left-color: var(--primary-green);
+    border-color: #22c55e;
 }
 
 .about-description strong {
@@ -927,10 +1037,18 @@ body::before {
     padding: var(--spacing-xl);
     border-radius: 24px;
     box-shadow: 0 18px 30px rgba(15, 23, 42, 0.1);
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    border: 2px solid #d1d5db;
     position: relative;
     overflow: hidden;
     text-align: left;
+}
+
+.mission-vision-card:nth-child(1) {
+    border: 2px solid #22c55e;
+}
+
+.mission-vision-card:nth-child(2) {
+    border: 2px solid #fb923c;
 }
 
 .mission-vision-card::before {
@@ -949,23 +1067,7 @@ body::before {
     background: radial-gradient(circle, rgba(251, 146, 60, 0.2), transparent 65%);
 }
 
-.mission-vision-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border: 2px solid transparent;
-    transition: border-color 0.3s ease;
-    z-index: 0;
-}
-
-.mission-vision-card:nth-child(1)::after {
-    border-color: rgba(34, 197, 94, 0.25);
-}
-
-.mission-vision-card:nth-child(2)::after {
-    border-color: rgba(251, 146, 60, 0.25);
-}
+/* Removed duplicate ::after border - now using single solid border on card */
 
 .mission-vision-card::before {
     content: '';
@@ -1213,6 +1315,7 @@ body::before {
     font-weight: var(--font-weight-bold);
     margin-bottom: var(--spacing-sm);
     color: var(--text-dark);
+    white-space: nowrap;
 }
 
 .value-description {
@@ -1241,8 +1344,11 @@ body::before {
     display: flex;
     gap: var(--spacing-sm);
     width: max-content;
-    will-change: transform;
     animation: partners-scroll var(--partners-loop-duration, 24s) linear infinite;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 
 .partners-carousel:hover {
@@ -1432,23 +1538,16 @@ body::before {
     background: linear-gradient(135deg,
             rgba(255, 255, 255, 0.95) 0%,
             rgba(240, 253, 244, 0.5) 100%);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow:
-        0 4px 20px rgba(34, 197, 94, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(34, 197, 94, 0.1);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 2px solid #22c55e;
+    transition: all 0.2s ease;
 }
 
 .faq-item:hover {
-    transform: translateY(-4px);
-    box-shadow:
-        0 8px 30px rgba(34, 197, 94, 0.15),
-        0 4px 12px rgba(251, 146, 60, 0.1);
-    border-color: rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.12);
+    border-color: #16a34a;
 }
 
 .faq-question {
@@ -1456,16 +1555,16 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-lg) var(--spacing-xl);
+    padding: var(--spacing-md) var(--spacing-lg);
     background: transparent;
     border: none;
     text-align: left;
     font-family: var(--font-family);
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: var(--font-weight-semibold);
     color: var(--text-dark);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 0.2s ease;
     position: relative;
 }
 
@@ -1477,22 +1576,21 @@ body::before {
     bottom: 0;
     width: 4px;
     background: var(--primary-green);
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
 .faq-question:hover {
     color: var(--primary-green);
-    padding-left: calc(var(--spacing-xl) + 8px);
 }
 
 .faq-question:hover::before {
-    transform: scaleY(1);
+    opacity: 1;
 }
 
 .faq-icon {
     font-size: 1rem;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease-out;
     color: var(--primary-green);
     font-weight: var(--font-weight-bold);
     min-width: 24px;
@@ -1502,25 +1600,21 @@ body::before {
 }
 
 .faq-item {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .faq-item:hover {
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.1);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
 }
 
 .faq-item.active {
-    box-shadow:
-        0 12px 40px rgba(34, 197, 94, 0.2),
-        0 6px 20px rgba(251, 146, 60, 0.15);
-    border-color: var(--primary-green);
-    background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.98) 0%,
-            rgba(240, 253, 244, 0.7) 100%);
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.15);
+    border-color: #16a34a;
+    background: rgba(255, 255, 255, 0.98);
 }
 
 .faq-item.active .faq-question::before {
-    transform: scaleY(1);
+    opacity: 1;
 }
 
 .faq-item.active .faq-icon {
@@ -1529,26 +1623,95 @@ body::before {
 }
 
 .faq-answer {
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
     overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease,
-        padding 0.3s ease;
+    transition: grid-template-rows 0.25s ease-out, opacity 0.2s ease-out;
     opacity: 0;
-    padding: 0;
+}
+
+.faq-answer>div,
+.faq-answer>p {
+    overflow: hidden;
 }
 
 .faq-item.active .faq-answer {
-    max-height: 500px;
+    grid-template-rows: 1fr;
     opacity: 1;
-    padding-top: var(--spacing-sm);
 }
 
 .faq-answer p {
-    padding: 0 var(--spacing-xl) var(--spacing-lg);
+    padding: 0 var(--spacing-lg) var(--spacing-md);
     color: var(--text-light);
-    line-height: 1.8;
-    font-size: 0.95rem;
+    line-height: 1.7;
+    font-size: 0.9rem;
+}
+
+/* FAQ Mobile Optimization */
+@media (max-width: 768px) {
+    .faq-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .faq-list:first-child .faq-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .faq-list+.faq-list {
+        margin-top: -2px;
+    }
+
+    .faq-item {
+        border-radius: 10px;
+        transition: none;
+    }
+
+    .faq-item:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .faq-question {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.85rem;
+    }
+
+    .faq-question::before {
+        display: none;
+    }
+
+    .faq-icon {
+        font-size: 0.85rem;
+        min-width: 20px;
+    }
+
+    .faq-answer {
+        transition: grid-template-rows 0.2s ease-out, opacity 0.15s ease-out;
+    }
+
+    .faq-answer p {
+        padding: 0 var(--spacing-md) var(--spacing-sm);
+        font-size: 0.8rem;
+        line-height: 1.6;
+    }
+
+    .faq-header {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .section-title-left {
+        font-size: 1.75rem;
+    }
 }
 
 /* Feedback Section */
@@ -1606,7 +1769,7 @@ body::before {
     border-radius: 20px;
     backdrop-filter: blur(10px) saturate(120%);
     -webkit-backdrop-filter: blur(10px) saturate(120%);
-    border: 2px solid rgba(34, 197, 94, 0.2);
+    border: 2px solid #047537;
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.25),
         0 10px 25px rgba(34, 197, 94, 0.15),
@@ -1664,7 +1827,7 @@ body::before {
     font-size: 1rem;
     color: var(--text-dark);
     background-color: var(--white);
-    border: 2px solid rgba(34, 197, 94, 0.2);
+    border: 2px solid #037062;
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(34, 197, 94, 0.1);
@@ -2125,6 +2288,64 @@ body::before {
 
     .mission-vision-title {
         font-size: 1.35rem;
+    }
+
+    /* Reduce gaps between sections on mobile */
+    .section {
+        padding: 8px 0;
+    }
+
+    .section-title-center {
+        margin-bottom: 8px;
+    }
+
+    .values-grid {
+        margin-top: 8px;
+        gap: 8px;
+    }
+
+    .partners-carousel-wrapper {
+        margin-top: 4px;
+        margin-bottom: 4px;
+    }
+
+    .why-grid {
+        margin-top: 8px;
+    }
+
+    /* Reduce mission/about section bottom margin */
+    .about-text {
+        margin-bottom: 0;
+    }
+
+    .mission-vision-card {
+        margin-bottom: 8px;
+    }
+
+    /* Drastically reduce partner logo container height */
+    .partner-logo {
+        min-height: 100px;
+        min-width: 150px;
+        padding: 4px;
+    }
+
+    .partner-logo img {
+        max-height: 150px;
+    }
+
+    /* Pull sections closer together */
+    #partners {
+        padding: 4px 0;
+        margin-top: -8px;
+    }
+
+    #partners .section-title-center {
+        margin-bottom: 4px;
+    }
+
+    /* Reduce gap before Why Choose Us */
+    .section:has(.why-grid) {
+        padding-top: 8px;
     }
 }
 
@@ -2688,7 +2909,7 @@ body::before {
     padding: 0.875rem 1rem;
     font-family: var(--font-family);
     font-size: 1rem;
-    border: 2px solid #E5E7EB;
+    border: 1px solid #000000;
     border-radius: 8px;
     background: var(--white);
     color: var(--text-dark);
@@ -2722,7 +2943,7 @@ body::before {
     border-radius: 8px;
     cursor: pointer;
     transition: all var(--transition-normal);
-    border: 2px solid transparent;
+    border: 1px solid #000000;
 }
 
 .radio-option:hover {
@@ -2735,6 +2956,9 @@ body::before {
     height: 18px;
     accent-color: var(--primary-green);
     cursor: pointer;
+    align-self: center;
+    position: relative;
+    top: 5px;
 }
 
 .radio-option input[type="radio"]:checked+.radio-label {
@@ -2750,6 +2974,7 @@ body::before {
     flex: 1;
     cursor: pointer;
     color: var(--text-dark);
+    align-self: center;
 }
 
 /* Button Options */
