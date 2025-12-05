@@ -1029,10 +1029,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Validate file size (10MB max)
-        const maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
+        // Validate file size (3MB max - reduced for Vercel serverless function limits)
+        const maxFileSize = 3 * 1024 * 1024; // 3MB in bytes
         if (resumeFile.size > maxFileSize) {
-            customModal.show('File Too Large', 'Resume file must be smaller than 10MB. Please compress or use a different file.', 'error');
+            customModal.show('File Too Large', 'Resume file must be smaller than 3MB. Please compress your file or use a PDF format.', 'error');
             return;
         }
 
@@ -1099,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Validate cover letter file if provided (optional)
         if (coverLetterFile) {
             if (coverLetterFile.size > maxFileSize) {
-                customModal.show('File Too Large', 'Cover letter file must be smaller than 10MB. Please compress or use a different file.', 'error');
+                customModal.show('File Too Large', 'Cover letter file must be smaller than 3MB. Please compress your file or use a PDF format.', 'error');
                 return;
             }
             const coverLetterAllowedTypes = [
