@@ -35,9 +35,9 @@ module.exports = async (req, res) => {
 
   // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      success: false, 
-      error: 'Method not allowed' 
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed'
     });
   }
 
@@ -46,18 +46,18 @@ module.exports = async (req, res) => {
 
     // Validate required fields
     if (!name || !email) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Name and email are required fields.' 
+      return res.status(400).json({
+        success: false,
+        error: 'Name and email are required fields.'
       });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Please enter a valid email address.' 
+      return res.status(400).json({
+        success: false,
+        error: 'Please enter a valid email address.'
       });
     }
 
@@ -67,9 +67,9 @@ module.exports = async (req, res) => {
 
     if (!resend || !RESEND_API_KEY) {
       console.error('❌ Resend API key not configured');
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Email service not configured. Please set RESEND_API_KEY environment variable.' 
+      return res.status(500).json({
+        success: false,
+        error: 'Email service not configured. Please set RESEND_API_KEY environment variable.'
       });
     }
 
@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: 'AOAS WEB Receive Mail <onboarding@resend.dev>',
+      from: 'AOAS Contact Form <noreply@attainmentofficeadserv.org>',
       to: ['alejandro@attainmentofficeadserv.org', 'support@attainmentofficeadserv.org'],
       subject: `New Contact Form Submission from ${sanitizedName}`,
       html: `
@@ -109,9 +109,9 @@ This email was sent from the AOAS WEB contact form.
     if (error) {
       console.error('❌ Resend API error:', JSON.stringify(error, null, 2));
       console.error('Error details:', error.message || error);
-      return res.status(500).json({ 
-        success: false, 
-        error: error.message || 'Failed to send email. Please check your Resend API key and try again.' 
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to send email. Please check your Resend API key and try again.'
       });
     }
 
@@ -121,18 +121,18 @@ This email was sent from the AOAS WEB contact form.
       console.log('⚠️ Email sent but no ID returned from Resend');
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Thank you for your message! We will get back to you within 24-48 hours.',
-      emailId: data?.id 
+      emailId: data?.id
     });
 
   } catch (error) {
     console.error('❌ Server error:', error);
     console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'An unexpected error occurred. Please try again later.' 
+    res.status(500).json({
+      success: false,
+      error: error.message || 'An unexpected error occurred. Please try again later.'
     });
   }
 };
