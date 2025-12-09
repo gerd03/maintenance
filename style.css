@@ -1030,6 +1030,8 @@ body::before {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--spacing-lg);
     margin-top: var(--spacing-lg);
+    visibility: visible;
+    opacity: 1;
 }
 
 .mission-vision-card {
@@ -1061,26 +1063,11 @@ body::before {
     right: -60px;
     z-index: 0;
     opacity: 0.5;
+    pointer-events: none;
 }
 
 .mission-vision-card:nth-child(2)::before {
     background: radial-gradient(circle, rgba(251, 146, 60, 0.2), transparent 65%);
-}
-
-/* Removed duplicate ::after border - now using single solid border on card */
-
-.mission-vision-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-            transparent,
-            rgba(34, 197, 94, 0.08),
-            transparent);
-    transition: left 0.6s;
 }
 
 .mission-vision-card:hover::before {
@@ -1272,6 +1259,8 @@ body::before {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
+    visibility: visible;
+    opacity: 1;
 }
 
 .value-card {
@@ -1332,8 +1321,8 @@ body::before {
     margin-bottom: var(--spacing-md);
     position: relative;
     width: 100%;
-    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
 }
 
 .partners-carousel-wrapper::-webkit-scrollbar {
@@ -1342,7 +1331,7 @@ body::before {
 
 .partners-carousel {
     display: flex;
-    gap: var(--spacing-sm);
+    gap: 0.5rem;
     width: max-content;
     animation: partners-scroll var(--partners-loop-duration, 24s) linear infinite;
     backface-visibility: hidden;
@@ -1356,24 +1345,15 @@ body::before {
 }
 
 .partner-logo {
-    flex-shrink: 0;
-}
-
-.partner-logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-sm);
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    transition: none;
-    min-height: 180px;
-    min-width: 220px;
+    width: 200px;
+    height: 150px;
     flex-shrink: 0;
+    background: transparent;
     border: none;
-    position: relative;
-    overflow: visible;
+    padding: 10px;
 }
 
 .partner-placeholder {
@@ -1384,8 +1364,8 @@ body::before {
 }
 
 .partner-logo img {
-    max-width: 220px;
-    max-height: 120px;
+    max-width: 100%;
+    max-height: 100%;
     width: auto;
     height: auto;
     object-fit: contain;
