@@ -3,6 +3,23 @@
   "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/2018/08/23/the-journey-begins",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/2018/08/23/the-journey-begins/",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/2018/(.*)",
+      "destination": "/",
+      "statusCode": 301
+    }
+  ],
   "functions": {
     "api/careers.js": {
       "maxDuration": 30
