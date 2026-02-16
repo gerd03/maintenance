@@ -5,6 +5,27 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.attainmentofficeadserv.org"
+        }
+      ],
+      "destination": "https://attainmentofficeadserv.org/$1",
+      "statusCode": 301
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/careers.html",
+      "destination": "/careers",
+      "statusCode": 301
+    },
+    {
       "source": "/2018/08/23/the-journey-begins",
       "destination": "/",
       "statusCode": 301
@@ -32,10 +53,6 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }

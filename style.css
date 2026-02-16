@@ -340,6 +340,8 @@ body::before {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    text-decoration: none;
+    color: inherit;
 }
 
 .logo-icon {

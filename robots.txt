@@ -1,35 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
 
-# Allow all crawlers full access
 User-agent: *
 Allow: /
-
-# Specifically welcome Google
-User-agent: Googlebot
-Allow: /
-
-# Welcome Bing
-User-agent: Bingbot
-Allow: /
-
-# Sitemap location
-Sitemap: https://attainmentofficeadserv.org/sitemap.xml
-
-# Crawl-delay (optional, be gentle on server)
-# Crawl-delay: 1
-
-# Block access to development/utility files (if any)
-Disallow: /node_modules/
 Disallow: /.git/
 Disallow: /.env
+Disallow: /node_modules/
 Disallow: /api/
-Disallow: /*.js$
-Disallow: /server.js
 
-# Allow important assets
-Allow: /style.css
-Allow: /script.js
-Allow: /*.png$
-Allow: /*.jpg$
-Allow: /*.webp$
-Allow: /*.ico$
+Sitemap: https://attainmentofficeadserv.org/sitemap.xml
