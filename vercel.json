@@ -5,17 +5,6 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.attainmentofficeadserv.org"
-        }
-      ],
-      "destination": "https://attainmentofficeadserv.org/$1",
-      "statusCode": 301
-    },
-    {
       "source": "/index.html",
       "destination": "/",
       "statusCode": 301

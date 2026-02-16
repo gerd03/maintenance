@@ -7,4 +7,5 @@ Disallow: /.env
 Disallow: /node_modules/
 Disallow: /api/
 
-Sitemap: https://attainmentofficeadserv.org/sitemap.xml
+Sitemap: https://www.attainmentofficeadserv.org/sitemap.xml
+
