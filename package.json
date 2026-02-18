@@ -6,9 +6,10 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "dev": "npx http-server -p 3000 -o",
+    "dev": "node server.js",
     "start": "node server.js",
-    "static": "npx http-server -p 3000"
+    "static": "npx http-server -p 3000",
+    "dev:static": "npx http-server -p 3000 -o"
   },
   "dependencies": {
     "cors": "^2.8.5",

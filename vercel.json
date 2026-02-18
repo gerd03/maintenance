@@ -36,6 +36,12 @@
     },
     "api/contact.js": {
       "maxDuration": 30
+    },
+    "api/events.js": {
+      "maxDuration": 10
+    },
+    "api/metrics.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [

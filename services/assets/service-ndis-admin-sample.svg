@@ -1,0 +1,17 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NDIS Administration sample cover">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="675" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b5d44"/>
+      <stop offset="1" stop-color="#0369a1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect x="72" y="78" width="1056" height="519" rx="24" fill="white" fill-opacity="0.08"/>
+  <circle cx="1020" cy="170" r="95" fill="white" fill-opacity="0.16"/>
+  <circle cx="940" cy="540" r="64" fill="white" fill-opacity="0.14"/>
+  <rect x="120" y="168" width="518" height="16" rx="8" fill="white" fill-opacity="0.35"/>
+  <rect x="120" y="214" width="430" height="16" rx="8" fill="white" fill-opacity="0.28"/>
+  <text x="120" y="344" fill="white" font-family="Arial, sans-serif" font-size="62" font-weight="700">NDIS Administration</text>
+  <text x="120" y="396" fill="white" font-family="Arial, sans-serif" font-size="30" font-weight="500">Operations • Scheduling • Support</text>
+  <text x="120" y="490" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="600">Replace this sample image with your branded cover</text>
+</svg>

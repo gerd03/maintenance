@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax & Compliance Support | AOAS Services</title>
+    <meta name="description" content="Administrative support for compliance workflows and documentation readiness.">
+    <meta name="aoas-hcaptcha-sitekey" content="">
+    <link rel="canonical" href="https://www.attainmentofficeadserv.org/services/tax-compliance">
+    <link rel="stylesheet" href="../style.css?v=20260218e">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo" aria-label="AOAS homepage">
+                    <img src="../AOAS Logo/AOASLOGO.png" alt="AOAS Logo" class="logo-icon">
+                    <span class="logo-text">
+                        <span class="logo-text-full">Attainment Office Administrative Services</span>
+                        <span class="logo-text-short">AOAS</span>
+                    </span>
+                </a>
+                <div class="header-actions">
+                    <a href="/services" class="btn btn-primary">ALL SERVICES</a>
+                    <a href="#service-inquiry" class="btn btn-primary cta-track" data-track-service="tax-compliance">INQUIRE</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="page-hero service-animate">
+            <h1>Tax & Compliance Support</h1>
+            <p>Administrative support for compliance workflows and documentation readiness.</p>
+        </section>
+
+        <section class="service-cover service-animate">
+            <img src="/services/assets/service-tax-compliance-cover.webp" alt="Tax & Compliance Support sample cover" loading="lazy" decoding="async">
+        </section>
+
+        <section class="service-content-grid">
+            <article class="service-detail-card service-animate">
+                <h2>What It Is</h2>
+                <p>AOAS supports process-driven tax and compliance administration to keep workflow execution organized and consistent.</p>
+
+                <h2>Who It Is For</h2>
+                <ul>
+                    <li>Businesses with recurring compliance documentation cycles</li>
+                    <li>Teams preparing recurring filing-related workflows</li>
+                    <li>Operations requiring stronger internal process visibility</li>
+                </ul>
+
+                <h2>What Is Included</h2>
+                <ul>
+                    <li>Compliance checklist workflow support</li>
+                    <li>Document collation and pack preparation</li>
+                    <li>Internal handoff coordination support</li>
+                    <li>Follow-up tracking for outstanding requirements</li>
+                </ul>
+
+                <h2>Required Documents / Steps</h2>
+                <ul>
+                    <li>Compliance calendar and key timelines</li>
+                    <li>Document and data source mapping</li>
+                    <li>Responsible approvers and handoff flow</li>
+                </ul>
+
+                <h2>Common Questions</h2>
+                <ul>
+                    <li>Do you provide admin support for compliance tasks? Yes, we support workflow execution.</li>
+                    <li>Can this fit our internal process? Yes, we map your existing process first.</li>
+                    <li>What is needed to begin? Core timeline, required documents, and owners.</li>
+                </ul>
+            </article>
+
+            <aside class="service-inquiry-card service-animate" id="service-inquiry">
+                <h3>Inquire About Tax & Compliance Support</h3>
+                <p>Describe your compliance workflow so we can structure support for your team.</p>
+                <form class="service-inquiry-form" data-service="tax-compliance">
+                    <div class="row">
+                        <div>
+                            <label for="tax-compliance-name">Name</label>
+                            <input id="tax-compliance-name" name="name" type="text" required maxlength="120">
+                        </div>
+                        <div>
+                            <label for="tax-compliance-email">Email</label>
+                            <input id="tax-compliance-email" name="email" type="email" required maxlength="320">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div>
+                            <label for="tax-compliance-phone">Phone (optional)</label>
+                            <input id="tax-compliance-phone" name="phone" type="text" maxlength="50">
+                        </div>
+                        <div>
+                            <label for="tax-compliance-location">Location</label>
+                            <select id="tax-compliance-location" name="location">
+                                <option value="Australia" selected>Australia</option>
+                                <option value="Philippines">Philippines</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="service-location-other" hidden>
+                                <label for="tax-compliance-location-other">Enter location</label>
+                                <input id="tax-compliance-location-other" name="locationOther" type="text" maxlength="120" placeholder="City / Country">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="tax-compliance-message">Message</label>
+                        <textarea id="tax-compliance-message" name="message" required maxlength="5000" rows="6"></textarea>
+                    </div>
+
+                    <div class="honeypot-field" aria-hidden="true">
+                        <label for="tax-compliance-website">Website</label>
+                        <input id="tax-compliance-website" name="website" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div class="service-captcha-container" hidden>
+                        <label>Captcha</label>
+                        <div class="service-captcha-target"></div>
+                    </div>
+
+                    <button type="submit" class="service-submit-btn">Submit inquiry</button>
+                    <p class="service-form-status neutral" aria-live="polite"></p>
+                </form>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <nav class="footer-nav">
+                    <a href="/">Home</a>
+                    <span class="separator">|</span>
+                    <a href="/services">Services</a>
+                    <span class="separator">|</span>
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a href="/terms">Terms</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../tracker.js"></script>
+    <script src="../chatbot.js?v=20260218d"></script>
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit" async defer></script>
+    <script src="service-page.js?v=20260218d"></script>
+</body>
+
+</html>
+
+
+
+
+
+

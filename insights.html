@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOAS Inquiry Insights</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="style.css?v=20260218e">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo" aria-label="AOAS homepage">
+                    <img src="AOAS Logo/AOASLOGO.png" alt="AOAS Logo" class="logo-icon">
+                    <span class="logo-text"><span class="logo-text-full">Attainment Office Administrative Services</span><span
+                            class="logo-text-short">AOAS</span></span>
+                </a>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-primary">HOME</a>
+                    <a href="/services" class="btn btn-primary">SERVICES</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="page-hero">
+            <h1>Inquiry & Chat Metrics</h1>
+            <p>Live view of tracked events and inquiry submissions from the website form and chatbot.</p>
+        </section>
+
+        <div style="display:flex; gap:10px; margin-bottom: 12px; flex-wrap:wrap;">
+            <button id="refreshMetrics" class="pill-btn primary" type="button">Refresh Metrics</button>
+            <span id="metricsStatus" style="font-size:0.9rem; color:#334155; align-self:center;"></span>
+        </div>
+
+        <section class="insights-grid" id="totalsGrid"></section>
+
+        <section class="insights-table-wrap" style="margin-top: 14px;">
+            <table class="insights-table" id="breakdownTable">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section class="insights-table-wrap" style="margin-top: 14px;">
+            <table class="insights-table" id="recentInquiriesTable">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Service</th>
+                        <th>Source</th>
+                        <th>Location</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="tracker.js"></script>
+    <script>
+        (function () {
+            const totalsGrid = document.getElementById('totalsGrid');
+            const breakdownBody = document.querySelector('#breakdownTable tbody');
+            const recentBody = document.querySelector('#recentInquiriesTable tbody');
+            const status = document.getElementById('metricsStatus');
+            const refreshButton = document.getElementById('refreshMetrics');
+
+            const getApiUrl = (path) => {
+                if (window.AOASTracker && typeof window.AOASTracker.resolveApiUrl === 'function') {
+                    return window.AOASTracker.resolveApiUrl(path);
+                }
+                return path;
+            };
+
+            const renderTotals = (totals) => {
+                const items = [
+                    { label: 'Total Inquiries', value: totals.inquiries || 0 },
+                    { label: 'Tracked Events', value: totals.events || 0 },
+                    { label: 'Chat Opens', value: totals.chatOpens || 0 },
+                    { label: 'Chat Leads', value: totals.chatLeadSubmits || 0 },
+                    { label: 'Form Submits', value: totals.contactFormSubmits || 0 },
+                ];
+
+                totalsGrid.innerHTML = items.map((item) => `
+                    <article class="metric-card">
+                        <h3>${item.label}</h3>
+                        <p>${item.value}</p>
+                    </article>
+                `).join('');
+            };
+
+            const renderBreakdowns = (breakdowns) => {
+                const rows = [];
+                const pushObjectRows = (title, objectValue) => {
+                    rows.push({ key: title, value: '' });
+                    Object.entries(objectValue || {}).forEach(([k, v]) => {
+                        rows.push({ key: `- ${k}`, value: v });
+                    });
+                };
+
+                pushObjectRows('Inquiries by Service', breakdowns.inquiriesByService);
+                pushObjectRows('Inquiries by Source', breakdowns.inquiriesBySource);
+                pushObjectRows('Inquiries by Country', breakdowns.inquiriesByCountry);
+                pushObjectRows('Event Counts', breakdowns.eventCounts);
+
+                breakdownBody.innerHTML = rows.map((row) => `
+                    <tr>
+                        <td>${row.key}</td>
+                        <td>${row.value}</td>
+                    </tr>
+                `).join('');
+            };
+
+            const renderRecent = (recentInquiries) => {
+                if (!Array.isArray(recentInquiries) || !recentInquiries.length) {
+                    recentBody.innerHTML = '<tr><td colspan="6">No inquiry data yet.</td></tr>';
+                    return;
+                }
+
+                recentBody.innerHTML = recentInquiries.map((item) => `
+                    <tr>
+                        <td>${item.timestamp || ''}</td>
+                        <td>${item.service || ''}</td>
+                        <td>${item.source || ''}</td>
+                        <td>${item.location || ''}</td>
+                        <td>${item.name || ''}</td>
+                        <td>${item.email || ''}</td>
+                    </tr>
+                `).join('');
+            };
+
+            const loadMetrics = async () => {
+                status.textContent = 'Loading...';
+                try {
+                    const response = await fetch(getApiUrl('/api/metrics'));
+                    const payload = await response.json();
+
+                    if (!response.ok || !payload.success) {
+                        throw new Error(payload.error || 'Unable to load metrics.');
+                    }
+
+                    const metrics = payload.metrics || {};
+                    renderTotals(metrics.totals || {});
+                    renderBreakdowns(metrics.breakdowns || {});
+                    renderRecent(metrics.recentInquiries || []);
+                    status.textContent = `Updated: ${new Date(metrics.generatedAt || Date.now()).toLocaleString()}`;
+                } catch (error) {
+                    status.textContent = `Error: ${error.message}`;
+                }
+            };
+
+            refreshButton.addEventListener('click', loadMetrics);
+            loadMetrics();
+        })();
+    </script>
+</body>
+
+</html>
+
+
+

@@ -1,4 +1,4 @@
-const { handleContactSubmission } = require('../lib/contact-handler');
+const { appendJsonLine, sanitizeText } = require('../lib/inquiry-utils');
 
 function getRemoteIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
@@ -50,18 +50,38 @@ module.exports = async (req, res) => {
 
   try {
     const payload = parseBody(req.body);
-    const result = await handleContactSubmission(payload, {
-      remoteIp: getRemoteIp(req),
-      userAgent: req.headers['user-agent'] || '',
-      path: req.url || '/',
-    });
+    const eventName = sanitizeText(payload.eventName || payload.event || '', 80).toLowerCase();
 
-    res.status(result.status).json(result.body);
+    if (!eventName) {
+      res.status(400).json({
+        success: false,
+        error: 'eventName is required.',
+      });
+      return;
+    }
+
+    const properties = payload.properties && typeof payload.properties === 'object' ? payload.properties : {};
+    const record = {
+      timestamp: new Date().toISOString(),
+      eventName,
+      properties,
+      sourcePage: sanitizeText(payload.sourcePage || '', 300),
+      pageUrl: sanitizeText(payload.pageUrl || '', 2000),
+      sessionId: sanitizeText(payload.sessionId || '', 120),
+      userAgent: sanitizeText(req.headers['user-agent'] || '', 300),
+      ip: sanitizeText(getRemoteIp(req), 120),
+    };
+
+    await appendJsonLine('events.jsonl', record);
+
+    res.status(200).json({
+      success: true,
+    });
   } catch (error) {
-    console.error('Contact API error:', error);
+    console.error('Events API error:', error);
     res.status(500).json({
       success: false,
-      error: 'Unexpected server error while handling inquiry.',
+      error: 'Failed to record event.',
     });
   }
 };

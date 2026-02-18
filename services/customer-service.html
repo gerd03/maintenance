@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Service Support | AOAS Services</title>
+    <meta name="description" content="Customer communication workflow support for responsive operations.">
+    <meta name="aoas-hcaptcha-sitekey" content="">
+    <link rel="canonical" href="https://www.attainmentofficeadserv.org/services/customer-service">
+    <link rel="stylesheet" href="../style.css?v=20260218e">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo" aria-label="AOAS homepage">
+                    <img src="../AOAS Logo/AOASLOGO.png" alt="AOAS Logo" class="logo-icon">
+                    <span class="logo-text">
+                        <span class="logo-text-full">Attainment Office Administrative Services</span>
+                        <span class="logo-text-short">AOAS</span>
+                    </span>
+                </a>
+                <div class="header-actions">
+                    <a href="/services" class="btn btn-primary">ALL SERVICES</a>
+                    <a href="#service-inquiry" class="btn btn-primary cta-track" data-track-service="customer-service">INQUIRE</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="page-hero service-animate">
+            <h1>Customer Service Support</h1>
+            <p>Customer communication workflow support for responsive operations.</p>
+        </section>
+
+        <section class="service-cover service-animate">
+            <img src="/services/assets/service-customer-service-cover.webp" alt="Customer Service Support sample cover" loading="lazy" decoding="async">
+        </section>
+
+        <section class="service-content-grid">
+            <article class="service-detail-card service-animate">
+                <h2>What It Is</h2>
+                <p>AOAS supports customer-facing workflow operations, inbox handling, and service coordination tasks.</p>
+
+                <h2>Who It Is For</h2>
+                <ul>
+                    <li>Teams with growing customer communication volume</li>
+                    <li>Operations managing inbound and outbound touchpoints</li>
+                    <li>Businesses needing more consistent response workflows</li>
+                </ul>
+
+                <h2>What Is Included</h2>
+                <ul>
+                    <li>Inbox triage and message routing support</li>
+                    <li>Customer response workflow coordination</li>
+                    <li>Escalation and follow-up admin support</li>
+                    <li>Service log and update tracking support</li>
+                </ul>
+
+                <h2>Required Documents / Steps</h2>
+                <ul>
+                    <li>Current customer communication channels</li>
+                    <li>Escalation rules and service standards</li>
+                    <li>Response workflow priorities and owners</li>
+                </ul>
+
+                <h2>Common Questions</h2>
+                <ul>
+                    <li>Can this align to our service standards? Yes, workflows are aligned to your standards.</li>
+                    <li>Can support cover recurring daily interactions? Yes, recurring workflows are supported.</li>
+                    <li>How do we begin? Start with your channel map and escalation process.</li>
+                </ul>
+            </article>
+
+            <aside class="service-inquiry-card service-animate" id="service-inquiry">
+                <h3>Inquire About Customer Service Support</h3>
+                <p>Share your customer workflow setup so we can align support to your team.</p>
+                <form class="service-inquiry-form" data-service="customer-service">
+                    <div class="row">
+                        <div>
+                            <label for="customer-service-name">Name</label>
+                            <input id="customer-service-name" name="name" type="text" required maxlength="120">
+                        </div>
+                        <div>
+                            <label for="customer-service-email">Email</label>
+                            <input id="customer-service-email" name="email" type="email" required maxlength="320">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div>
+                            <label for="customer-service-phone">Phone (optional)</label>
+                            <input id="customer-service-phone" name="phone" type="text" maxlength="50">
+                        </div>
+                        <div>
+                            <label for="customer-service-location">Location</label>
+                            <select id="customer-service-location" name="location">
+                                <option value="Australia" selected>Australia</option>
+                                <option value="Philippines">Philippines</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="service-location-other" hidden>
+                                <label for="customer-service-location-other">Enter location</label>
+                                <input id="customer-service-location-other" name="locationOther" type="text" maxlength="120" placeholder="City / Country">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="customer-service-message">Message</label>
+                        <textarea id="customer-service-message" name="message" required maxlength="5000" rows="6"></textarea>
+                    </div>
+
+                    <div class="honeypot-field" aria-hidden="true">
+                        <label for="customer-service-website">Website</label>
+                        <input id="customer-service-website" name="website" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div class="service-captcha-container" hidden>
+                        <label>Captcha</label>
+                        <div class="service-captcha-target"></div>
+                    </div>
+
+                    <button type="submit" class="service-submit-btn">Submit inquiry</button>
+                    <p class="service-form-status neutral" aria-live="polite"></p>
+                </form>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <nav class="footer-nav">
+                    <a href="/">Home</a>
+                    <span class="separator">|</span>
+                    <a href="/services">Services</a>
+                    <span class="separator">|</span>
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a href="/terms">Terms</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../tracker.js"></script>
+    <script src="../chatbot.js?v=20260218d"></script>
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit" async defer></script>
+    <script src="service-page.js?v=20260218d"></script>
+</body>
+
+</html>
+
+
+
+
+
+

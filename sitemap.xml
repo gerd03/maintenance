@@ -3,7 +3,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     <url>
         <loc>https://www.attainmentofficeadserv.org/</loc>
-        <lastmod>2026-02-16</lastmod>
+        <lastmod>2026-02-18</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
         <image:image>
@@ -11,22 +11,65 @@
             <image:title>AOAS - Attainment Office Administrative Services</image:title>
             <image:caption>Professional virtual assistant services for Australian businesses</image:caption>
         </image:image>
-        <image:image>
-            <image:loc>https://www.attainmentofficeadserv.org/AOAS%20Logo/AOASLOGO.png</image:loc>
-            <image:title>AOAS Logo</image:title>
-            <image:caption>Attainment Office Administrative Services Logo</image:caption>
-        </image:image>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.95</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services/payroll</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services/bookkeeping</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services/tax-compliance</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services/data-entry</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services/ndis-admin</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/services/customer-service</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
     </url>
     <url>
         <loc>https://www.attainmentofficeadserv.org/careers</loc>
-        <lastmod>2026-02-16</lastmod>
+        <lastmod>2026-02-18</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
-        <image:image>
-            <image:loc>https://www.attainmentofficeadserv.org/open-graph.png</image:loc>
-            <image:title>AOAS Careers - Join Our Team</image:title>
-            <image:caption>Customer Service Representative and Admin Office Worker positions</image:caption>
-        </image:image>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/privacy</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://www.attainmentofficeadserv.org/terms</loc>
+        <lastmod>2026-02-18</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
     </url>
 </urlset>
-

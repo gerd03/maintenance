@@ -313,6 +313,85 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// Services preview: staggered reveal + one-by-one spotlight cycle.
+document.addEventListener('DOMContentLoaded', function () {
+    const section = document.getElementById('services-preview');
+    if (!section) return;
+
+    const cards = Array.from(section.querySelectorAll('.service-card-home'));
+    if (!cards.length) return;
+
+    cards.forEach((card, index) => {
+        card.style.setProperty('--stagger-delay', `${index * 120}ms`);
+    });
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lowEndMode = document.documentElement.classList.contains('low-end-device');
+    const allowLoop = !reducedMotion && !lowEndMode && cards.length > 1;
+
+    let activeIndex = -1;
+    let cycleTimer = null;
+    let userPaused = false;
+
+    function setActive(index) {
+        activeIndex = index;
+        cards.forEach((card, idx) => {
+            card.classList.toggle('showcase-active', idx === index);
+        });
+    }
+
+    function clearCycle() {
+        if (cycleTimer) {
+            clearInterval(cycleTimer);
+            cycleTimer = null;
+        }
+    }
+
+    function startCycle() {
+        if (!allowLoop || userPaused || cycleTimer) return;
+        cycleTimer = setInterval(() => {
+            const next = activeIndex < 0 ? 0 : (activeIndex + 1) % cards.length;
+            setActive(next);
+        }, 2300);
+    }
+
+    function stopCycleForUser(index) {
+        userPaused = true;
+        clearCycle();
+        setActive(index);
+    }
+
+    function resumeCycle() {
+        userPaused = false;
+        startCycle();
+    }
+
+    cards.forEach((card, index) => {
+        card.addEventListener('mouseenter', () => stopCycleForUser(index));
+        card.addEventListener('focusin', () => stopCycleForUser(index));
+        card.addEventListener('mouseleave', resumeCycle);
+        card.addEventListener('focusout', (event) => {
+            if (!card.contains(event.relatedTarget)) {
+                resumeCycle();
+            }
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                section.classList.add('showcase-visible');
+                setActive(0);
+                startCycle();
+            } else {
+                clearCycle();
+            }
+        });
+    }, { threshold: 0.3 });
+
+    observer.observe(section);
+});
+
 // FAQ Accordion Functionality
 document.addEventListener('DOMContentLoaded', function () {
     // Handle hash navigation on page load (for cross-page links like from careers.html)
@@ -426,18 +505,160 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Form validation and submission
     const contactForm = document.getElementById('contactForm');
+    const hcaptchaSiteKey = document.querySelector('meta[name="aoas-hcaptcha-sitekey"]')?.content?.trim() || '';
+    const captchaContainer = document.getElementById('contactCaptchaContainer');
+    const captchaTarget = document.getElementById('contactCaptcha');
+    let captchaWidgetId = null;
+
+    const trackEvent = (eventName, properties = {}) => {
+        if (window.AOASTracker && typeof window.AOASTracker.track === 'function') {
+            window.AOASTracker.track(eventName, properties);
+        }
+    };
+
+    const getApiUrl = (path) => {
+        if (window.AOASTracker && typeof window.AOASTracker.resolveApiUrl === 'function') {
+            return window.AOASTracker.resolveApiUrl(path);
+        }
+        return path;
+    };
+
+    const getUtmPayload = () => {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            source: params.get('utm_source') || '',
+            medium: params.get('utm_medium') || '',
+            campaign: params.get('utm_campaign') || '',
+            term: params.get('utm_term') || '',
+            content: params.get('utm_content') || '',
+        };
+    };
+
+    const applyUtmHiddenFields = () => {
+        const utm = getUtmPayload();
+        const fieldMap = {
+            utmSource: utm.source,
+            utmMedium: utm.medium,
+            utmCampaign: utm.campaign,
+            utmTerm: utm.term,
+            utmContent: utm.content,
+        };
+
+        Object.entries(fieldMap).forEach(([id, value]) => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.value = value;
+            }
+        });
+    };
+
+    const applyServicePrefill = () => {
+        const serviceField = document.getElementById('service');
+        const params = new URLSearchParams(window.location.search);
+        const serviceFromQuery = (params.get('service') || '').toLowerCase();
+
+        if (serviceField && serviceFromQuery) {
+            const hasValue = Array.from(serviceField.options).some((option) => option.value === serviceFromQuery);
+            if (hasValue) {
+                serviceField.value = serviceFromQuery;
+                trackEvent('service_selected', {
+                    service: serviceFromQuery,
+                    source: 'url_prefill',
+                });
+            }
+        }
+    };
+
+    const initializeCaptcha = () => {
+        if (!captchaContainer || !captchaTarget || !hcaptchaSiteKey) {
+            return;
+        }
+
+        captchaContainer.hidden = false;
+
+        const renderWidget = () => {
+            if (!window.hcaptcha || captchaWidgetId !== null) {
+                return;
+            }
+
+            captchaWidgetId = window.hcaptcha.render('contactCaptcha', {
+                sitekey: hcaptchaSiteKey,
+            });
+        };
+
+        renderWidget();
+
+        const poll = setInterval(() => {
+            if (window.hcaptcha) {
+                renderWidget();
+                clearInterval(poll);
+            }
+        }, 250);
+    };
 
     if (contactForm) {
+        const sourcePageField = document.getElementById('sourcePage');
+        const pageUrlField = document.getElementById('pageUrl');
+        const serviceField = document.getElementById('service');
+        const locationField = document.getElementById('location');
+        const locationOtherWrap = document.getElementById('contactOtherLocationWrap');
+        const locationOtherField = document.getElementById('locationOther');
+
+        const toggleContactLocationOther = () => {
+            if (!locationField || !locationOtherWrap || !locationOtherField) {
+                return;
+            }
+
+            const isOther = locationField.value === 'Other';
+            locationOtherWrap.hidden = !isOther;
+            locationOtherField.required = isOther;
+            if (!isOther) {
+                locationOtherField.value = '';
+            }
+        };
+
+        if (sourcePageField) {
+            sourcePageField.value = window.location.pathname;
+        }
+
+        if (pageUrlField) {
+            pageUrlField.value = window.location.href;
+        }
+
+        applyUtmHiddenFields();
+        applyServicePrefill();
+        initializeCaptcha();
+        toggleContactLocationOther();
+
+        serviceField?.addEventListener('change', () => {
+            if (serviceField.value) {
+                trackEvent('service_selected', {
+                    service: serviceField.value,
+                    source: 'contact_form',
+                });
+            }
+        });
+        locationField?.addEventListener('change', toggleContactLocationOther);
+
         contactForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
+            const service = document.getElementById('service').value.trim();
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone')?.value.trim() || '';
+            const baseLocation = document.getElementById('location')?.value.trim() || 'Australia';
+            const manualLocation = document.getElementById('locationOther')?.value.trim() || '';
+            const location = baseLocation === 'Other' ? (manualLocation || 'Other') : baseLocation;
             const message = document.getElementById('message').value.trim();
+            const honeypot = document.getElementById('website')?.value.trim() || '';
+            const sourcePage = document.getElementById('sourcePage')?.value || window.location.pathname;
+            const pageUrl = document.getElementById('pageUrl')?.value || window.location.href;
+            const utm = getUtmPayload();
 
             // Basic validation
-            if (!name || !email) {
-                customModal.show('Required Fields', 'Please fill in all required fields.', 'error');
+            if (!service || !name || !email || !message) {
+                customModal.show('Required Fields', 'Please complete service, name, email, and message.', 'error');
                 return;
             }
 
@@ -448,79 +669,109 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            if (message.length < 8) {
+                customModal.show('More Detail Needed', 'Please provide a bit more detail in your message.', 'error');
+                return;
+            }
+
+            let captchaToken = '';
+            if (hcaptchaSiteKey) {
+                if (!window.hcaptcha || captchaWidgetId === null) {
+                    customModal.show('Captcha Loading', 'Captcha is still loading. Please try again in a moment.', 'error');
+                    return;
+                }
+
+                captchaToken = window.hcaptcha.getResponse(captchaWidgetId);
+                if (!captchaToken) {
+                    customModal.show('Captcha Required', 'Please complete the captcha before submitting.', 'error');
+                    return;
+                }
+            }
+
             // Disable submit button and show loading state
             const submitButton = contactForm.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.textContent;
             submitButton.disabled = true;
-            submitButton.textContent = 'SENDING...';
+            submitButton.textContent = 'SUBMITTING...';
+            trackEvent('contact_form_submit_attempt', { service, source: 'contact-form' });
 
             try {
-                // Determine API URL - use localhost:3000 for Node.js server
-                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:3000/api/contact'
-                    : '/api/contact';
-
-                // Send form data to backend
-                const response = await fetch(apiUrl, {
+                const response = await fetch(getApiUrl('/api/contact'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        message: message
+                        source: 'contact-form',
+                        service,
+                        name,
+                        email,
+                        phone,
+                        location,
+                        message,
+                        sourcePage,
+                        pageUrl,
+                        utm,
+                        website: honeypot,
+                        captchaToken,
                     })
                 });
 
-                // Check if response is ok
-                if (!response.ok) {
-                    // Try to parse error response
-                    let errorData;
-                    try {
-                        errorData = await response.json();
-                    } catch {
-                        errorData = { error: `Server error: ${response.status} ${response.statusText}` };
-                    }
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch {
+                    data = {};
+                }
 
-                    // Show specific error message from server
-                    const errorMessage = errorData.error || `Server error: ${response.status}`;
+                if (!response.ok || !data.success) {
+                    const errorMessage = data.error || `Server error: ${response.status}`;
                     throw new Error(errorMessage);
                 }
 
-                const data = await response.json();
+                trackEvent('contact_form_submitted', {
+                    service,
+                    source: 'contact-form',
+                });
 
-                if (data.success) {
-                    customModal.show(
-                        'Message Sent!',
-                        data.message || 'Thank you for your message! We will get back to you within 24-48 hours.',
-                        'success'
-                    );
-                    contactForm.reset();
-                } else {
-                    customModal.show(
-                        'Error',
-                        data.error || 'Failed to send message. Please try again later.',
-                        'error'
-                    );
+                customModal.show(
+                    'Inquiry Sent',
+                    data.message || 'Thank you for your inquiry. Our team will get back to you soon.',
+                    'success'
+                );
+                contactForm.reset();
+                if (sourcePageField) {
+                    sourcePageField.value = window.location.pathname;
+                }
+                if (pageUrlField) {
+                    pageUrlField.value = window.location.href;
+                }
+                applyUtmHiddenFields();
+                applyServicePrefill();
+
+                if (window.hcaptcha && captchaWidgetId !== null) {
+                    window.hcaptcha.reset(captchaWidgetId);
                 }
             } catch (error) {
-                console.error('Error submitting form:', error);
+                console.error('Error submitting inquiry form:', error);
+                trackEvent('contact_form_submit_failed', {
+                    service,
+                    error: error.message.slice(0, 140),
+                });
 
-                // Check if it's a network error (server not running)
                 if (error.message.includes('Failed to fetch') ||
                     error.message.includes('NetworkError') ||
                     error.message.includes('ERR_CONNECTION_REFUSED') ||
                     error.name === 'TypeError') {
                     customModal.show(
                         'Server Not Running',
-                        'Please make sure the server is running.\n\n1. Install Node.js from https://nodejs.org/\n2. Close and reopen your terminal\n3. Run: npm install\n4. Run: npm start\n\nOr double-click START_SERVER.bat file.',
+                        'Please make sure the server is running.\n\n1. Install Node.js from https://nodejs.org/\n2. Close and reopen your terminal\n3. Run: npm install\n4. Run: npm run dev',
                         'error'
                     );
                 } else {
                     customModal.show(
                         'Error',
-                        error.message || 'An error occurred while sending your message. Please try again later.',
+                        error.message || 'An error occurred while sending your inquiry. Please try again later.',
                         'error'
                     );
                 }
@@ -1141,9 +1392,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Determine API URL
-            const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3000/api/careers'
-                : '/api/careers';
+            const apiUrl = getApiUrl('/api/careers');
 
             // Send form data to backend
             const response = await fetch(apiUrl, {
@@ -1223,7 +1472,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 error.name === 'TypeError') {
                 customModal.show(
                     'Server Not Running',
-                    'Please make sure the server is running.\n\n1. Install Node.js from https://nodejs.org/\n2. Close and reopen your terminal\n3. Run: npm install\n4. Run: npm start',
+                    'Please make sure the server is running.\n\n1. Install Node.js from https://nodejs.org/\n2. Close and reopen your terminal\n3. Run: npm install\n4. Run: npm run dev',
                     'error'
                 );
             } else {

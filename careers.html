@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -31,7 +31,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260218e">
     <!-- Favicon - Multiple formats for best crawler compatibility -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/ico" href="/favicon.ico">
@@ -407,7 +407,7 @@
         }
 
         .clean-list li::before {
-            content: '✓';
+            content: 'âœ“';
             position: absolute;
             left: 0;
             color: #FF6D1F;
@@ -439,7 +439,7 @@
         }
 
         .resp-card ul li::before {
-            content: '→';
+            content: 'â†’';
         }
 
         /* Form Overrides */
@@ -760,19 +760,19 @@
             <h3>Job Overview</h3>
             <div class="overview-grid">
                 <div class="overview-item">
-                    <strong>📍 Location</strong>
+                    <strong>ðŸ“ Location</strong>
                     <span>Purok Mais, Barangay Paculob, Dumanjug, Cebu</span>
                 </div>
                 <div class="overview-item">
-                    <strong>⏰ Schedule</strong>
-                    <span>Monday–Friday, 7:00 AM - 4:00 PM PH</span>
+                    <strong>â° Schedule</strong>
+                    <span>Mondayâ€“Friday, 7:00 AM - 4:00 PM PH</span>
                 </div>
                 <div class="overview-item">
-                    <strong>🚀 Start Date</strong>
+                    <strong>ðŸš€ Start Date</strong>
                     <span>ASAP</span>
                 </div>
                 <div class="overview-item">
-                    <strong>💼 Type</strong>
+                    <strong>ðŸ’¼ Type</strong>
                     <span>Full-time</span>
                 </div>
             </div>
@@ -798,7 +798,7 @@
             <h3>Responsibilities</h3>
 
             <div class="resp-card">
-                <h4>📞 Customer Service</h4>
+                <h4>ðŸ“ž Customer Service</h4>
                 <ul class="clean-list">
                     <li>Provide friendly and professional assistance to customers</li>
                     <li>Respond to inquiries and resolve concerns promptly</li>
@@ -808,7 +808,7 @@
             </div>
 
             <div class="resp-card">
-                <h4>📋 Administrative & Office Support</h4>
+                <h4>ðŸ“‹ Administrative & Office Support</h4>
                 <ul class="clean-list">
                     <li>Handle administrative tasks (filing, data entry, documents)</li>
                     <li>Assist with office communications, scheduling, coordination</li>
@@ -1035,7 +1035,7 @@
                 </div>
 
                 <div class="map-instruction">
-                    💡 <strong>Tip:</strong> Click anywhere on the map to set your location and calculate the route!
+                    ðŸ’¡ <strong>Tip:</strong> Click anywhere on the map to set your location and calculate the route!
                 </div>
 
                 <div id="map"></div>
@@ -1128,7 +1128,9 @@
         </div>
     </div>
 
+    <script src="tracker.js"></script>
     <script src="script.js"></script>
+    <script src="chatbot.js?v=20260218d"></script>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1166,12 +1168,12 @@
 
         // Base layers
         const terrainLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
+            attribution: 'Â© OpenStreetMap contributors',
             maxZoom: 19
         });
 
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles © Esri',
+            attribution: 'Tiles Â© Esri',
             maxZoom: 19
         });
 
@@ -1199,7 +1201,7 @@
         });
         // Add AOAS office marker
         const officeMarker = L.marker(aoasLocation, { icon: greenIcon }).addTo(map);
-        officeMarker.bindPopup('<strong>🏢 AOAS Office</strong><br>Purok Mais, Barangay Paculob<br>Dumanjug, Cebu').openPopup();
+        officeMarker.bindPopup('<strong>ðŸ¢ AOAS Office</strong><br>Purok Mais, Barangay Paculob<br>Dumanjug, Cebu').openPopup();
 
         // Variables
         let routingControl = null;
@@ -1244,7 +1246,7 @@
 
             // Add user marker
             userMarker = L.marker(userLocation, { icon: orangeIcon }).addTo(map);
-            userMarker.bindPopup('<strong>📍 Your Location</strong>');
+            userMarker.bindPopup('<strong>ðŸ“ Your Location</strong>');
 
             // Calculate straight-line distance first
             const straightLineDistance = calculateStraightLineDistance(
@@ -1354,28 +1356,28 @@
         document.getElementById('autoDetect').addEventListener('click', function () {
             const btn = this;
             btn.disabled = true;
-            btn.textContent = '📍 Detecting...';
+            btn.textContent = 'ðŸ“ Detecting...';
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function (position) {
                         const userLocation = [position.coords.latitude, position.coords.longitude];
                         createRoute(userLocation);
-                        btn.textContent = '✓ Location Detected';
+                        btn.textContent = 'âœ“ Location Detected';
                         btn.style.background = '#22c55e';
                         setTimeout(() => {
                             btn.disabled = false;
-                            btn.textContent = '🔄 Refresh Location';
+                            btn.textContent = 'ðŸ”„ Refresh Location';
                             btn.style.background = '#FF6D1F';
                         }, 2000);
                     },
                     function (error) {
                         btn.disabled = false;
-                        btn.textContent = '❌ Access Denied';
+                        btn.textContent = 'âŒ Access Denied';
                         btn.style.background = '#ef4444';
                         showModal('Please enable location access in your browser settings.', 'Location Access Required');
                         setTimeout(() => {
-                            btn.textContent = '📍 Auto-Detect My Location';
+                            btn.textContent = 'ðŸ“ Auto-Detect My Location';
                             btn.style.background = '#FF6D1F';
                         }, 3000);
                     }
@@ -1417,4 +1419,7 @@
 </body>
 
 </html>
+
+
+
 

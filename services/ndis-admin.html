@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDIS Administration | AOAS Services</title>
+    <meta name="description" content="Operational admin support for NDIS-focused workflows and documentation.">
+    <meta name="aoas-hcaptcha-sitekey" content="">
+    <link rel="canonical" href="https://www.attainmentofficeadserv.org/services/ndis-admin">
+    <link rel="stylesheet" href="../style.css?v=20260218e">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo" aria-label="AOAS homepage">
+                    <img src="../AOAS Logo/AOASLOGO.png" alt="AOAS Logo" class="logo-icon">
+                    <span class="logo-text">
+                        <span class="logo-text-full">Attainment Office Administrative Services</span>
+                        <span class="logo-text-short">AOAS</span>
+                    </span>
+                </a>
+                <div class="header-actions">
+                    <a href="/services" class="btn btn-primary">ALL SERVICES</a>
+                    <a href="#service-inquiry" class="btn btn-primary cta-track" data-track-service="ndis-admin">INQUIRE</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="page-hero service-animate">
+            <h1>NDIS Administration</h1>
+            <p>Operational admin support for NDIS-focused workflows and documentation.</p>
+        </section>
+
+        <section class="service-cover service-animate">
+            <img src="/services/assets/service-ndis-admin-cover.webp" alt="NDIS Administration sample cover" loading="lazy" decoding="async">
+        </section>
+
+        <section class="service-content-grid">
+            <article class="service-detail-card service-animate">
+                <h2>What It Is</h2>
+                <p>AOAS supports NDIS administration workflows with structured task handling and operational follow-through.</p>
+
+                <h2>Who It Is For</h2>
+                <ul>
+                    <li>NDIS providers managing recurring admin tasks</li>
+                    <li>Teams coordinating schedules and service documentation</li>
+                    <li>Operations requiring consistent process execution</li>
+                </ul>
+
+                <h2>What Is Included</h2>
+                <ul>
+                    <li>Schedule and task administration support</li>
+                    <li>Documentation workflow coordination</li>
+                    <li>Operational follow-up tracking</li>
+                    <li>Process handoff support between team members</li>
+                </ul>
+
+                <h2>Required Documents / Steps</h2>
+                <ul>
+                    <li>Current NDIS workflow overview</li>
+                    <li>Key document and schedule requirements</li>
+                    <li>Escalation and review process setup</li>
+                </ul>
+
+                <h2>Common Questions</h2>
+                <ul>
+                    <li>Can this support recurring admin tasks? Yes, recurring support is part of setup.</li>
+                    <li>Can workflows be customized? Yes, we align with your internal process.</li>
+                    <li>Is this suitable for active service operations? Yes, support is built for ongoing operations.</li>
+                </ul>
+            </article>
+
+            <aside class="service-inquiry-card service-animate" id="service-inquiry">
+                <h3>Inquire About NDIS Administration</h3>
+                <p>Tell us your current NDIS admin process so we can map the right support approach.</p>
+                <form class="service-inquiry-form" data-service="ndis-admin">
+                    <div class="row">
+                        <div>
+                            <label for="ndis-admin-name">Name</label>
+                            <input id="ndis-admin-name" name="name" type="text" required maxlength="120">
+                        </div>
+                        <div>
+                            <label for="ndis-admin-email">Email</label>
+                            <input id="ndis-admin-email" name="email" type="email" required maxlength="320">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div>
+                            <label for="ndis-admin-phone">Phone (optional)</label>
+                            <input id="ndis-admin-phone" name="phone" type="text" maxlength="50">
+                        </div>
+                        <div>
+                            <label for="ndis-admin-location">Location</label>
+                            <select id="ndis-admin-location" name="location">
+                                <option value="Australia" selected>Australia</option>
+                                <option value="Philippines">Philippines</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="service-location-other" hidden>
+                                <label for="ndis-admin-location-other">Enter location</label>
+                                <input id="ndis-admin-location-other" name="locationOther" type="text" maxlength="120" placeholder="City / Country">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="ndis-admin-message">Message</label>
+                        <textarea id="ndis-admin-message" name="message" required maxlength="5000" rows="6"></textarea>
+                    </div>
+
+                    <div class="honeypot-field" aria-hidden="true">
+                        <label for="ndis-admin-website">Website</label>
+                        <input id="ndis-admin-website" name="website" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div class="service-captcha-container" hidden>
+                        <label>Captcha</label>
+                        <div class="service-captcha-target"></div>
+                    </div>
+
+                    <button type="submit" class="service-submit-btn">Submit inquiry</button>
+                    <p class="service-form-status neutral" aria-live="polite"></p>
+                </form>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <nav class="footer-nav">
+                    <a href="/">Home</a>
+                    <span class="separator">|</span>
+                    <a href="/services">Services</a>
+                    <span class="separator">|</span>
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a href="/terms">Terms</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../tracker.js"></script>
+    <script src="../chatbot.js?v=20260218d"></script>
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit" async defer></script>
+    <script src="service-page.js?v=20260218d"></script>
+</body>
+
+</html>
+
+
+
+
+
+

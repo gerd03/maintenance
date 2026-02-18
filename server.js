@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const { Resend } = require('resend');
+const { handleContactSubmission } = require('./lib/contact-handler');
+const { appendJsonLine, readJsonLines, buildMetricsFromRecords, sanitizeText } = require('./lib/inquiry-utils');
 require('dotenv').config();
 
 const app = express();
@@ -10,12 +14,7 @@ const PORT = process.env.PORT || 3000;
 const RESEND_API_KEY = process.env.RESEND_API_KEY?.trim();
 
 if (!RESEND_API_KEY) {
-  console.error('❌ ERROR: RESEND_API_KEY is not set!');
-  console.error('Please add RESEND_API_KEY as an environment variable');
-  // Don't exit on Vercel - let it handle the error gracefully
-  if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
-    process.exit(1);
-  }
+  console.warn('RESEND_API_KEY is not set. Inquiry emails will be delayed until configured.');
 }
 
 // Initialize Resend with API key (only if available)
@@ -25,123 +24,139 @@ if (RESEND_API_KEY) {
   console.log('✅ Resend API initialized successfully');
   console.log(`✅ API Key loaded: ${RESEND_API_KEY.substring(0, 10)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}`);
 } else {
-  console.warn('⚠️ RESEND_API_KEY not set - email functionality will not work');
+  console.warn('RESEND_API_KEY not set - email functionality will not work');
 }
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid JSON payload.',
+    });
+    return;
+  }
+  next(err);
+});
 
 // Serve static files (only for local development, Vercel handles this)
 if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
   app.use(express.static('.'));
+
+  // Local clean URL support (e.g., /services, /privacy, /services/payroll)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      next();
+      return;
+    }
+
+    if (req.path === '/') {
+      next();
+      return;
+    }
+
+    const cleanPath = req.path.replace(/^\/+|\/+$/g, '');
+    const directHtml = path.join(__dirname, `${cleanPath}.html`);
+    const nestedIndex = path.join(__dirname, cleanPath, 'index.html');
+
+    if (fs.existsSync(directHtml)) {
+      res.sendFile(directHtml);
+      return;
+    }
+
+    if (fs.existsSync(nestedIndex)) {
+      res.sendFile(nestedIndex);
+      return;
+    }
+
+    next();
+  });
 }
 
-// Contact form endpoint
+// Contact form + chat lead endpoint
+function getRemoteIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || '';
+}
+
 app.post('/api/contact', async (req, res) => {
   try {
-    const { name, email, message } = req.body;
-
-    // Validate required fields
-    if (!name || !email) {
-      return res.status(400).json({
-        success: false,
-        error: 'Name and email are required fields.'
-      });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Please enter a valid email address.'
-      });
-    }
-
-    // Sanitize inputs to prevent XSS
-    const sanitizeHtml = (str) => {
-      if (!str) return '';
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    };
-
-    const sanitizedName = sanitizeHtml(name);
-    const sanitizedEmail = sanitizeHtml(email);
-    const sanitizedMessage = sanitizeHtml(message);
-
-    if (!resend || !RESEND_API_KEY) {
-      console.error('❌ Resend API key not configured');
-      return res.status(500).json({
-        success: false,
-        error: 'Email service not configured. Please set RESEND_API_KEY environment variable.'
-      });
-    }
-
-    console.log(`📧 Attempting to send email from ${email} (${name})`);
-
-    // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: 'CLIENT FORM <noreply@attainmentofficeadserv.org>',
-      to: ['support@attainmentofficeadserv.org'],
-      subject: `New Client Message from ${sanitizedName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #22c55e; border-bottom: 2px solid #22c55e; padding-bottom: 10px;">
-            New Contact Form Submission
-          </h2>
-          <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-top: 20px;">
-            <p style="margin: 10px 0;"><strong>Name:</strong> ${sanitizedName}</p>
-            <p style="margin: 10px 0;"><strong>Email:</strong> ${sanitizedEmail}</p>
-            ${sanitizedMessage ? `<p style="margin: 10px 0;"><strong>Message:</strong></p><p style="margin: 10px 0; padding: 10px; background-color: white; border-radius: 4px; white-space: pre-wrap;">${sanitizedMessage}</p>` : ''}
-          </div>
-          <p style="margin-top: 20px; color: #6b7280; font-size: 12px;">
-            This email was sent from the AOAS WEB contact form.
-          </p>
-        </div>
-      `,
-      text: `
-New Contact Form Submission
-
-Name: ${name}
-Email: ${email}
-${message ? `Message: ${message}` : ''}
-
-This email was sent from the AOAS WEB contact form.
-      `,
+    const result = await handleContactSubmission(req.body, {
+      remoteIp: getRemoteIp(req),
+      userAgent: req.headers['user-agent'] || '',
+      path: req.path || '/',
     });
 
-    if (error) {
-      console.error('❌ Resend API error:', JSON.stringify(error, null, 2));
-      console.error('Error details:', error.message || error);
-      return res.status(500).json({
-        success: false,
-        error: error.message || 'Failed to send email. Please check your Resend API key and try again.'
-      });
-    }
-
-    if (data && data.id) {
-      console.log(`✅ Email sent successfully! Email ID: ${data.id}`);
-    } else {
-      console.log('⚠️ Email sent but no ID returned from Resend');
-    }
-
-    res.json({
-      success: true,
-      message: 'Thank you for your message! We will get back to you within 24-48 hours.',
-      emailId: data?.id
-    });
-
+    res.status(result.status).json(result.body);
   } catch (error) {
-    console.error('❌ Server error:', error);
-    console.error('Error stack:', error.stack);
+    console.error('Contact endpoint error:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'An unexpected error occurred. Please try again later.'
+      error: 'Unexpected server error while handling inquiry.',
+    });
+  }
+});
+
+// Analytics event ingestion endpoint
+app.post('/api/events', async (req, res) => {
+  try {
+    const eventName = sanitizeText(req.body?.eventName || req.body?.event || '', 80).toLowerCase();
+    if (!eventName) {
+      res.status(400).json({
+        success: false,
+        error: 'eventName is required.',
+      });
+      return;
+    }
+
+    const properties = req.body?.properties && typeof req.body.properties === 'object'
+      ? req.body.properties
+      : {};
+
+    await appendJsonLine('events.jsonl', {
+      timestamp: new Date().toISOString(),
+      eventName,
+      properties,
+      sourcePage: sanitizeText(req.body?.sourcePage || '', 300),
+      pageUrl: sanitizeText(req.body?.pageUrl || '', 2000),
+      sessionId: sanitizeText(req.body?.sessionId || '', 120),
+      userAgent: sanitizeText(req.headers['user-agent'] || '', 300),
+      ip: sanitizeText(getRemoteIp(req), 120),
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Events endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record event.',
+    });
+  }
+});
+
+// Inquiry + analytics metrics endpoint
+app.get('/api/metrics', async (req, res) => {
+  try {
+    const [inquiries, events] = await Promise.all([
+      readJsonLines('inquiries.jsonl'),
+      readJsonLines('events.jsonl'),
+    ]);
+
+    const metrics = buildMetricsFromRecords(inquiries, events);
+    res.json({
+      success: true,
+      metrics,
+    });
+  } catch (error) {
+    console.error('Metrics endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load metrics.',
     });
   }
 });

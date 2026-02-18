@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -38,16 +38,17 @@
     <meta name="subject" content="Virtual administrative services for Australian businesses">
     <meta name="topic"
         content="Virtual Assistants, NDIS Support, Healthcare Administration, Business Process Outsourcing">
+    <meta name="aoas-hcaptcha-sitekey" content="">
 
     <title>AOAS | Virtual Assistants Australia & NDIS Admin Support | Attainment Office Administrative Services</title>
     <!-- Performance: Preload critical resources -->
-    <link rel="preload" href="style.css" as="style">
-    <link rel="preload" href="script.js" as="script">
+    <link rel="preload" href="style.css?v=20260218e" as="style">
+    <link rel="preload" href="script.js?v=20260218e" as="script">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260218e">
     <!-- Favicon - Multiple formats for best crawler compatibility -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/ico" href="/favicon.ico">
@@ -275,8 +276,11 @@
                         <span class="social-text">Facebook</span>
                     </a>
                     <a href="/careers" class="btn btn-careers">JOIN OUR TEAM</a>
+                    <a href="/services" class="btn btn-primary cta-track" data-track-label="Header Services"
+                        data-track-event="cta_click">SERVICES</a>
                     <a href="#about" class="btn btn-primary">ABOUT US</a>
-                    <a href="#contact" class="btn btn-primary">CONTACT US</a>
+                    <a href="#contact" class="btn btn-primary cta-track" data-track-label="Header Contact"
+                        data-track-event="cta_click">CONTACT US</a>
                 </div>
             </div>
         </div>
@@ -334,6 +338,12 @@
                         part of another <span class="text-green">Australian industry</span>, our VAs are trained to meet
                         your specific needs.
                     </p>
+                    <div class="services-highlight">
+                        <a href="/services" class="pill-btn primary cta-track" data-track-label="Hero View Services"
+                            data-track-event="cta_click">View Services</a>
+                        <a href="#contact" class="pill-btn cta-track" data-track-label="Hero Inquire"
+                            data-track-event="cta_click">Request a Quote</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -405,6 +415,59 @@
                         <li>Client success as our benchmark</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Preview Section -->
+    <section class="section section-light" id="services-preview">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">SERVICES</span>
+                <h2 class="section-title-center">Choose the Right Service in 2 Clicks</h2>
+                <p class="section-description">Pick a service and inquire directly with prefilled routing.</p>
+            </div>
+            <div class="services-grid-home">
+                <article class="service-card-home">
+                    <img class="service-card-home-image" src="/services/assets/service-payroll-card.webp"
+                        alt="Payroll support team handling payroll documents" loading="lazy" decoding="async"
+                        width="720" height="420">
+                    <h3>Payroll Support</h3>
+                    <p>Payroll prep, timesheet checks, and pay-run support for Australian teams.</p>
+                    <a class="card-cta cta-track" href="/services/payroll" data-track-label="Service Payroll Card"
+                        data-track-service="payroll">View Service</a>
+                </article>
+                <article class="service-card-home">
+                    <img class="service-card-home-image" src="/services/assets/service-bookkeeping-card.webp"
+                        alt="Bookkeeping workspace with laptop and records" loading="lazy" decoding="async"
+                        width="720" height="420">
+                    <h3>Bookkeeping</h3>
+                    <p>Reconciliations, transaction management, and recurring financial admin support.</p>
+                    <a class="card-cta cta-track" href="/services/bookkeeping"
+                        data-track-label="Service Bookkeeping Card" data-track-service="bookkeeping">View Service</a>
+                </article>
+                <article class="service-card-home">
+                    <img class="service-card-home-image" src="/services/assets/service-tax-compliance-card.webp"
+                        alt="Tax compliance documents and calculator on desk" loading="lazy" decoding="async"
+                        width="720" height="420">
+                    <h3>Tax & Compliance Support</h3>
+                    <p>Compliance support workflows, documentation packs, and tax admin coordination.</p>
+                    <a class="card-cta cta-track" href="/services/tax-compliance"
+                        data-track-label="Service Tax Card" data-track-service="tax-compliance">View Service</a>
+                </article>
+                <article class="service-card-home">
+                    <img class="service-card-home-image" src="/services/assets/service-data-entry-card.webp"
+                        alt="Data entry setup with notebook and keyboard" loading="lazy" decoding="async"
+                        width="720" height="420">
+                    <h3>Data Entry</h3>
+                    <p>Reliable data processing, cleanup, and structured admin tasks.</p>
+                    <a class="card-cta cta-track" href="/services/data-entry"
+                        data-track-label="Service Data Entry Card" data-track-service="data-entry">View Service</a>
+                </article>
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="/services" class="pill-btn primary cta-track" data-track-label="Services Hub CTA"
+                    data-track-event="cta_click">Browse all services</a>
             </div>
         </div>
     </section>
@@ -498,179 +561,86 @@
 
     <!-- Partners Section -->
     <section class="section" id="partners">
-        <div class="container">
-            <h2 class="section-title-center">OUR PARTNERS</h2>
+    <div class="container">
+        <h2 class="section-title-center">OUR PARTNERS</h2>
 
-            <div class="partners-carousel-wrapper">
-                <div class="partners-carousel">
-                    <!-- First set of logos -->
-                    <div class="partner-logo">
-                        <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank"
-                            rel="noopener noreferrer">
-                            <img src="PARTNERS/HOPERECOVERY.png" alt="Hope Recovery Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://careliaison.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.healthcareservicesplus.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/HEALTHCARE.png" alt="Healthcare Services Plus" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://alanacaresupportservices.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/ALANACARE.png" alt="Alana Care Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.ndis.gov.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/NDIS.png" alt="NDIS" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://skillsnest.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/SKILLSNEST.png" alt="Skills Nest" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://youmattersolutions.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="You Matter Solutions" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <!-- Duplicate set for seamless infinite loop -->
-                    <div class="partner-logo">
-                        <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank"
-                            rel="noopener noreferrer">
-                            <img src="PARTNERS/HOPERECOVERY.png" alt="Hope Recovery Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://careliaison.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.healthcareservicesplus.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/HEALTHCARE.png" alt="Healthcare Services Plus" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://alanacaresupportservices.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/ALANACARE.png" alt="Alana Care Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.ndis.gov.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/NDIS.png" alt="NDIS" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://skillsnest.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/SKILLSNEST.png" alt="Skills Nest" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://youmattersolutions.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="You Matter Solutions" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <!-- Third set for extra coverage -->
-                    <div class="partner-logo">
-                        <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank"
-                            rel="noopener noreferrer">
-                            <img src="PARTNERS/HOPERECOVERY.png" alt="Hope Recovery Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://careliaison.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.healthcareservicesplus.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/HEALTHCARE.png" alt="Healthcare Services Plus" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://alanacaresupportservices.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/ALANACARE.png" alt="Alana Care Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.ndis.gov.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/NDIS.png" alt="NDIS" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://skillsnest.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/SKILLSNEST.png" alt="Skills Nest" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://youmattersolutions.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="You Matter Solutions" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <!-- Fourth set for extra coverage -->
-                    <div class="partner-logo">
-                        <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank"
-                            rel="noopener noreferrer">
-                            <img src="PARTNERS/HOPERECOVERY.png" alt="Hope Recovery Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://careliaison.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/CARELIAISON.png" alt="Care Liaison" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.healthcareservicesplus.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/HEALTHCARE.png" alt="Healthcare Services Plus" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://alanacaresupportservices.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/ALANACARE.png" alt="Alana Care Support Services" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://www.ndis.gov.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/NDIS.png" alt="NDIS" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://skillsnest.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/SKILLSNEST.png" alt="Skills Nest" loading="lazy" decoding="async">
-                        </a>
-                    </div>
-                    <div class="partner-logo">
-                        <a href="https://youmattersolutions.com.au/" target="_blank" rel="noopener noreferrer">
-                            <img src="PARTNERS/YOUMATTERSOLUTIONS.png" alt="You Matter Solutions" loading="lazy"
-                                decoding="async">
-                        </a>
-                    </div>
+        <div class="partners-carousel-wrapper">
+            <div class="partners-carousel" aria-label="Partner logos carousel">
+                <div class="partner-logo">
+                    <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/HOPERECOVERY.webp" alt="Hope Recovery Support Services" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo">
+                    <a href="https://careliaison.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/CARELIAISON.webp" alt="Care Liaison" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo">
+                    <a href="https://www.healthcareservicesplus.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/HEALTHCARE.webp" alt="Healthcare Services Plus" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo">
+                    <a href="https://alanacaresupportservices.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/ALANACARE.webp" alt="Alana Care Support Services" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo">
+                    <a href="https://www.ndis.gov.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/NDIS.webp" alt="NDIS" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo">
+                    <a href="https://skillsnest.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/SKILLSNEST.webp" alt="Skills Nest" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo">
+                    <a href="https://youmattersolutions.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/YOUMATTERSOLUTIONS.webp" alt="You Matter Solutions" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://www.facebook.com/profile.php?id=61578320660587" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/HOPERECOVERY.webp" alt="Hope Recovery Support Services" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://careliaison.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/CARELIAISON.webp" alt="Care Liaison" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://www.healthcareservicesplus.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/HEALTHCARE.webp" alt="Healthcare Services Plus" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://alanacaresupportservices.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/ALANACARE.webp" alt="Alana Care Support Services" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://www.ndis.gov.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/NDIS.webp" alt="NDIS" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://skillsnest.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/SKILLSNEST.webp" alt="Skills Nest" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
+                </div>
+                <div class="partner-logo" aria-hidden="true">
+                    <a href="https://youmattersolutions.com.au/" target="_blank" rel="noopener noreferrer">
+                        <img src="PARTNERS/optimized/YOUMATTERSOLUTIONS.webp" alt="You Matter Solutions" loading="lazy" decoding="async" width="240" height="120" fetchpriority="low">
+                    </a>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Why Choose Us Section -->
     <section class="section section-light" id="why-us">
@@ -733,7 +703,7 @@
                     <div class="faq-item">
                         <button class="faq-question">
                             <span>Will I receive a response within 24-48 hours?</span>
-                            <span class="faq-icon">▼</span>
+                            <span class="faq-icon">â–¼</span>
                         </button>
                         <div class="faq-answer">
                             <p>Yes, absolutely! Our commitment is to get back to you promptly within 24-48 hours from
@@ -747,7 +717,7 @@
                     <div class="faq-item">
                         <button class="faq-question">
                             <span>What services do you offer?</span>
-                            <span class="faq-icon">▼</span>
+                            <span class="faq-icon">â–¼</span>
                         </button>
                         <div class="faq-answer">
                             <p>We provide comprehensive virtual administrative services including administration,
@@ -761,7 +731,7 @@
                     <div class="faq-item">
                         <button class="faq-question">
                             <span>How do you ensure quality and reliability?</span>
-                            <span class="faq-icon">▼</span>
+                            <span class="faq-icon">â–¼</span>
                         </button>
                         <div class="faq-answer">
                             <p>We have a rigorous recruitment process and provide comprehensive training to all our
@@ -778,7 +748,7 @@
                     <div class="faq-item">
                         <button class="faq-question">
                             <span>What industries do you serve?</span>
-                            <span class="faq-icon">▼</span>
+                            <span class="faq-icon">â–¼</span>
                         </button>
                         <div class="faq-answer">
                             <p>While we specialize in NDIS healthcare institutions, we also serve various Australian
@@ -792,7 +762,7 @@
                     <div class="faq-item">
                         <button class="faq-question">
                             <span>How does the recruitment and hiring process work?</span>
-                            <span class="faq-icon">▼</span>
+                            <span class="faq-icon">â–¼</span>
                         </button>
                         <div class="faq-answer">
                             <p>We handle the entire recruitment process for you - from sourcing candidates to conducting
@@ -807,7 +777,7 @@
                     <div class="faq-item">
                         <button class="faq-question">
                             <span>Can I customize the services to my specific needs?</span>
-                            <span class="faq-icon">▼</span>
+                            <span class="faq-icon">â–¼</span>
                         </button>
                         <div class="faq-answer">
                             <p>Absolutely! We understand that every business has unique requirements. Our services are
@@ -845,18 +815,71 @@
                 <div class="contact-form-wrapper">
                     <form class="contact-form" id="contactForm">
                         <div class="form-group">
-                            <label for="name">Name <span class="required">(required)</span></label>
-                            <input type="text" id="name" name="name" required>
+                            <label for="service">Service <span class="required">(required)</span></label>
+                            <select id="service" name="service" required>
+                                <option value="">Select a service</option>
+                                <option value="payroll">Payroll Support</option>
+                                <option value="bookkeeping">Bookkeeping</option>
+                                <option value="tax-compliance">Tax & Compliance Support</option>
+                                <option value="data-entry">Data Entry</option>
+                                <option value="ndis-admin">NDIS Administration</option>
+                                <option value="customer-service">Customer Service Support</option>
+                                <option value="general-admin">General VA Support</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <p class="form-hint">This helps us route your inquiry to the right team.</p>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Name <span class="required">(required)</span></label>
+                                <input type="text" id="name" name="name" required maxlength="120">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email <span class="required">(required)</span></label>
+                                <input type="email" id="email" name="email" required maxlength="320">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone <span class="required">(optional)</span></label>
+                                <input type="text" id="phone" name="phone" maxlength="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="location">Country / Location</label>
+                                <select id="location" name="location">
+                                    <option value="Australia" selected>Australia</option>
+                                    <option value="Philippines">Philippines</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="chat-other-location-wrap" id="contactOtherLocationWrap" hidden>
+                                    <label for="locationOther">Enter location</label>
+                                    <input type="text" id="locationOther" name="locationOther" maxlength="120"
+                                        placeholder="City / Country">
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="email">Email <span class="required">(required)</span></label>
-                            <input type="email" id="email" name="email" required>
+                            <label for="message">Message <span class="required">(required)</span></label>
+                            <textarea id="message" name="message" rows="5" maxlength="6000" required></textarea>
                         </div>
-                        <div class="form-group">
-                            <label for="message">Message</label>
-                            <textarea id="message" name="message" rows="5"></textarea>
+                        <div class="honeypot-field" aria-hidden="true">
+                            <label for="website">Website</label>
+                            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
                         </div>
-                        <button type="submit" class="btn btn-primary">CONTACT US</button>
+                        <div class="captcha-container" id="contactCaptchaContainer" hidden>
+                            <label>Captcha <span class="required">(required)</span></label>
+                            <div id="contactCaptcha"></div>
+                        </div>
+                        <p class="privacy-note">By submitting, you agree to our follow-up regarding this inquiry.</p>
+                        <input type="hidden" id="sourcePage" name="sourcePage">
+                        <input type="hidden" id="pageUrl" name="pageUrl">
+                        <input type="hidden" id="utmSource" name="utmSource">
+                        <input type="hidden" id="utmMedium" name="utmMedium">
+                        <input type="hidden" id="utmCampaign" name="utmCampaign">
+                        <input type="hidden" id="utmTerm" name="utmTerm">
+                        <input type="hidden" id="utmContent" name="utmContent">
+                        <button type="submit" class="btn btn-primary cta-track" data-track-label="Contact Submit"
+                            data-track-event="contact_form_submit_clicked">SUBMIT INQUIRY</button>
                     </form>
                 </div>
             </div>
@@ -891,7 +914,7 @@
                 </div>
 
                 <div class="map-instruction">
-                    💡 <strong>Tip:</strong> Click anywhere on the map to set your location and calculate the route! For
+                    ðŸ’¡ <strong>Tip:</strong> Click anywhere on the map to set your location and calculate the route! For
                     international locations, air distance will be displayed.
                 </div>
 
@@ -961,13 +984,35 @@
                 </div>
             </div>
 
+            <div class="footer-service-shortcuts">
+                <span class="footer-shortcuts-label">Service Shortcuts:</span>
+                <a class="cta-track" href="/services/payroll" data-track-label="Footer Shortcut Payroll"
+                    data-track-service="payroll">Payroll</a>
+                <a class="cta-track" href="/services/bookkeeping" data-track-label="Footer Shortcut Bookkeeping"
+                    data-track-service="bookkeeping">Bookkeeping</a>
+                <a class="cta-track" href="/services/tax-compliance" data-track-label="Footer Shortcut Tax"
+                    data-track-service="tax-compliance">Tax & Compliance</a>
+                <a class="cta-track" href="/services/data-entry" data-track-label="Footer Shortcut Data Entry"
+                    data-track-service="data-entry">Data Entry</a>
+                <a class="cta-track" href="/services/ndis-admin" data-track-label="Footer Shortcut NDIS"
+                    data-track-service="ndis-admin">NDIS Admin</a>
+                <a class="cta-track" href="/services/customer-service" data-track-label="Footer Shortcut Customer Service"
+                    data-track-service="customer-service">Customer Service</a>
+            </div>
+
             <div class="footer-bottom">
                 <nav class="footer-nav">
                     <a href="#home">Home</a>
                     <span class="separator">|</span>
+                    <a href="/services">Services</a>
+                    <span class="separator">|</span>
                     <a href="#about">About Us</a>
                     <span class="separator">|</span>
                     <a href="/careers">Join Our Team</a>
+                    <span class="separator">|</span>
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a href="/terms">Terms</a>
                 </nav>
             </div>
         </div>
@@ -990,7 +1035,10 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="tracker.js"></script>
+    <script src="script.js?v=20260218e"></script>
+    <script src="chatbot.js?v=20260218d"></script>
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit" async defer></script>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1033,12 +1081,12 @@
 
         // Base layers
         const terrainLayerHome = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
+            attribution: 'Â© OpenStreetMap contributors',
             maxZoom: 19
         });
 
         const satelliteLayerHome = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles © Esri',
+            attribution: 'Tiles Â© Esri',
             maxZoom: 19
         });
 
@@ -1066,7 +1114,7 @@
 
         // Add AOAS office marker
         const officeMarkerHome = L.marker(aoasLocationHome, { icon: greenIconHome }).addTo(mapHome);
-        officeMarkerHome.bindPopup('<strong>🏢 AOAS Office</strong><br>Purok Mais, Barangay Paculob<br>Dumanjug, Cebu').openPopup();
+        officeMarkerHome.bindPopup('<strong>ðŸ¢ AOAS Office</strong><br>Purok Mais, Barangay Paculob<br>Dumanjug, Cebu').openPopup();
 
         // Variables
         let routingControlHome = null;
@@ -1111,7 +1159,7 @@
 
             // Add user marker
             userMarkerHome = L.marker(userLocation, { icon: orangeIconHome }).addTo(mapHome);
-            userMarkerHome.bindPopup('<strong>📍 Your Location</strong>');
+            userMarkerHome.bindPopup('<strong>ðŸ“ Your Location</strong>');
 
             // Calculate straight-line distance first
             const straightLineDistance = calculateStraightLineDistance(
@@ -1221,28 +1269,28 @@
         document.getElementById('autoDetectHome').addEventListener('click', function () {
             const btn = this;
             btn.disabled = true;
-            btn.textContent = '📍 Detecting...';
+            btn.textContent = 'ðŸ“ Detecting...';
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function (position) {
                         const userLocation = [position.coords.latitude, position.coords.longitude];
                         createRouteHome(userLocation);
-                        btn.textContent = '✓ Location Detected';
+                        btn.textContent = 'âœ“ Location Detected';
                         btn.style.background = '#22c55e';
                         setTimeout(() => {
                             btn.disabled = false;
-                            btn.textContent = '🔄 Refresh Location';
+                            btn.textContent = 'ðŸ”„ Refresh Location';
                             btn.style.background = '#FF6D1F';
                         }, 2000);
                     },
                     function (error) {
                         btn.disabled = false;
-                        btn.textContent = '❌ Access Denied';
+                        btn.textContent = 'âŒ Access Denied';
                         btn.style.background = '#ef4444';
                         showModalHome('Please enable location access in your browser settings.', 'Location Access Required');
                         setTimeout(() => {
-                            btn.textContent = '📍 Auto-Detect My Location';
+                            btn.textContent = 'ðŸ“ Auto-Detect My Location';
                             btn.style.background = '#FF6D1F';
                         }, 3000);
                     }
@@ -1284,4 +1332,10 @@
 </body>
 
 </html>
+
+
+
+
+
+
 
