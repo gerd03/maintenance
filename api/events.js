@@ -72,16 +72,19 @@ module.exports = async (req, res) => {
       ip: sanitizeText(getRemoteIp(req), 120),
     };
 
-    await appendJsonLine('events.jsonl', record);
+    const stored = await appendJsonLine('events.jsonl', record);
 
     res.status(200).json({
       success: true,
+      stored: stored !== false,
     });
   } catch (error) {
     console.error('Events API error:', error);
-    res.status(500).json({
+    // Fail-open for tracking so frontend does not surface noisy 500 errors.
+    res.status(200).json({
       success: false,
-      error: 'Failed to record event.',
+      stored: false,
+      dropped: true,
     });
   }
 };

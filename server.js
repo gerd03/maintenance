@@ -118,7 +118,7 @@ app.post('/api/events', async (req, res) => {
       ? req.body.properties
       : {};
 
-    await appendJsonLine('events.jsonl', {
+    const stored = await appendJsonLine('events.jsonl', {
       timestamp: new Date().toISOString(),
       eventName,
       properties,
@@ -129,12 +129,17 @@ app.post('/api/events', async (req, res) => {
       ip: sanitizeText(getRemoteIp(req), 120),
     });
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      stored: stored !== false,
+    });
   } catch (error) {
     console.error('Events endpoint error:', error);
-    res.status(500).json({
+    // Fail-open for analytics ingestion to avoid frontend 500 noise.
+    res.status(200).json({
       success: false,
-      error: 'Failed to record event.',
+      stored: false,
+      dropped: true,
     });
   }
 });
