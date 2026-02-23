@@ -5,6 +5,27 @@ const path = require('path');
 const { Resend } = require('resend');
 const { handleContactSubmission } = require('./lib/contact-handler');
 const { appendJsonLine, readJsonLines, buildMetricsFromRecords, sanitizeText } = require('./lib/inquiry-utils');
+const {
+  STATUS_OPTIONS,
+  createTokenForUser,
+  authenticateUser,
+  resolveUserFromRequest,
+  assertAuthenticated,
+  assertAdmin,
+  getDashboardSnapshot,
+  listSections,
+  createSection,
+  updateSection,
+  deleteSection,
+  listParticipants,
+  createParticipant,
+  updateParticipant,
+  deleteParticipant,
+  listAccounts,
+  createSubAccount,
+  updateSubAccount,
+  deleteSubAccount,
+} = require('./lib/admin-crm');
 require('dotenv').config();
 
 const app = express();
@@ -82,6 +103,49 @@ function getRemoteIp(req) {
     return forwarded.split(',')[0].trim();
   }
   return req.socket?.remoteAddress || '';
+}
+
+function sendAdminError(res, error) {
+  const status = Number.isInteger(error?.status) ? error.status : 500;
+  res.status(status).json({
+    success: false,
+    error: error?.message || 'Unexpected admin endpoint error.',
+  });
+}
+
+function toPublicUser(user) {
+  return {
+    username: user.username,
+    displayName: user.displayName || user.username,
+    role: user.role,
+  };
+}
+
+function getEntityIdFromRequest(req) {
+  return sanitizeText(req.params?.id || req.body?.id || req.query?.id || '', 120);
+}
+
+async function requireAuthenticatedUser(req, res) {
+  try {
+    const user = await resolveUserFromRequest(req);
+    assertAuthenticated(user);
+    return user;
+  } catch (error) {
+    sendAdminError(res, error);
+    return null;
+  }
+}
+
+async function requireAdminUser(req, res) {
+  try {
+    const user = await resolveUserFromRequest(req);
+    assertAuthenticated(user);
+    assertAdmin(user);
+    return user;
+  } catch (error) {
+    sendAdminError(res, error);
+    return null;
+  }
 }
 
 app.post('/api/contact', async (req, res) => {
@@ -402,6 +466,373 @@ Received on ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })} (
       success: false,
       error: error.message || 'An unexpected error occurred. Please try again later.'
     });
+  }
+});
+
+// Admin CRM authentication
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    const username = sanitizeText(req.body?.username || '', 60).toLowerCase();
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+
+    if (!username || !password) {
+      res.status(400).json({
+        success: false,
+        error: 'Username and password are required.',
+      });
+      return;
+    }
+
+    const user = await authenticateUser(username, password);
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid username or password.',
+      });
+      return;
+    }
+
+    const token = createTokenForUser(user);
+    res.json({
+      success: true,
+      token,
+      user: toPublicUser(user),
+      expiresInSeconds: 12 * 60 * 60,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.get('/api/admin/me', async (req, res) => {
+  try {
+    const user = await requireAuthenticatedUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    res.json({
+      success: true,
+      user: toPublicUser(user),
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.get('/api/admin/dashboard', async (req, res) => {
+  try {
+    const user = await requireAuthenticatedUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const snapshot = await getDashboardSnapshot();
+    res.json({
+      success: true,
+      user: toPublicUser(user),
+      statusOptions: STATUS_OPTIONS,
+      ...snapshot,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+// Admin CRM: sections
+app.get('/api/admin/sections', async (req, res) => {
+  try {
+    const user = await requireAuthenticatedUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const sections = await listSections();
+    res.json({
+      success: true,
+      sections,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.post('/api/admin/sections', async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const section = await createSection(req.body || {}, user);
+    res.status(201).json({
+      success: true,
+      section,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.put(['/api/admin/sections/:id', '/api/admin/sections'], async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const sectionId = getEntityIdFromRequest(req);
+    if (!sectionId) {
+      res.status(400).json({
+        success: false,
+        error: 'section id is required.',
+      });
+      return;
+    }
+
+    const section = await updateSection(sectionId, req.body || {});
+    res.json({
+      success: true,
+      section,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.delete(['/api/admin/sections/:id', '/api/admin/sections'], async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const sectionId = getEntityIdFromRequest(req);
+    if (!sectionId) {
+      res.status(400).json({
+        success: false,
+        error: 'section id is required.',
+      });
+      return;
+    }
+
+    await deleteSection(sectionId);
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+// Admin CRM: participants
+app.get('/api/admin/participants', async (req, res) => {
+  try {
+    const user = await requireAuthenticatedUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const search = sanitizeText(req.query?.search || '', 120).toLowerCase();
+    const sectionFilter = sanitizeText(req.query?.section || '', 80).toLowerCase();
+    const statusFilter = sanitizeText(req.query?.status || '', 40).toLowerCase();
+    let participants = await listParticipants();
+
+    if (sectionFilter) {
+      participants = participants.filter((participant) => Array.isArray(participant.sections) && participant.sections.includes(sectionFilter));
+    }
+
+    if (statusFilter) {
+      participants = participants.filter((participant) => (participant.status || '').toLowerCase() === statusFilter);
+    }
+
+    if (search) {
+      participants = participants.filter((participant) => {
+        const haystack = [
+          participant.fullName,
+          participant.email,
+          participant.contactNumber,
+          participant.address,
+          participant.gender,
+          participant.notes,
+          ...(Array.isArray(participant.skills) ? participant.skills : []),
+          ...(Array.isArray(participant.sections) ? participant.sections : []),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        return haystack.includes(search);
+      });
+    }
+
+    res.json({
+      success: true,
+      participants,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.post('/api/admin/participants', async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const participant = await createParticipant(req.body || {}, user);
+    res.status(201).json({
+      success: true,
+      participant,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.put(['/api/admin/participants/:id', '/api/admin/participants'], async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const participantId = getEntityIdFromRequest(req);
+    if (!participantId) {
+      res.status(400).json({
+        success: false,
+        error: 'participant id is required.',
+      });
+      return;
+    }
+
+    const participant = await updateParticipant(participantId, req.body || {}, user);
+    res.json({
+      success: true,
+      participant,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.delete(['/api/admin/participants/:id', '/api/admin/participants'], async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const participantId = getEntityIdFromRequest(req);
+    if (!participantId) {
+      res.status(400).json({
+        success: false,
+        error: 'participant id is required.',
+      });
+      return;
+    }
+
+    await deleteParticipant(participantId);
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+// Admin CRM: sub-accounts
+app.get('/api/admin/accounts', async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const accounts = await listAccounts();
+    res.json({
+      success: true,
+      systemAdmin: {
+        id: 'hardcoded-admin',
+        username: 'admin',
+        displayName: 'System Admin',
+        role: 'admin',
+        isActive: true,
+      },
+      accounts,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.post('/api/admin/accounts', async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const account = await createSubAccount(req.body || {}, user);
+    res.status(201).json({
+      success: true,
+      account,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.put(['/api/admin/accounts/:id', '/api/admin/accounts'], async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const accountId = getEntityIdFromRequest(req);
+    if (!accountId) {
+      res.status(400).json({
+        success: false,
+        error: 'account id is required.',
+      });
+      return;
+    }
+
+    const account = await updateSubAccount(accountId, req.body || {});
+    res.json({
+      success: true,
+      account,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.delete(['/api/admin/accounts/:id', '/api/admin/accounts'], async (req, res) => {
+  try {
+    const user = await requireAdminUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    const accountId = getEntityIdFromRequest(req);
+    if (!accountId) {
+      res.status(400).json({
+        success: false,
+        error: 'account id is required.',
+      });
+      return;
+    }
+
+    await deleteSubAccount(accountId);
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    sendAdminError(res, error);
   }
 });
 

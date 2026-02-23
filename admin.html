@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AOAS CRM Dashboard</title>
+  <meta name="description" content="AOAS talent pool CRM dashboard">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <p class="eyebrow">AOAS Internal</p>
+        <h1>CRM Control Center</h1>
+        <p>Manage participants, talent pools, and sub-accounts in one dashboard.</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label>
+          Username
+          <input id="loginUsername" name="username" type="text" required maxlength="40" autocomplete="username">
+        </label>
+        <label>
+          Password
+          <input id="loginPassword" name="password" type="password" required maxlength="120" autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+      </form>
+      <p class="hint">Default admin login: <code>admin</code> / <code>AOAS@2025</code></p>
+      <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <div id="appShell" class="crm-shell" hidden>
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="eyebrow">AOAS</p>
+        <h2>Talent CRM</h2>
+      </div>
+      <nav class="nav">
+        <button type="button" class="nav-btn active" data-view="overview">Overview</button>
+        <button type="button" class="nav-btn" data-view="participants">Participants</button>
+        <button type="button" class="nav-btn" data-view="sections">Talent Sections</button>
+        <button type="button" class="nav-btn" data-view="accounts">Sub Accounts</button>
+      </nav>
+      <div class="sidebar-footer">
+        <p id="userBadge"></p>
+        <button id="logoutBtn" class="btn btn-ghost" type="button">Logout</button>
+      </div>
+    </aside>
+
+    <div class="content-wrap">
+      <header class="topbar card">
+        <div>
+          <p class="eyebrow">Dashboard</p>
+          <h3>Applicant Talent Pipeline</h3>
+        </div>
+        <p id="globalMessage" class="message" role="status" aria-live="polite"></p>
+      </header>
+
+      <main class="view-stack">
+        <section id="view-overview" class="view active">
+          <div class="stats-row">
+            <article class="card stat-card">
+              <p>Participants</p>
+              <strong id="statParticipants">0</strong>
+            </article>
+            <article class="card stat-card">
+              <p>Talent Sections</p>
+              <strong id="statSections">0</strong>
+            </article>
+            <article class="card stat-card">
+              <p>Sub Accounts</p>
+              <strong id="statAccounts">0</strong>
+            </article>
+          </div>
+
+          <div class="grid-two">
+            <article class="card">
+              <div class="card-head">
+                <h4>Section Coverage</h4>
+              </div>
+              <div id="overviewSectionChips" class="chip-list"></div>
+            </article>
+
+            <article class="card">
+              <div class="card-head">
+                <h4>Recently Updated</h4>
+              </div>
+              <div id="overviewRecentList" class="compact-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-participants" class="view">
+          <article class="card">
+            <div class="toolbar">
+              <label>
+                Search
+                <input id="participantsSearch" type="text" placeholder="Name, skill, section, email">
+              </label>
+              <label>
+                Section
+                <select id="participantsSectionFilter"></select>
+              </label>
+              <label>
+                Status
+                <select id="participantsStatusFilter">
+                  <option value="">All statuses</option>
+                  <option value="talent_pool">Talent Pool</option>
+                  <option value="shortlisted">Shortlisted</option>
+                  <option value="on_hold">On Hold</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+              <button id="createParticipantBtn" type="button" class="btn btn-primary">Add Participant</button>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Contact</th>
+                    <th>Skills</th>
+                    <th>Sections</th>
+                    <th>Status</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="participantsTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section id="view-sections" class="view">
+          <article class="card">
+            <div class="card-head">
+              <h4>Talent Sections</h4>
+            </div>
+            <form id="sectionForm" class="inline-form">
+              <input id="sectionName" type="text" maxlength="120" placeholder="Section name (e.g., Mobile App Developers)">
+              <input id="sectionDescription" type="text" maxlength="240" placeholder="Description (optional)">
+              <button type="submit" class="btn btn-primary">Add Section</button>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Section</th>
+                    <th>Description</th>
+                    <th>Participants</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="sectionsTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section id="view-accounts" class="view">
+          <article class="card">
+            <div class="card-head">
+              <h4>Sub Accounts (View-Only)</h4>
+            </div>
+            <form id="accountForm" class="inline-form">
+              <input id="accountUsername" type="text" maxlength="40" placeholder="username">
+              <input id="accountDisplayName" type="text" maxlength="120" placeholder="display name">
+              <input id="accountPassword" type="password" maxlength="120" placeholder="password (min 8 chars)">
+              <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Display Name</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="accountsTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="participantModal" class="modal" hidden>
+    <div id="participantModalBackdrop" class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <header class="modal-head">
+        <h4 id="participantModalTitle">Participant</h4>
+        <button id="participantModalClose" class="btn btn-ghost" type="button">Close</button>
+      </header>
+      <form id="participantForm" class="modal-form">
+        <input id="participantId" type="hidden">
+        <label>
+          Full Name *
+          <input id="fullName" type="text" required maxlength="120">
+        </label>
+        <label>
+          Contact Number
+          <input id="contactNumber" type="text" maxlength="50">
+        </label>
+        <label>
+          Email
+          <input id="email" type="email" maxlength="320">
+        </label>
+        <label>
+          Gender
+          <input id="gender" type="text" maxlength="40">
+        </label>
+        <label>
+          Address
+          <input id="address" type="text" maxlength="240">
+        </label>
+        <label>
+          Age
+          <input id="age" type="number" min="0" max="100">
+        </label>
+        <label>
+          Birthdate
+          <input id="birthdate" type="date">
+        </label>
+        <label>
+          Status
+          <select id="status">
+            <option value="talent_pool">Talent Pool</option>
+            <option value="shortlisted">Shortlisted</option>
+            <option value="on_hold">On Hold</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </label>
+        <label class="span-2">
+          Skills (comma separated)
+          <textarea id="skills" rows="2" maxlength="3000"></textarea>
+        </label>
+        <fieldset class="span-2">
+          <legend>Talent Sections</legend>
+          <div id="sectionsChecklist" class="check-grid"></div>
+        </fieldset>
+        <label class="span-2">
+          Notes
+          <textarea id="notes" rows="4" maxlength="5000"></textarea>
+        </label>
+        <label class="span-2">
+          Resume
+          <input id="resumeFile" type="file" accept=".pdf,.doc,.docx,.txt,.rtf,.odt,image/*">
+        </label>
+        <div id="resumeMeta" class="span-2 resume-meta"></div>
+        <footer class="modal-actions span-2">
+          <button id="saveParticipantBtn" type="submit" class="btn btn-primary">Save</button>
+          <button id="deleteParticipantBtn" type="button" class="btn btn-danger">Delete</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <script src="/admin.js" defer></script>
+</body>
+</html>
