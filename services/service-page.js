@@ -75,6 +75,15 @@
     function applyRevealAnimations() {
         const revealTargets = document.querySelectorAll('.service-animate');
         if (!revealTargets.length) return;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const supportsObserver = typeof window.IntersectionObserver === 'function';
+
+        if (reducedMotion || !supportsObserver) {
+            revealTargets.forEach((target) => target.classList.add('is-visible'));
+            return;
+        }
+
+        document.body.classList.add('service-reveal-enabled');
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
@@ -88,7 +97,14 @@
             rootMargin: '0px 0px -40px 0px',
         });
 
-        revealTargets.forEach((target) => observer.observe(target));
+        window.requestAnimationFrame(() => {
+            revealTargets.forEach((target) => observer.observe(target));
+        });
+
+        // Safety fallback: never keep content hidden if observer callbacks are delayed.
+        window.setTimeout(() => {
+            revealTargets.forEach((target) => target.classList.add('is-visible'));
+        }, 1800);
     }
 
     function detectServiceKey() {
@@ -427,8 +443,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        applyRevealAnimations();
-        if (!isServicesHubPage()) {
+        const servicesHub = isServicesHubPage();
+
+        if (servicesHub) {
+            // Keep the services hub stable on mobile: never hide cards behind reveal state.
+            document.body.classList.remove('service-reveal-enabled');
+            document.querySelectorAll('.service-animate').forEach((target) => target.classList.add('is-visible'));
+        } else {
+            applyRevealAnimations();
             ensureServiceInquiryForm();
             normalizeLegacyInquireLinks();
         }

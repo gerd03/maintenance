@@ -42,6 +42,9 @@
     },
     "api/metrics.js": {
       "maxDuration": 10
+    },
+    "api/route-estimate.js": {
+      "maxDuration": 15
     }
   },
   "rewrites": [

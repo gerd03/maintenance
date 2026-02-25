@@ -5,6 +5,7 @@ const path = require('path');
 const { Resend } = require('resend');
 const { handleContactSubmission } = require('./lib/contact-handler');
 const { appendJsonLine, readJsonLines, buildMetricsFromRecords, sanitizeText } = require('./lib/inquiry-utils');
+const { computeRouteEstimate } = require('./lib/route-estimator');
 const {
   STATUS_OPTIONS,
   createTokenForUser,
@@ -12,6 +13,7 @@ const {
   resolveUserFromRequest,
   assertAuthenticated,
   assertAdmin,
+  getSystemAdminPublic,
   getDashboardSnapshot,
   listSections,
   createSection,
@@ -42,8 +44,8 @@ if (!RESEND_API_KEY) {
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 if (RESEND_API_KEY) {
-  console.log('✅ Resend API initialized successfully');
-  console.log(`✅ API Key loaded: ${RESEND_API_KEY.substring(0, 10)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}`);
+  console.log('[OK] Resend API initialized successfully');
+  console.log(`[OK] API Key loaded: ${RESEND_API_KEY.substring(0, 10)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}`);
 } else {
   console.warn('RESEND_API_KEY not set - email functionality will not work');
 }
@@ -230,6 +232,42 @@ app.get('/api/metrics', async (req, res) => {
   }
 });
 
+function toRouteProviderLabel(provider) {
+  if (provider === 'google_routes') return 'Google Routes';
+  if (provider === 'tomtom_routing') return 'TomTom Routing';
+  if (provider === 'osrm') return 'OSRM';
+  return 'Routing API';
+}
+
+app.post('/api/route-estimate', async (req, res) => {
+  try {
+    const origin = req.body?.origin || {};
+    const destination = req.body?.destination || {};
+
+    const route = await computeRouteEstimate({ origin, destination });
+    res.json({
+      success: true,
+      route: {
+        provider: route.provider,
+        providerLabel: toRouteProviderLabel(route.provider),
+        usesTraffic: Boolean(route.usesTraffic),
+        distanceMeters: Math.max(0, Number(route.distanceMeters) || 0),
+        durationSeconds: Math.max(0, Number(route.durationSeconds) || 0),
+        noTrafficSeconds: Math.max(0, Number(route.noTrafficSeconds) || 0),
+        trafficDelaySeconds: Math.max(0, Number(route.trafficDelaySeconds) || 0),
+        isCalibratedLocalEstimate: Boolean(route.isCalibratedLocalEstimate),
+        points: Array.isArray(route.points) ? route.points : [],
+      },
+    });
+  } catch (error) {
+    const status = Number.isInteger(error?.status) ? error.status : 502;
+    res.status(status).json({
+      success: false,
+      error: error?.message || 'Failed to compute route estimate.',
+    });
+  }
+});
+
 // Careers form endpoint
 app.post('/api/careers', async (req, res) => {
   try {
@@ -290,14 +328,14 @@ app.post('/api/careers', async (req, res) => {
     };
 
     if (!resend || !RESEND_API_KEY) {
-      console.error('❌ Resend API key not configured');
+      console.error('Ã¢ÂÅ’ Resend API key not configured');
       return res.status(500).json({
         success: false,
         error: 'Email service not configured. Please set RESEND_API_KEY environment variable.'
       });
     }
 
-    console.log(`📧 Attempting to send career application from ${email} (${fullName})`);
+    console.log(`Ã°Å¸â€œÂ§ Attempting to send career application from ${email} (${fullName})`);
 
     // Decode base64 file data
     let attachmentContent = null;
@@ -439,7 +477,7 @@ Received on ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })} (
     const { data, error } = await resend.emails.send(emailOptions);
 
     if (error) {
-      console.error('❌ Resend API error:', JSON.stringify(error, null, 2));
+      console.error('Ã¢ÂÅ’ Resend API error:', JSON.stringify(error, null, 2));
       console.error('Error details:', error.message || error);
       return res.status(500).json({
         success: false,
@@ -448,9 +486,9 @@ Received on ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })} (
     }
 
     if (data && data.id) {
-      console.log(`✅ Career application email sent successfully! Email ID: ${data.id}`);
+      console.log(`Ã¢Å“â€¦ Career application email sent successfully! Email ID: ${data.id}`);
     } else {
-      console.log('⚠️ Email sent but no ID returned from Resend');
+      console.log('Ã¢Å¡Â Ã¯Â¸Â Email sent but no ID returned from Resend');
     }
 
     res.json({
@@ -460,7 +498,7 @@ Received on ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })} (
     });
 
   } catch (error) {
-    console.error('❌ Server error:', error);
+    console.error('Ã¢ÂÅ’ Server error:', error);
     console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
@@ -754,13 +792,7 @@ app.get('/api/admin/accounts', async (req, res) => {
     const accounts = await listAccounts();
     res.json({
       success: true,
-      systemAdmin: {
-        id: 'hardcoded-admin',
-        username: 'admin',
-        displayName: 'System Admin',
-        role: 'admin',
-        isActive: true,
-      },
+      systemAdmin: getSystemAdminPublic(),
       accounts,
     });
   } catch (error) {
@@ -853,9 +885,9 @@ module.exports = app;
 // Only listen if not on Vercel (for local development)
 if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
   app.listen(PORT, () => {
-    console.log(`\n🚀 Server is running on http://localhost:${PORT}`);
-    console.log(`✅ Resend API Key is configured`);
-    console.log(`📧 Contact form endpoint: http://localhost:${PORT}/api/contact`);
+    console.log(`\nÃ°Å¸Å¡â‚¬ Server is running on http://localhost:${PORT}`);
+    console.log(`Ã¢Å“â€¦ Resend API Key is configured`);
+    console.log(`Ã°Å¸â€œÂ§ Contact form endpoint: http://localhost:${PORT}/api/contact`);
     console.log(`\nReady to receive contact form submissions!\n`);
   });
 }

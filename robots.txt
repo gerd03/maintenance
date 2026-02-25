@@ -8,4 +8,6 @@ Disallow: /node_modules/
 Disallow: /api/
 
 Sitemap: https://www.attainmentofficeadserv.org/sitemap.xml
-
+Disallow: /archive/
+Disallow: /admin
+Disallow: /insights

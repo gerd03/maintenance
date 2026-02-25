@@ -2,6 +2,7 @@ const {
   resolveUserFromRequest,
   assertAuthenticated,
   assertAdmin,
+  getSystemAdminPublic,
   listAccounts,
   createSubAccount,
   updateSubAccount,
@@ -28,13 +29,7 @@ module.exports = async (req, res) => {
       const accounts = await listAccounts();
       res.status(200).json({
         success: true,
-        systemAdmin: {
-          id: 'hardcoded-admin',
-          username: 'admin',
-          displayName: 'System Admin',
-          role: 'admin',
-          isActive: true,
-        },
+        systemAdmin: getSystemAdminPublic(),
         accounts,
       });
       return;
