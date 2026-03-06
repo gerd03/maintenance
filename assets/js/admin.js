@@ -282,10 +282,59 @@
       .map((item) => `<span class="${pillClass}">${escapeHtml(item)}</span>`)
       .join('');
     const toggleButton = list.length > 2
-      ? `<button type="button" class="btn btn-light btn-inline-more" data-action="toggle-${kind}" data-id="${escapeHtml(participantId)}">${expanded ? 'See less' : `See more (${hiddenCount})`}</button>`
+      ? `<button type="button" class="btn btn-inline-more" data-action="toggle-${kind}" data-id="${escapeHtml(participantId)}">${expanded ? 'See less' : `See more (${hiddenCount})`}</button>`
       : '';
 
     return `${pills}${toggleButton}`;
+  }
+
+  function renderParticipantActions(participant) {
+    const participantId = escapeHtml(participant.id);
+    const isShortlisted = String(participant.status || '').toLowerCase() === 'shortlisted';
+    const profileAction = `<button type="button" class="btn btn-light btn-compact" data-action="open-profile" data-id="${participantId}">Profile</button>`;
+    const primaryAction = isAdmin()
+      ? (isShortlisted
+        ? `<button type="button" class="btn btn-ghost btn-compact" data-action="remove-shortlist" data-id="${participantId}">Move to Pool</button>`
+        : `<button type="button" class="btn btn-primary btn-compact" data-action="quick-shortlist" data-id="${participantId}">Shortlist</button>`)
+      : `<button type="button" class="btn btn-light btn-compact" data-action="view" data-id="${participantId}">View</button>`;
+
+    const menuItems = [];
+    if (isAdmin()) {
+      menuItems.push(`<button type="button" class="row-actions-item" data-action="edit" data-id="${participantId}">Edit participant</button>`);
+    }
+    if (participant.resume && participant.resume.dataUrl) {
+      menuItems.push(`<a class="row-actions-item" href="${escapeHtml(participant.resume.dataUrl)}" download="${escapeHtml(participant.resume.fileName || 'resume')}">Download resume</a>`);
+    }
+    if (isAdmin()) {
+      menuItems.push(`<button type="button" class="row-actions-item row-actions-item-danger" data-action="delete" data-id="${participantId}">Delete participant</button>`);
+    }
+
+    const moreMenu = menuItems.length
+      ? `
+        <details class="row-actions-menu">
+          <summary class="btn btn-light btn-compact row-actions-summary">More</summary>
+          <div class="row-actions-popover">
+            ${menuItems.join('')}
+          </div>
+        </details>
+      `
+      : '';
+
+    return `
+      <div class="participant-row-actions">
+        ${profileAction}
+        ${primaryAction}
+        ${moreMenu}
+      </div>
+    `;
+  }
+
+  function closeParticipantActionMenus(exceptMenu = null) {
+    document.querySelectorAll('.row-actions-menu[open]').forEach((menu) => {
+      if (menu !== exceptMenu) {
+        menu.removeAttribute('open');
+      }
+    });
   }
 
   function formatDate(value) {
@@ -1505,36 +1554,19 @@
         const sectionList = (participant.sections || []).map((sectionId) => sectionNameById(sectionId));
         const contactParts = [];
         if (participant.contactNumber) {
-          contactParts.push(`<div>${escapeHtml(participant.contactNumber)}</div>`);
+          contactParts.push(`<div class="participant-contact-primary">${escapeHtml(participant.contactNumber)}</div>`);
         }
         if (participant.email) {
-          contactParts.push(`<div>${escapeHtml(participant.email)}</div>`);
+          contactParts.push(`<div class="participant-contact-secondary">${escapeHtml(participant.email)}</div>`);
         }
-        const contactMarkup = contactParts.length ? contactParts.join('') : '<span>-</span>';
-        const actionButtons = [];
-        actionButtons.push(`<button type="button" class="btn btn-light" data-action="open-profile" data-id="${escapeHtml(participant.id)}">Profile</button>`);
-
-        if (isAdmin()) {
-          if (String(participant.status || '').toLowerCase() === 'shortlisted') {
-            actionButtons.push(`<button type="button" class="btn btn-light" data-action="remove-shortlist" data-id="${escapeHtml(participant.id)}">Unshortlist</button>`);
-          } else {
-            actionButtons.push(`<button type="button" class="btn btn-primary" data-action="quick-shortlist" data-id="${escapeHtml(participant.id)}">Shortlist</button>`);
-          }
-          actionButtons.push(`<button type="button" class="btn btn-light" data-action="edit" data-id="${escapeHtml(participant.id)}">Edit</button>`);
-          actionButtons.push(`<button type="button" class="btn btn-danger" data-action="delete" data-id="${escapeHtml(participant.id)}">Delete</button>`);
-        } else {
-          actionButtons.push(`<button type="button" class="btn btn-light" data-action="view" data-id="${escapeHtml(participant.id)}">View</button>`);
-        }
-
-        const resumeButton = participant.resume && participant.resume.dataUrl
-          ? `<a class="btn btn-light" href="${escapeHtml(participant.resume.dataUrl)}" download="${escapeHtml(participant.resume.fileName || 'resume')}">Resume</a>`
-          : '';
+        const contactMarkup = contactParts.length ? `<div class="participant-contact">${contactParts.join('')}</div>` : '<span>-</span>';
         const avatar = participant.profilePicture && participant.profilePicture.dataUrl
           ? `<img class="participant-avatar participant-avatar-lazy" src="${LAZY_IMAGE_PLACEHOLDER}" data-src="${escapeHtml(participant.profilePicture.dataUrl)}" alt="${escapeHtml(participant.fullName || 'Participant')} profile picture" loading="lazy" decoding="async">`
           : `<span class="participant-avatar participant-avatar-fallback">${escapeHtml(initialsFromName(participant.fullName))}</span>`;
         const safeName = escapeHtml(participant.fullName || '');
         const skillMarkup = renderParticipantPills(participant.id, 'skills', skillList, 'pill pill-skill');
         const sectionMarkup = renderParticipantPills(participant.id, 'sections', sectionList, 'pill pill-section');
+        const actionsMarkup = renderParticipantActions(participant);
 
         return `
           <tr>
@@ -1562,10 +1594,7 @@
             </td>
             <td data-label="Updated">${escapeHtml(formatDate(participant.updatedAt))}</td>
             <td data-label="Actions">
-              <div class="pill-group">
-                ${actionButtons.join('')}
-                ${resumeButton}
-              </div>
+              ${actionsMarkup}
             </td>
           </tr>
         `;
@@ -2314,6 +2343,10 @@
     const action = actionButton.getAttribute('data-action');
     const participantId = actionButton.getAttribute('data-id');
     const participant = getParticipantById(participantId);
+    const actionMenu = actionButton.closest('.row-actions-menu');
+    if (actionMenu) {
+      actionMenu.removeAttribute('open');
+    }
     if (!participant && !['toggle-skills', 'toggle-sections'].includes(action)) return;
 
     if (action === 'toggle-skills') {
@@ -3008,6 +3041,9 @@
     els.profilePictureMeta.addEventListener('click', handleProfilePictureMetaClick);
     els.resumeFile.addEventListener('change', handleResumeFileChange);
     els.resumeMeta.addEventListener('click', handleResumeMetaClick);
+    document.addEventListener('click', (event) => {
+      closeParticipantActionMenus(event.target.closest('.row-actions-menu'));
+    });
     if (els.systemNoticeClose) {
       els.systemNoticeClose.addEventListener('click', hideSystemNotice);
     }
@@ -3063,6 +3099,8 @@
         hideActionDialog(null);
         return;
       }
+
+      closeParticipantActionMenus();
 
       if (state.mobileNavOpen) {
         closeMobileNav();

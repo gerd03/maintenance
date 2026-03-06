@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { Resend } = require('resend');
 const { handleContactSubmission } = require('./lib/contact-handler');
+const careersApiHandler = require('./api/careers');
 const {
   appendJsonLine,
   readJsonLines,
@@ -485,6 +486,7 @@ app.post('/api/route-estimate', async (req, res) => {
 
 // Careers form endpoint
 app.post('/api/careers', async (req, res) => {
+  return careersApiHandler(req, res);
   try {
     const {
       fullName,
@@ -560,9 +562,16 @@ app.post('/api/careers', async (req, res) => {
       attachmentContent = Buffer.from(base64Data, 'base64');
     }
 
+    const replyAddress = String(email || '').trim();
+    const replyTargets = replyAddress ? [replyAddress] : [];
+
     // Prepare email options
     const emailOptions = {
       from: 'APPLICATION FORM <noreply@attainmentofficeadserv.org>',
+      reply_to: replyTargets,
+      headers: replyAddress ? {
+        'Reply-To': replyAddress,
+      } : undefined,
       to: ['support@attainmentofficeadserv.org'],
       subject: `New Job Application from ${sanitizedData.fullName}`,
 
@@ -1115,9 +1124,12 @@ app.post('/api/admin/client-requests', async (req, res) => {
       try {
         const template = buildClientRequestEmailTemplate(requestRecord);
         const { error } = await resend.emails.send({
-          from: 'AOAS CRM <noreply@attainmentofficeadserv.org>',
+          from: 'AOAS CRM <support@attainmentofficeadserv.org>',
           to: getNotificationRecipients(),
-          reply_to: [requestRecord.clientEmail],
+          reply_to: requestRecord.clientEmail,
+          headers: {
+            'Reply-To': requestRecord.clientEmail,
+          },
           subject: template.subject,
           html: template.html,
           text: template.text,
@@ -1192,14 +1204,17 @@ app.post('/api/admin/client-requests/:id/finalize', async (req, res) => {
       try {
         const template = buildHiringFinalizedEmailTemplate(result.request, result.hiredProfiles || []);
         const emailPayload = {
-          from: 'AOAS CRM <noreply@attainmentofficeadserv.org>',
+          from: 'AOAS CRM <support@attainmentofficeadserv.org>',
           to: getNotificationRecipients(),
           subject: template.subject,
           html: template.html,
           text: template.text,
         };
         if (result.request?.clientEmail) {
-          emailPayload.reply_to = [result.request.clientEmail];
+          emailPayload.reply_to = result.request.clientEmail;
+          emailPayload.headers = {
+            'Reply-To': result.request.clientEmail,
+          };
         }
         const { error } = await resend.emails.send(emailPayload);
 

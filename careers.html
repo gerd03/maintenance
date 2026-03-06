@@ -33,7 +33,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/style.css?v=20260304s">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20260306l">
     <!-- Favicon - Multiple formats for best crawler compatibility -->
     <link rel="icon" type="image/x-icon" href="/assets/icons/favicon.ico">
     <link rel="icon" type="image/ico" href="/assets/icons/favicon.ico">
@@ -885,6 +885,77 @@
 
         .modal-button.modal-button-secondary:hover {
             box-shadow: 0 6px 14px rgba(15, 23, 42, 0.2);
+        }
+
+        .modal-close.is-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .modal-button.is-loading {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 220px;
+            cursor: wait;
+        }
+
+        .modal-button.is-loading::before {
+            display: none;
+        }
+
+        .modal-button-spinner {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            animation: modalSpinner 0.8s linear infinite;
+            flex: 0 0 auto;
+        }
+
+        .custom-modal.is-busy .modal-container {
+            animation: slideInScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), modalBusyPulse 1.35s ease-in-out infinite;
+        }
+
+        .custom-modal.is-busy .modal-message {
+            animation: modalMessageShift 1.2s ease-in-out infinite;
+        }
+
+        @keyframes modalSpinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes modalBusyPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 18px 48px rgba(14, 138, 102, 0.22);
+            }
+
+            50% {
+                box-shadow: 0 24px 60px rgba(14, 138, 102, 0.34);
+            }
+        }
+
+        @keyframes modalMessageShift {
+
+            0%,
+            100% {
+                opacity: 0.85;
+                transform: translateY(0);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(-1px);
+            }
         }
 
         .wizard-btn {
@@ -1823,11 +1894,11 @@
                 </div>
 
                 <div class="footer-info-grid">
-                    <div class="footer-column">
+                    <div class="footer-column footer-address-column">
                         <h4 class="footer-heading">ADDRESS</h4>
-                        <p class="footer-text">
-                            Purok Mais, Brgy Paculob Dumanjug, Cebu
-                            <span class="footer-indent-line">6035 PHILIPPINES</span>
+                        <p class="footer-text footer-address-text">
+                            <span class="footer-line">Purok Mais, Brgy Paculob Dumanjug, Cebu</span>
+                            <span class="footer-line">6035 PHILIPPINES</span>
                         </p>
                     </div>
 
@@ -1898,9 +1969,9 @@
         </div>
     </div>
 
-    <script src="/assets/js/theme-toggle.js?v=20260304b"></script>
+    <script src="/assets/js/theme-toggle.js?v=20260306a"></script>
     <script src="/assets/js/tracker.js"></script>
-    <script src="/assets/js/script.js?v=20260304l"></script>
+    <script src="/assets/js/script.js?v=20260306b"></script>
     <script src="/assets/js/chatbot.js?v=20260304f"></script>
 
     <!-- Leaflet JS -->
@@ -1910,8 +1981,7 @@
 
     <script>
 
-        // Helper function to show custom modal
-        function showModal(message, title = 'Notification', options = {}) {
+        const careersModal = (() => {
             const modal = document.getElementById('customModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalMessage = document.getElementById('modalMessage');
@@ -1919,73 +1989,165 @@
             const modalButton = document.getElementById('modalButton');
             const modalFooter = modal.querySelector('.modal-footer');
             const modalOverlay = modal.querySelector('.modal-overlay');
+            let dismissible = true;
+            let onKeyDown = null;
 
-            const type = options.type || '';
-            const buttons = Array.isArray(options.buttons) && options.buttons.length
-                ? options.buttons
-                : [{ text: 'OK', variant: 'primary' }];
-
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            modal.className = `custom-modal ${type}`.trim();
-            modal.style.display = 'flex';
-            modal.classList.add('active');
-
-            modalFooter.querySelectorAll('.modal-button-extra').forEach((button) => button.remove());
-            modalFooter.classList.toggle('modal-footer-multi', buttons.length > 1);
-
-            const closeModal = () => {
-                modal.style.display = 'none';
-                modal.classList.remove('active');
-                document.removeEventListener('keydown', onKeyDown);
-            };
-
-            const onKeyDown = (event) => {
-                if (event.key === 'Escape') {
-                    closeModal();
-                }
-            };
-
-            const primaryConfig = buttons[buttons.length - 1];
-            modalButton.className = 'modal-button';
-            if (primaryConfig.variant === 'secondary') {
-                modalButton.classList.add('modal-button-secondary');
+            function resetButtons() {
+                modalFooter.querySelectorAll('.modal-button-extra').forEach((button) => button.remove());
+                modalFooter.classList.remove('modal-footer-multi');
+                modalButton.className = 'modal-button';
+                modalButton.disabled = false;
+                modalButton.textContent = 'OK';
             }
-            modalButton.textContent = primaryConfig.text || 'OK';
-            modalButton.onclick = () => {
-                if (typeof primaryConfig.onClick === 'function') {
-                    primaryConfig.onClick();
-                }
-                if (primaryConfig.close !== false) {
-                    closeModal();
-                }
-            };
 
-            buttons.slice(0, -1).forEach((buttonConfig, index) => {
-                const extraButton = document.createElement('button');
-                extraButton.type = 'button';
-                extraButton.className = 'modal-button modal-button-extra';
-                if (buttonConfig.variant === 'secondary') {
-                    extraButton.classList.add('modal-button-secondary');
+            function setButtonContent(button, buttonConfig) {
+                button.textContent = '';
+                button.classList.toggle('is-loading', Boolean(buttonConfig.loading));
+
+                if (buttonConfig.loading) {
+                    const spinner = document.createElement('span');
+                    spinner.className = 'modal-button-spinner';
+                    spinner.setAttribute('aria-hidden', 'true');
+
+                    const label = document.createElement('span');
+                    label.textContent = buttonConfig.text || 'Please wait';
+                    button.append(spinner, label);
+                    return;
                 }
-                extraButton.textContent = buttonConfig.text || (index === 0 ? 'Back' : 'Cancel');
-                extraButton.onclick = () => {
+
+                button.textContent = buttonConfig.text || 'OK';
+            }
+
+            function closeModal(force = false) {
+                if (!force && !dismissible) return;
+
+                modal.style.display = 'none';
+                modal.className = 'custom-modal';
+                modalClose.disabled = false;
+                modalClose.classList.remove('is-disabled');
+                modalClose.removeAttribute('aria-disabled');
+                modalClose.tabIndex = 0;
+                modalClose.onclick = null;
+                modalOverlay.onclick = null;
+                modalButton.onclick = null;
+                resetButtons();
+
+                if (onKeyDown) {
+                    document.removeEventListener('keydown', onKeyDown);
+                    onKeyDown = null;
+                }
+            }
+
+            function attachButton(button, buttonConfig) {
+                button.type = 'button';
+                button.className = 'modal-button';
+                if (buttonConfig.variant === 'secondary') {
+                    button.classList.add('modal-button-secondary');
+                }
+
+                setButtonContent(button, buttonConfig);
+                button.disabled = Boolean(buttonConfig.disabled || buttonConfig.loading);
+                button.onclick = () => {
+                    if (button.disabled) return;
+
                     if (typeof buttonConfig.onClick === 'function') {
                         buttonConfig.onClick();
                     }
+
                     if (buttonConfig.close !== false) {
                         closeModal();
                     }
                 };
-                modalFooter.insertBefore(extraButton, modalButton);
-            });
+            }
 
-            modalClose.onclick = closeModal;
-            modalOverlay.onclick = options.closeOnOverlay === false ? null : closeModal;
-            document.addEventListener('keydown', onKeyDown);
+            function show(message, title = 'Notification', options = {}) {
+                const config = typeof message === 'object' && message !== null && !Array.isArray(message)
+                    ? message
+                    : { message, title, ...options };
+                const buttons = Array.isArray(config.buttons) && config.buttons.length
+                    ? config.buttons
+                    : [{ text: 'OK', variant: 'primary' }];
+                const type = config.type || '';
+                const stateClass = config.stateClass || '';
+                const allowOverlayClose = config.closeOnOverlay !== false && config.dismissible !== false;
 
-            const firstButton = modalFooter.querySelector('button');
-            if (firstButton) firstButton.focus();
+                dismissible = config.dismissible !== false;
+                modalTitle.textContent = config.title || 'Notification';
+                modalMessage.textContent = config.message || '';
+                modal.className = ['custom-modal', type, stateClass, 'active'].filter(Boolean).join(' ');
+                modal.style.display = 'flex';
+
+                resetButtons();
+                modalFooter.classList.toggle('modal-footer-multi', buttons.length > 1);
+
+                buttons.slice(0, -1).forEach((buttonConfig, index) => {
+                    const extraButton = document.createElement('button');
+                    attachButton(extraButton, {
+                        text: buttonConfig.text || (index === 0 ? 'Back' : 'Cancel'),
+                        variant: buttonConfig.variant,
+                        onClick: buttonConfig.onClick,
+                        close: buttonConfig.close,
+                        disabled: buttonConfig.disabled,
+                        loading: buttonConfig.loading
+                    });
+                    extraButton.classList.add('modal-button-extra');
+                    modalFooter.insertBefore(extraButton, modalButton);
+                });
+
+                attachButton(modalButton, buttons[buttons.length - 1]);
+
+                modalClose.disabled = !dismissible;
+                modalClose.classList.toggle('is-disabled', !dismissible);
+                modalClose.setAttribute('aria-disabled', String(!dismissible));
+                modalClose.tabIndex = dismissible ? 0 : -1;
+                modalClose.onclick = () => closeModal();
+                modalOverlay.onclick = allowOverlayClose ? () => closeModal() : null;
+
+                if (onKeyDown) {
+                    document.removeEventListener('keydown', onKeyDown);
+                }
+                onKeyDown = (event) => {
+                    if (event.key === 'Escape') {
+                        closeModal();
+                    }
+                };
+                document.addEventListener('keydown', onKeyDown);
+
+                const focusTarget = modalFooter.querySelector('button:not([disabled])') || (dismissible ? modalClose : null);
+                if (focusTarget) focusTarget.focus();
+            }
+
+            function showLoading(config = {}) {
+                show({
+                    title: config.title || 'Submitting Application',
+                    message: config.message || 'Please wait while we upload your details and send your application.',
+                    type: config.type || 'success',
+                    stateClass: 'is-busy',
+                    dismissible: false,
+                    closeOnOverlay: false,
+                    buttons: [
+                        {
+                            text: config.buttonText || 'Sending Application...',
+                            loading: true,
+                            disabled: true,
+                            close: false
+                        }
+                    ]
+                });
+            }
+
+            return {
+                show,
+                close: closeModal,
+                showLoading
+            };
+        })();
+
+        window.AOASCareersModal = careersModal;
+
+        // Helper function to show custom modal
+        function showModal(message, title = 'Notification', options = {}) {
+            careersModal.show(message, title, options);
         }
 
         // Careers multi-step wizard
@@ -2150,8 +2312,16 @@
                                 },
                                 {
                                     text: 'Apply Now',
+                                    close: false,
                                     onClick: function () {
-                                        careersForm.requestSubmit();
+                                        careersModal.showLoading({
+                                            title: 'Submitting Application',
+                                            message: 'Please wait while we upload your details and send your application.',
+                                            buttonText: 'Sending Application...'
+                                        });
+                                        window.requestAnimationFrame(function () {
+                                            careersForm.requestSubmit();
+                                        });
                                     }
                                 }
                             ]

@@ -185,11 +185,14 @@ module.exports = async (req, res) => {
       coverLetterContent = Buffer.from(base64Data, 'base64');
     }
 
+    const replyAddress = String(email || '').trim();
     // Prepare email options
     const emailOptions = {
       from: 'APPLICATION FORM <noreply@attainmentofficeadserv.org>',
-      // Keep noreply sender but route Gmail replies to applicant email.
-      reply_to: email,
+      reply_to: replyAddress,
+      headers: replyAddress ? {
+        'Reply-To': replyAddress,
+      } : undefined,
       to: ['support@attainmentofficeadserv.org'],
       subject: `New Job Application from ${sanitizedData.fullName}`,
       html: `

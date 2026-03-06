@@ -28,8 +28,8 @@
     <meta name="twitter:description" content="Discover AOAS service packages built for Australian businesses and operations teams.">
     <meta name="twitter:image" content="https://www.attainmentofficeadserv.org/assets/images/seo/open-graph.png">
 
-    <link rel="preload" href="/assets/css/style.css?v=20260304s" as="style">
-    <link rel="stylesheet" href="/assets/css/style.css?v=20260304s">
+    <link rel="preload" href="/assets/css/style.css?v=20260306l" as="style">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20260306l">
     <link rel="icon" type="image/x-icon" href="/assets/icons/favicon.ico">
 
     <script type="application/ld+json">
@@ -86,68 +86,110 @@
         </div>
     </header>
 
-    <main class="page-shell">
+    <main class="page-shell page-shell-services">
         <section class="page-hero service-animate">
             <h1>Services Built for Australian Operations</h1>
             <p>Select a service below to view scope, process, and submit a dedicated inquiry directly from that service page.</p>
         </section>
 
-        <section class="services-page-grid" id="services-list">
-            <article class="services-page-card service-animate">
-                <img src="/services/assets/service-payroll-card.webp" alt="Payroll support team handling payroll documents" loading="lazy" decoding="async" width="720" height="420">
-                <h3>Payroll Support</h3>
-                <p>Payroll admin workflows, timesheet checks, and recurring cycle coordination.</p>
-                <div class="actions">
-                    <a class="pill-btn" href="/services/payroll">View details</a>
+        <section class="services-showcase service-animate" aria-labelledby="services-showcase-title">
+            <div class="services-showcase-head">
+                <div class="services-showcase-copy">
+                    <p class="services-showcase-kicker">Service Showcase</p>
+                    <h2 class="services-showcase-title" id="services-showcase-title">Pick a service and inquire directly with prefilled routing.</h2>
                 </div>
-            </article>
+            </div>
 
-            <article class="services-page-card service-animate">
-                <img src="/services/assets/service-bookkeeping-card.webp" alt="Bookkeeping workspace with laptop and records" loading="lazy" decoding="async" width="720" height="420">
-                <h3>Bookkeeping</h3>
-                <p>Reconciliations, recurring bookkeeping, and structured financial admin support.</p>
-                <div class="actions">
-                    <a class="pill-btn" href="/services/bookkeeping">View details</a>
+            <div class="services-carousel" data-services-carousel data-carousel-ready="false" data-carousel-multiple="false">
+                <div class="services-carousel-toolbar">
+                    <p class="services-carousel-caption">Browse the services in pages instead of compressed rows.</p>
+                    <div class="services-carousel-toolbar-actions">
+                        <p class="services-carousel-page" aria-live="polite">Page <span data-services-current>1</span> of <span data-services-total>1</span></p>
+                        <div class="services-carousel-navs" data-services-navs aria-label="Service showcase navigation">
+                            <button type="button" class="services-carousel-nav" data-services-prev aria-label="Previous services page">
+                                <span aria-hidden="true">&#8249;</span>
+                            </button>
+                            <button type="button" class="services-carousel-nav" data-services-next aria-label="Next services page">
+                                <span aria-hidden="true">&#8250;</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </article>
 
-            <article class="services-page-card service-animate">
-                <img src="/services/assets/service-tax-compliance-card.webp" alt="Tax compliance documents and calculator on desk" loading="lazy" decoding="async" width="720" height="420">
-                <h3>Tax & Compliance Support</h3>
-                <p>Documentation workflows and compliance process administration for AU operations.</p>
-                <div class="actions">
-                    <a class="pill-btn" href="/services/tax-compliance">View details</a>
-                </div>
-            </article>
+                <div class="services-carousel-viewport">
+                    <div class="services-page-grid services-page-track" id="services-list" data-services-track>
+                        <article class="services-page-card service-animate">
+                            <div class="services-page-card-media">
+                                <img src="/services/assets/service-payroll-card.webp" alt="Payroll support team handling payroll documents" loading="lazy" decoding="async" width="720" height="420">
+                            </div>
+                            <h3>Payroll Support</h3>
+                            <p>Payroll admin workflows, timesheet checks, and recurring cycle coordination.</p>
+                            <div class="actions">
+                                <a class="pill-btn" href="/services/payroll">View details</a>
+                            </div>
+                        </article>
 
-            <article class="services-page-card service-animate">
-                <img src="/services/assets/service-data-entry-card.webp" alt="Data entry setup with notebook and keyboard" loading="lazy" decoding="async" width="720" height="420">
-                <h3>Data Entry</h3>
-                <p>Structured data capture, cleanup, and transfer tasks with validation support.</p>
-                <div class="actions">
-                    <a class="pill-btn" href="/services/data-entry">View details</a>
-                </div>
-            </article>
+                        <article class="services-page-card service-animate">
+                            <div class="services-page-card-media">
+                                <img src="/services/assets/service-bookkeeping-card.webp" alt="Bookkeeping workspace with laptop and records" loading="lazy" decoding="async" width="720" height="420">
+                            </div>
+                            <h3>Bookkeeping</h3>
+                            <p>Reconciliations, recurring bookkeeping, and structured financial admin support.</p>
+                            <div class="actions">
+                                <a class="pill-btn" href="/services/bookkeeping">View details</a>
+                            </div>
+                        </article>
 
-            <article class="services-page-card service-animate">
-                <img src="/services/assets/service-ndis-admin-card.webp" alt="NDIS administration support specialist at desk" loading="lazy" decoding="async" width="720" height="420">
-                <h3>NDIS Administration</h3>
-                <p>NDIS admin support, schedule handling, and operations documentation workflows.</p>
-                <div class="actions">
-                    <a class="pill-btn" href="/services/ndis-admin">View details</a>
-                </div>
-            </article>
+                        <article class="services-page-card service-animate">
+                            <div class="services-page-card-media">
+                                <img src="/services/assets/service-tax-compliance-card.webp" alt="Tax compliance documents and calculator on desk" loading="lazy" decoding="async" width="720" height="420">
+                            </div>
+                            <h3>Tax &amp; Compliance Support</h3>
+                            <p>Documentation workflows and compliance process administration for AU operations.</p>
+                            <div class="actions">
+                                <a class="pill-btn" href="/services/tax-compliance">View details</a>
+                            </div>
+                        </article>
 
-            <article class="services-page-card service-animate">
-                <img src="/services/assets/service-customer-service-card.webp" alt="Customer service support professional on headset" loading="lazy" decoding="async" width="720" height="420">
-                <h3>Customer Service Support</h3>
-                <p>Customer communication workflows, inbox handling, and escalation coordination.</p>
-                <div class="actions">
-                    <a class="pill-btn" href="/services/customer-service">View details</a>
+                        <article class="services-page-card service-animate">
+                            <div class="services-page-card-media">
+                                <img src="/services/assets/service-data-entry-card.webp" alt="Data entry setup with notebook and keyboard" loading="lazy" decoding="async" width="720" height="420">
+                            </div>
+                            <h3>Data Entry</h3>
+                            <p>Structured data capture, cleanup, and transfer tasks with validation support.</p>
+                            <div class="actions">
+                                <a class="pill-btn" href="/services/data-entry">View details</a>
+                            </div>
+                        </article>
+
+                        <article class="services-page-card service-animate">
+                            <div class="services-page-card-media">
+                                <img src="/services/assets/service-ndis-admin-card.webp" alt="NDIS administration support specialist at desk" loading="lazy" decoding="async" width="720" height="420">
+                            </div>
+                            <h3>NDIS Administration</h3>
+                            <p>NDIS admin support, schedule handling, and operations documentation workflows.</p>
+                            <div class="actions">
+                                <a class="pill-btn" href="/services/ndis-admin">View details</a>
+                            </div>
+                        </article>
+
+                        <article class="services-page-card service-animate">
+                            <div class="services-page-card-media">
+                                <img src="/services/assets/service-customer-service-card.webp" alt="Customer service support professional on headset" loading="lazy" decoding="async" width="720" height="420">
+                            </div>
+                            <h3>Customer Service Support</h3>
+                            <p>Customer communication workflows, inbox handling, and escalation coordination.</p>
+                            <div class="actions">
+                                <a class="pill-btn" href="/services/customer-service">View details</a>
+                            </div>
+                        </article>
+                    </div>
                 </div>
-            </article>
+
+                <div class="services-carousel-pagination" data-services-pagination aria-label="Services page pagination"></div>
+            </div>
         </section>
-</main>
+    </main>
 
         <footer class="footer">
         <div class="container">
@@ -162,11 +204,11 @@
                 </div>
 
                 <div class="footer-info-grid">
-                    <div class="footer-column">
+                    <div class="footer-column footer-address-column">
                         <h4 class="footer-heading">ADDRESS</h4>
-                        <p class="footer-text">
-                            Purok Mais, Brgy Paculob Dumanjug, Cebu
-                            <span class="footer-indent-line">6035 PHILIPPINES</span>
+                        <p class="footer-text footer-address-text">
+                            <span class="footer-line">Purok Mais, Brgy Paculob Dumanjug, Cebu</span>
+                            <span class="footer-line">6035 PHILIPPINES</span>
                         </p>
                     </div>
 
@@ -242,10 +284,10 @@
         </div>
     </footer>
 
-    <script src="/assets/js/theme-toggle.js?v=20260304b"></script>
+    <script src="/assets/js/theme-toggle.js?v=20260306a"></script>
     <script src="/assets/js/tracker.js"></script>
     <script src="/assets/js/chatbot.js?v=20260304f"></script>
-    <script src="/services/service-page.js?v=20260304i"></script>
+    <script src="/services/service-page.js?v=20260306l"></script>
 </body>
 
 </html>

@@ -525,13 +525,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Services preview: staggered reveal + one-by-one spotlight cycle.
+// Homepage services preview: reveal + paged carousel.
 document.addEventListener('DOMContentLoaded', function () {
     const section = document.getElementById('services-preview');
     if (!section) return;
 
-    const cards = Array.from(section.querySelectorAll('.service-card-home'));
+    const carousel = section.querySelector('[data-home-services-carousel]');
+    const track = section.querySelector('[data-home-services-track]');
+    const pagination = section.querySelector('[data-home-services-pagination]');
+    if (!carousel || !track) return;
+
+    const cards = Array.from(track.querySelectorAll('.service-card-home'));
     if (!cards.length) return;
+
     const hasIntersectionObserver = typeof window.IntersectionObserver === 'function';
     const compactViewport = window.matchMedia('(max-width: 1024px)').matches;
     const shouldAnimateReveal = hasIntersectionObserver && !compactViewport;
@@ -544,62 +550,151 @@ document.addEventListener('DOMContentLoaded', function () {
         card.style.setProperty('--stagger-delay', `${index * 120}ms`);
     });
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const lowEndMode = document.documentElement.classList.contains('low-end-device');
-    const allowLoop = !reducedMotion && !lowEndMode && cards.length > 1;
 
-    let activeIndex = -1;
+    let perPage = 1;
+    let totalPages = 1;
+    let currentPage = 0;
     let cycleTimer = null;
-    let userPaused = false;
-
-    function setActive(index) {
-        activeIndex = index;
-        cards.forEach((card, idx) => {
-            card.classList.toggle('showcase-active', idx === index);
-        });
-    }
+    let resizeTimer = null;
 
     function clearCycle() {
         if (cycleTimer) {
-            clearInterval(cycleTimer);
+            window.clearInterval(cycleTimer);
             cycleTimer = null;
         }
     }
 
+    function setActiveCards() {
+        const start = currentPage * perPage;
+        cards.forEach((card, index) => {
+            card.classList.toggle('showcase-active', index === start);
+        });
+    }
+
+    function updatePagination() {
+        if (!pagination) return;
+        pagination.querySelectorAll('[data-home-services-page]').forEach((dot, index) => {
+            const active = index === currentPage;
+            dot.classList.toggle('is-active', active);
+            dot.setAttribute('aria-current', active ? 'true' : 'false');
+        });
+    }
+
+    function updatePosition() {
+        track.style.transform = `translate3d(-${currentPage * 100}%, 0, 0)`;
+        setActiveCards();
+        updatePagination();
+    }
+
+    function getPerPage() {
+        const width = carousel.clientWidth || window.innerWidth;
+        if (width >= 1180) return 4;
+        if (width >= 720) return 2;
+        return 1;
+    }
+
+    function renderPagination() {
+        if (!pagination) return;
+        pagination.replaceChildren();
+
+        for (let index = 0; index < totalPages; index += 1) {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'services-home-dot';
+            dot.dataset.homeServicesPage = String(index);
+            dot.setAttribute('aria-label', `Go to homepage services page ${index + 1}`);
+            pagination.appendChild(dot);
+        }
+    }
+
     function startCycle() {
-        if (!allowLoop || userPaused || cycleTimer) return;
-        cycleTimer = setInterval(() => {
-            const next = activeIndex < 0 ? 0 : (activeIndex + 1) % cards.length;
-            setActive(next);
-        }, 2300);
-    }
-
-    function stopCycleForUser(index) {
-        userPaused = true;
         clearCycle();
-        setActive(index);
+        if (reducedMotionQuery.matches || lowEndMode || totalPages <= 1 || document.hidden) return;
+        cycleTimer = window.setInterval(() => {
+            currentPage = (currentPage + 1) % totalPages;
+            updatePosition();
+        }, 3200);
     }
 
-    function resumeCycle() {
-        userPaused = false;
+    function stopCycle() {
+        clearCycle();
+    }
+
+    function rebuildSlides() {
+        const firstVisibleIndex = currentPage * perPage;
+        perPage = Math.min(getPerPage(), cards.length);
+        totalPages = Math.max(1, Math.ceil(cards.length / perPage));
+        currentPage = Math.min(Math.floor(firstVisibleIndex / perPage), totalPages - 1);
+
+        carousel.style.setProperty('--home-services-per-page', String(perPage));
+        carousel.dataset.homeCarouselReady = 'true';
+        carousel.dataset.homeCarouselMultiple = totalPages > 1 ? 'true' : 'false';
+
+        const fragment = document.createDocumentFragment();
+        for (let index = 0; index < cards.length; index += perPage) {
+            const slide = document.createElement('div');
+            slide.className = 'services-home-slide';
+            slide.setAttribute('role', 'group');
+            slide.setAttribute('aria-label', `Homepage services page ${Math.floor(index / perPage) + 1} of ${totalPages}`);
+            cards.slice(index, index + perPage).forEach((card) => {
+                slide.appendChild(card);
+            });
+            fragment.appendChild(slide);
+        }
+
+        track.replaceChildren(fragment);
+        renderPagination();
+        updatePosition();
         startCycle();
     }
 
-    cards.forEach((card, index) => {
-        card.addEventListener('mouseenter', () => stopCycleForUser(index));
-        card.addEventListener('focusin', () => stopCycleForUser(index));
-        card.addEventListener('mouseleave', resumeCycle);
-        card.addEventListener('focusout', (event) => {
-            if (!card.contains(event.relatedTarget)) {
-                resumeCycle();
-            }
-        });
+    function scheduleRebuild() {
+        if (resizeTimer) window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(rebuildSlides, 120);
+    }
+
+    pagination?.addEventListener('click', function (event) {
+        const dot = event.target.closest('[data-home-services-page]');
+        if (!dot) return;
+        const nextPage = Number(dot.dataset.homeServicesPage);
+        if (!Number.isFinite(nextPage)) return;
+        currentPage = nextPage;
+        updatePosition();
+        startCycle();
     });
+
+    carousel.addEventListener('mouseenter', stopCycle);
+    carousel.addEventListener('mouseleave', startCycle);
+    carousel.addEventListener('focusin', stopCycle);
+    carousel.addEventListener('focusout', function (event) {
+        if (event.relatedTarget && carousel.contains(event.relatedTarget)) {
+            return;
+        }
+        startCycle();
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            clearCycle();
+            return;
+        }
+        startCycle();
+    });
+
+    if (typeof reducedMotionQuery.addEventListener === 'function') {
+        reducedMotionQuery.addEventListener('change', startCycle);
+    } else if (typeof reducedMotionQuery.addListener === 'function') {
+        reducedMotionQuery.addListener(startCycle);
+    }
+
+    window.addEventListener('resize', scheduleRebuild, { passive: true });
+
+    rebuildSlides();
 
     if (!shouldAnimateReveal) {
         section.classList.add('showcase-visible');
-        setActive(0);
-        startCycle();
         return;
     }
 
@@ -607,7 +702,6 @@ document.addEventListener('DOMContentLoaded', function () {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
                 section.classList.add('showcase-visible');
-                setActive(0);
                 startCycle();
             } else {
                 clearCycle();
@@ -619,15 +713,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     observer.observe(section);
-
-    // Fallback: ensure cards are shown even if observer timing fails on some mobile browsers.
-    window.setTimeout(() => {
-        if (!section.classList.contains('showcase-visible')) {
-            section.classList.add('showcase-visible');
-            setActive(0);
-            startCycle();
-        }
-    }, 1400);
 });
 
 // FAQ Accordion Functionality
@@ -697,8 +782,41 @@ document.addEventListener('DOMContentLoaded', function () {
         message: document.getElementById('modalMessage'),
         button: document.getElementById('modalButton'),
         close: document.getElementById('modalClose'),
+        footer: document.querySelector('#customModal .modal-footer'),
+        overlay: document.querySelector('#customModal .modal-overlay'),
+
+        reset: function () {
+            this.footer?.querySelectorAll('.modal-button-extra').forEach((button) => button.remove());
+            this.footer?.classList.remove('modal-footer-multi');
+
+            if (this.button) {
+                this.button.className = 'modal-button';
+                this.button.disabled = false;
+                this.button.textContent = 'OK';
+                this.button.onclick = () => {
+                    this.hide();
+                };
+            }
+
+            if (this.close) {
+                this.close.disabled = false;
+                this.close.classList.remove('is-disabled');
+                this.close.removeAttribute('aria-disabled');
+                this.close.tabIndex = 0;
+                this.close.onclick = () => {
+                    this.hide();
+                };
+            }
+
+            if (this.overlay) {
+                this.overlay.onclick = () => {
+                    this.hide();
+                };
+            }
+        },
 
         show: function (title, message, type = 'success') {
+            this.reset();
             this.title.textContent = title;
             this.message.textContent = message;
             this.modal.className = `custom-modal ${type} active`;
@@ -716,24 +834,14 @@ document.addEventListener('DOMContentLoaded', function () {
         init: function () {
             const self = this;
 
-            // Close on button click
-            this.button.addEventListener('click', () => {
-                self.hide();
-            });
-
-            // Close on X button click
-            this.close.addEventListener('click', () => {
-                self.hide();
-            });
-
-            // Close on overlay click
-            this.modal.querySelector('.modal-overlay').addEventListener('click', () => {
-                self.hide();
-            });
+            this.reset();
 
             // Close on Escape key
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && this.modal.classList.contains('active')) {
+                    if (self.close?.disabled || self.close?.getAttribute('aria-disabled') === 'true') {
+                        return;
+                    }
                     self.hide();
                 }
             });
@@ -1431,21 +1539,61 @@ document.addEventListener('DOMContentLoaded', function () {
         const coverLetterFile = document.getElementById('coverLetter').files[0];
 
         // Get modal from main page
+        const modalController = window.AOASCareersModal;
         const customModal = {
             modal: document.getElementById('customModal'),
             title: document.getElementById('modalTitle'),
             message: document.getElementById('modalMessage'),
             button: document.getElementById('modalButton'),
 
-            show: function (title, message, type = 'success') {
+            show: function (title, message, type = 'success', options = {}) {
+                if (modalController && typeof modalController.show === 'function') {
+                    modalController.show({
+                        title,
+                        message,
+                        type,
+                        ...options,
+                    });
+                    return;
+                }
+
+                const modalFooter = this.modal?.querySelector('.modal-footer');
+                modalFooter?.querySelectorAll('.modal-button-extra').forEach((button) => button.remove());
+                modalFooter?.classList.remove('modal-footer-multi');
+
                 this.title.textContent = title;
                 this.message.textContent = message;
                 this.modal.className = `custom-modal ${type} active`;
                 this.modal.style.display = 'flex';
+                this.button.className = 'modal-button';
+                this.button.disabled = false;
+                this.button.textContent = 'Close';
+                this.button.onclick = () => {
+                    this.hide();
+                };
                 this.button.focus();
             },
 
+            showLoading: function (title, message, options = {}) {
+                if (modalController && typeof modalController.showLoading === 'function') {
+                    modalController.showLoading({
+                        title,
+                        message,
+                        buttonText: options.buttonText,
+                    });
+                    return;
+                }
+
+                this.show(title, message, 'success');
+                this.button.disabled = true;
+                this.button.textContent = options.buttonText || 'Sending Application...';
+            },
+
             hide: function () {
+                if (modalController && typeof modalController.close === 'function') {
+                    modalController.close(true);
+                    return;
+                }
                 this.modal.classList.remove('active');
                 this.modal.style.display = 'none';
             }
@@ -1594,6 +1742,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const notifyWizardSubmitFailed = () => {
             careersForm.dispatchEvent(new CustomEvent('aoas:careers-submit-failed'));
         };
+        customModal.showLoading(
+            'Submitting Application',
+            'Please wait while we upload your details and send your application.',
+            {
+                buttonText: 'Sending Application...'
+            }
+        );
 
         try {
             // Convert resume file to base64
@@ -1669,7 +1824,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 customModal.show(
                     'Application Submitted!',
                     data.message || 'Thank you for your application! We will review your submission and get back to you soon.',
-                    'success'
+                    'success',
+                    {
+                        buttons: [
+                            {
+                                text: 'Close'
+                            }
+                        ]
+                    }
                 );
 
                 // Reset form
@@ -1684,7 +1846,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 customModal.show(
                     'Error',
                     data.error || 'Failed to submit application. Please try again later.',
-                    'error'
+                    'error',
+                    {
+                        buttons: [
+                            {
+                                text: 'Close'
+                            }
+                        ]
+                    }
                 );
                 notifyWizardSubmitFailed();
             }
@@ -1699,13 +1868,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 customModal.show(
                     'Server Not Running',
                     'Please make sure the server is running.\n\n1. Install Node.js from https://nodejs.org/\n2. Close and reopen your terminal\n3. Run: npm install\n4. Run: npm run dev',
-                    'error'
+                    'error',
+                    {
+                        buttons: [
+                            {
+                                text: 'Close'
+                            }
+                        ]
+                    }
                 );
             } else {
                 customModal.show(
                     'Error',
                     error.message || 'An error occurred while submitting your application. Please try again later.',
-                    'error'
+                    'error',
+                    {
+                        buttons: [
+                            {
+                                text: 'Close'
+                            }
+                        ]
+                    }
                 );
             }
             notifyWizardSubmitFailed();

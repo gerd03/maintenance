@@ -126,17 +126,23 @@ create trigger trg_crm_client_requests_touch
 before update on public.crm_client_requests
 for each row execute procedure public.touch_updated_at();
 
--- Backend uses server-side env keys to access these tables.
--- Keep RLS disabled unless you explicitly create policies for your chosen key/role.
-alter table public.crm_sections disable row level security;
-alter table public.crm_accounts disable row level security;
-alter table public.crm_participants disable row level security;
-alter table public.crm_client_requests disable row level security;
-alter table public.crm_hired_profiles disable row level security;
+-- Backend uses the service-role key on the server.
+-- Keep RLS enabled so public API roles cannot read or mutate CRM data.
+alter table public.crm_sections enable row level security;
+alter table public.crm_accounts enable row level security;
+alter table public.crm_participants enable row level security;
+alter table public.crm_client_requests enable row level security;
+alter table public.crm_hired_profiles enable row level security;
 
-grant usage on schema public to anon, authenticated, service_role;
-grant all on table public.crm_sections to anon, authenticated, service_role;
-grant all on table public.crm_accounts to anon, authenticated, service_role;
-grant all on table public.crm_participants to anon, authenticated, service_role;
-grant all on table public.crm_client_requests to anon, authenticated, service_role;
-grant all on table public.crm_hired_profiles to anon, authenticated, service_role;
+revoke all on table public.crm_sections from anon, authenticated;
+revoke all on table public.crm_accounts from anon, authenticated;
+revoke all on table public.crm_participants from anon, authenticated;
+revoke all on table public.crm_client_requests from anon, authenticated;
+revoke all on table public.crm_hired_profiles from anon, authenticated;
+
+grant usage on schema public to service_role;
+grant all on table public.crm_sections to service_role;
+grant all on table public.crm_accounts to service_role;
+grant all on table public.crm_participants to service_role;
+grant all on table public.crm_client_requests to service_role;
+grant all on table public.crm_hired_profiles to service_role;

@@ -41,13 +41,13 @@
 
     <title>AOAS | Virtual Assistants Australia & NDIS Admin Support | Attainment Office Administrative Services</title>
     <!-- Performance: Preload critical resources -->
-    <link rel="preload" href="/assets/css/style.css?v=20260304s" as="style">
-    <link rel="preload" href="/assets/js/script.js?v=20260304l" as="script">
+    <link rel="preload" href="/assets/css/style.css?v=20260306l" as="style">
+    <link rel="preload" href="/assets/js/script.js?v=20260306b" as="script">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/style.css?v=20260304s">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20260306l">
     <!-- Favicon - Multiple formats for best crawler compatibility -->
     <link rel="icon" type="image/x-icon" href="/assets/icons/favicon.ico">
     <link rel="icon" type="image/ico" href="/assets/icons/favicon.ico">
@@ -436,43 +436,78 @@
                 <h2 class="section-title-center">Choose the Right Service in 2 Clicks</h2>
                 <p class="section-description">Pick a service and inquire directly with prefilled routing.</p>
             </div>
-            <div class="services-grid-home">
-                <article class="service-card-home">
-                    <img class="service-card-home-image" src="/services/assets/service-payroll-card.webp"
-                        alt="Payroll support team handling payroll documents" loading="lazy" decoding="async"
-                        width="720" height="420">
-                    <h3>Payroll Support</h3>
-                    <p>Payroll prep, timesheet checks, and pay-run support for Australian teams.</p>
-                    <a class="card-cta cta-track" href="/services/payroll" data-track-label="Service Payroll Card"
-                        data-track-service="payroll">View Service</a>
-                </article>
-                <article class="service-card-home">
-                    <img class="service-card-home-image" src="/services/assets/service-bookkeeping-card.webp"
-                        alt="Bookkeeping workspace with laptop and records" loading="lazy" decoding="async"
-                        width="720" height="420">
-                    <h3>Bookkeeping</h3>
-                    <p>Reconciliations, transaction management, and recurring financial admin support.</p>
-                    <a class="card-cta cta-track" href="/services/bookkeeping"
-                        data-track-label="Service Bookkeeping Card" data-track-service="bookkeeping">View Service</a>
-                </article>
-                <article class="service-card-home">
-                    <img class="service-card-home-image" src="/services/assets/service-tax-compliance-card.webp"
-                        alt="Tax compliance documents and calculator on desk" loading="lazy" decoding="async"
-                        width="720" height="420">
-                    <h3>Tax & Compliance Support</h3>
-                    <p>Compliance support workflows, documentation packs, and tax admin coordination.</p>
-                    <a class="card-cta cta-track" href="/services/tax-compliance"
-                        data-track-label="Service Tax Card" data-track-service="tax-compliance">View Service</a>
-                </article>
-                <article class="service-card-home">
-                    <img class="service-card-home-image" src="/services/assets/service-data-entry-card.webp"
-                        alt="Data entry setup with notebook and keyboard" loading="lazy" decoding="async"
-                        width="720" height="420">
-                    <h3>Data Entry</h3>
-                    <p>Reliable data processing, cleanup, and structured admin tasks.</p>
-                    <a class="card-cta cta-track" href="/services/data-entry"
-                        data-track-label="Service Data Entry Card" data-track-service="data-entry">View Service</a>
-                </article>
+            <div class="services-home-carousel" data-home-services-carousel data-home-carousel-ready="false" data-home-carousel-multiple="false">
+                <div class="services-home-viewport">
+                    <div class="services-grid-home" data-home-services-track>
+                        <article class="service-card-home">
+                            <div class="service-card-home-media">
+                                <img class="service-card-home-image" src="/services/assets/service-payroll-card.webp"
+                                    alt="Payroll support team handling payroll documents" loading="lazy" decoding="async"
+                                    width="720" height="420">
+                            </div>
+                            <h3>Payroll Support</h3>
+                            <p>Payroll prep, timesheet checks, and pay-run support for Australian teams.</p>
+                            <a class="card-cta cta-track" href="/services/payroll" data-track-label="Service Payroll Card"
+                                data-track-service="payroll">View Service</a>
+                        </article>
+                        <article class="service-card-home">
+                            <div class="service-card-home-media">
+                                <img class="service-card-home-image" src="/services/assets/service-bookkeeping-card.webp"
+                                    alt="Bookkeeping workspace with laptop and records" loading="lazy" decoding="async"
+                                    width="720" height="420">
+                            </div>
+                            <h3>Bookkeeping</h3>
+                            <p>Reconciliations, transaction management, and recurring financial admin support.</p>
+                            <a class="card-cta cta-track" href="/services/bookkeeping"
+                                data-track-label="Service Bookkeeping Card" data-track-service="bookkeeping">View Service</a>
+                        </article>
+                        <article class="service-card-home">
+                            <div class="service-card-home-media">
+                                <img class="service-card-home-image" src="/services/assets/service-tax-compliance-card.webp"
+                                    alt="Tax compliance documents and calculator on desk" loading="lazy" decoding="async"
+                                    width="720" height="420">
+                            </div>
+                            <h3>Tax &amp; Compliance Support</h3>
+                            <p>Compliance support workflows, documentation packs, and tax admin coordination.</p>
+                            <a class="card-cta cta-track" href="/services/tax-compliance"
+                                data-track-label="Service Tax Card" data-track-service="tax-compliance">View Service</a>
+                        </article>
+                        <article class="service-card-home">
+                            <div class="service-card-home-media">
+                                <img class="service-card-home-image" src="/services/assets/service-data-entry-card.webp"
+                                    alt="Data entry setup with notebook and keyboard" loading="lazy" decoding="async"
+                                    width="720" height="420">
+                            </div>
+                            <h3>Data Entry</h3>
+                            <p>Reliable data processing, cleanup, and structured admin tasks.</p>
+                            <a class="card-cta cta-track" href="/services/data-entry"
+                                data-track-label="Service Data Entry Card" data-track-service="data-entry">View Service</a>
+                        </article>
+                        <article class="service-card-home">
+                            <div class="service-card-home-media">
+                                <img class="service-card-home-image" src="/services/assets/service-ndis-admin-card.webp"
+                                    alt="NDIS administration support specialist at desk" loading="lazy" decoding="async"
+                                    width="720" height="420">
+                            </div>
+                            <h3>NDIS Administration</h3>
+                            <p>NDIS admin support, schedule handling, and operations documentation workflows.</p>
+                            <a class="card-cta cta-track" href="/services/ndis-admin"
+                                data-track-label="Service NDIS Card" data-track-service="ndis-admin">View Service</a>
+                        </article>
+                        <article class="service-card-home">
+                            <div class="service-card-home-media">
+                                <img class="service-card-home-image" src="/services/assets/service-customer-service-card.webp"
+                                    alt="Customer service support professional on headset" loading="lazy" decoding="async"
+                                    width="720" height="420">
+                            </div>
+                            <h3>Customer Service Support</h3>
+                            <p>Customer communication workflows, inbox handling, and escalation coordination.</p>
+                            <a class="card-cta cta-track" href="/services/customer-service"
+                                data-track-label="Service Customer Service Card" data-track-service="customer-service">View Service</a>
+                        </article>
+                    </div>
+                </div>
+                <div class="services-home-pagination" data-home-services-pagination aria-label="Homepage services pagination"></div>
             </div>
             <div style="margin-top: 16px; text-align: center;">
                 <a href="/services" class="pill-btn primary cta-track" data-track-label="Services Hub CTA"
@@ -1068,11 +1103,11 @@
                 </div>
 
                 <div class="footer-info-grid">
-                    <div class="footer-column">
+                    <div class="footer-column footer-address-column">
                         <h4 class="footer-heading">ADDRESS</h4>
-                        <p class="footer-text">
-                            Purok Mais, Brgy Paculob Dumanjug, Cebu
-                            <span class="footer-indent-line">6035 PHILIPPINES</span>
+                        <p class="footer-text footer-address-text">
+                            <span class="footer-line">Purok Mais, Brgy Paculob Dumanjug, Cebu</span>
+                            <span class="footer-line">6035 PHILIPPINES</span>
                         </p>
                     </div>
 
@@ -1164,9 +1199,9 @@
         </div>
     </div>
 
-    <script src="/assets/js/theme-toggle.js?v=20260304b"></script>
+    <script src="/assets/js/theme-toggle.js?v=20260306a"></script>
     <script src="/assets/js/tracker.js"></script>
-    <script src="/assets/js/script.js?v=20260304l"></script>
+    <script src="/assets/js/script.js?v=20260306b"></script>
     <script src="/assets/js/chatbot.js?v=20260304f"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1205,7 +1240,9 @@
         const aoasLocationHome = [10.049651, 123.448545];
 
         // Initialize map
-        const mapHome = L.map('mapHome').setView(aoasLocationHome, 13);
+        const mapHome = L.map('mapHome', {
+            attributionControl: false
+        }).setView(aoasLocationHome, 13);
 
         // Base layers
         const terrainLayerHome = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1245,16 +1282,19 @@
         const officeGalleryDataHome = [
             {
                 src: '/assets/images/office/office-main-gate.webp',
+                thumbSrc: '/assets/images/office/office-main-gate-thumb.webp',
                 alt: 'AOAS Office Main Gate',
                 caption: 'Office Main Gate'
             },
             {
                 src: '/assets/images/office/office-rear-view.webp',
+                thumbSrc: '/assets/images/office/office-rear-view-thumb.webp',
                 alt: 'AOAS Office Rear View',
                 caption: 'Office Rear View'
             },
             {
                 src: '/assets/images/office/aoas-office.webp',
+                thumbSrc: '/assets/images/office/aoas-office-thumb.webp',
                 alt: 'AOAS Office Building',
                 caption: 'AOAS Office'
             }
@@ -1269,7 +1309,7 @@
                     <div class="office-popup-gallery" aria-label="Office photo slideshow">
                         ${officeGalleryDataHome.map((image, index) => `
                             <button type="button" class="office-popup-slide-btn" data-office-index="${index}" aria-label="Open ${image.caption}">
-                                <img src="${image.src}" alt="${image.alt}" loading="lazy" decoding="async">
+                                <img src="${image.thumbSrc}" alt="${image.alt}" loading="lazy" decoding="async" width="160" height="120">
                             </button>
                         `).join('')}
                     </div>
@@ -1406,7 +1446,7 @@
 
             popupElement.dataset.galleryBound = '1';
             popupElement.addEventListener('click', function (event) {
-                const trigger = event.target.closest('.office-popup-slide-btn');
+                const trigger = event.target.closest('[data-office-index]');
                 if (!trigger) {
                     return;
                 }

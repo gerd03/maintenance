@@ -92,24 +92,31 @@
     };
 
     const insertToggleButtons = () => {
-        const actionAreas = document.querySelectorAll('.header-actions');
-        if (!actionAreas.length) {
+        const headerContents = document.querySelectorAll('.header-content');
+        if (!headerContents.length) {
             return;
         }
 
-        actionAreas.forEach((actionArea) => {
-            if (actionArea.querySelector('.theme-toggle-btn')) {
+        headerContents.forEach((headerContent) => {
+            if (headerContent.querySelector('.theme-toggle-btn')) {
                 return;
             }
 
             const toggleButton = buildToggleButton();
-            const firstAction = actionArea.querySelector('.header-social, .btn, a, button');
+            const hamburger = headerContent.querySelector('.hamburger-menu');
+            const actionArea = headerContent.querySelector('.header-actions');
 
-            if (firstAction) {
-                actionArea.insertBefore(toggleButton, firstAction);
-            } else {
-                actionArea.appendChild(toggleButton);
+            if (hamburger) {
+                headerContent.insertBefore(toggleButton, hamburger);
+                return;
             }
+
+            if (actionArea) {
+                headerContent.insertBefore(toggleButton, actionArea);
+                return;
+            }
+
+            headerContent.appendChild(toggleButton);
         });
     };
 

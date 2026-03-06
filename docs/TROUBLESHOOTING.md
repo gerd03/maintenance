@@ -57,6 +57,6 @@ Then:
 - Run `docs/SUPABASE_SETUP.sql` once.
 - Confirm `.env` has:
   - `SUPABASE_URL`
-  - `SUPABASE_ANON_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`)
+  - `SUPABASE_SERVICE_ROLE_KEY`
   - `ADMIN_USERNAME`
   - `ADMIN_PASSWORD`

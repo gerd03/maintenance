@@ -285,6 +285,195 @@
         return document.querySelector('.service-inquiry-form') === null && document.querySelector('.services-page-grid') !== null;
     }
 
+    function setupServicesHubCarousel() {
+        const carousel = document.querySelector('[data-services-carousel]');
+        const track = carousel?.querySelector('[data-services-track]');
+        if (!carousel || !track) return;
+
+        const cards = Array.from(track.querySelectorAll('.services-page-card'));
+        if (!cards.length) return;
+
+        const prevButton = carousel.querySelector('[data-services-prev]');
+        const nextButton = carousel.querySelector('[data-services-next]');
+        const pagination = carousel.querySelector('[data-services-pagination]');
+        const currentPageEl = carousel.querySelector('[data-services-current]');
+        const totalPagesEl = carousel.querySelector('[data-services-total]');
+        const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        let perPage = 1;
+        let totalPages = 1;
+        let currentPage = 0;
+        let autoplayTimer = 0;
+        let resizeTimer = 0;
+
+        const stopAutoplay = () => {
+            if (!autoplayTimer) return;
+            window.clearInterval(autoplayTimer);
+            autoplayTimer = 0;
+        };
+
+        const shouldAutoplay = () => totalPages > 1 && !reducedMotionQuery.matches && !document.hidden;
+
+        const updateControls = () => {
+            if (currentPageEl) currentPageEl.textContent = String(currentPage + 1);
+            if (totalPagesEl) totalPagesEl.textContent = String(totalPages);
+            if (prevButton) prevButton.disabled = currentPage === 0;
+            if (nextButton) nextButton.disabled = currentPage === totalPages - 1;
+
+            if (!pagination) return;
+            pagination.querySelectorAll('[data-services-page]').forEach((button, index) => {
+                const active = index === currentPage;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-current', active ? 'true' : 'false');
+            });
+        };
+
+        const updatePosition = () => {
+            track.style.transform = `translate3d(-${currentPage * 100}%, 0, 0)`;
+            updateControls();
+        };
+
+        const startAutoplay = () => {
+            stopAutoplay();
+            if (!shouldAutoplay()) return;
+            autoplayTimer = window.setInterval(() => {
+                goToPage(currentPage + 1, { wrap: true });
+            }, 5600);
+        };
+
+        const restartAutoplay = () => {
+            if (carousel.matches(':hover') || carousel.contains(document.activeElement)) {
+                stopAutoplay();
+                return;
+            }
+            startAutoplay();
+        };
+
+        const renderPagination = () => {
+            if (!pagination) return;
+            pagination.replaceChildren();
+
+            for (let index = 0; index < totalPages; index += 1) {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'services-carousel-dot';
+                dot.dataset.servicesPage = String(index);
+                dot.setAttribute('aria-label', `Go to services page ${index + 1}`);
+                pagination.appendChild(dot);
+            }
+        };
+
+        const getPerPage = () => {
+            const width = carousel.clientWidth || window.innerWidth;
+            if (width >= 1180) return 4;
+            if (width >= 860) return 3;
+            if (width >= 580) return 2;
+            return 1;
+        };
+
+        const goToPage = (targetPage, options = {}) => {
+            if (totalPages <= 1) {
+                currentPage = 0;
+                updatePosition();
+                return;
+            }
+
+            const wrap = Boolean(options.wrap);
+            const nextPage = wrap
+                ? (targetPage + totalPages) % totalPages
+                : Math.max(0, Math.min(totalPages - 1, targetPage));
+
+            if (nextPage === currentPage) {
+                updateControls();
+                return;
+            }
+
+            currentPage = nextPage;
+            updatePosition();
+            restartAutoplay();
+        };
+
+        const rebuildSlides = () => {
+            const firstVisibleIndex = currentPage * perPage;
+            perPage = Math.min(getPerPage(), cards.length);
+            totalPages = Math.max(1, Math.ceil(cards.length / perPage));
+            currentPage = Math.min(Math.floor(firstVisibleIndex / perPage), totalPages - 1);
+
+            carousel.style.setProperty('--services-per-page', String(perPage));
+            carousel.dataset.carouselReady = 'true';
+            carousel.dataset.carouselMultiple = totalPages > 1 ? 'true' : 'false';
+
+            const fragment = document.createDocumentFragment();
+
+            for (let index = 0; index < cards.length; index += perPage) {
+                const slide = document.createElement('div');
+                slide.className = 'services-page-slide';
+                slide.setAttribute('role', 'group');
+                slide.setAttribute('aria-label', `Services page ${Math.floor(index / perPage) + 1} of ${totalPages}`);
+
+                cards.slice(index, index + perPage).forEach((card) => {
+                    slide.appendChild(card);
+                });
+
+                fragment.appendChild(slide);
+            }
+
+            track.replaceChildren(fragment);
+            renderPagination();
+            updatePosition();
+            restartAutoplay();
+        };
+
+        const scheduleRebuild = () => {
+            if (resizeTimer) window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(rebuildSlides, 120);
+        };
+
+        prevButton?.addEventListener('click', () => {
+            goToPage(currentPage - 1);
+        });
+
+        nextButton?.addEventListener('click', () => {
+            goToPage(currentPage + 1);
+        });
+
+        pagination?.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-services-page]');
+            if (!button) return;
+            const pageIndex = Number(button.dataset.servicesPage);
+            if (!Number.isFinite(pageIndex)) return;
+            goToPage(pageIndex);
+        });
+
+        carousel.addEventListener('mouseenter', stopAutoplay);
+        carousel.addEventListener('mouseleave', restartAutoplay);
+        carousel.addEventListener('focusin', stopAutoplay);
+        carousel.addEventListener('focusout', (event) => {
+            if (event.relatedTarget && carousel.contains(event.relatedTarget)) {
+                return;
+            }
+            restartAutoplay();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoplay();
+                return;
+            }
+            restartAutoplay();
+        });
+
+        if (typeof reducedMotionQuery.addEventListener === 'function') {
+            reducedMotionQuery.addEventListener('change', restartAutoplay);
+        } else if (typeof reducedMotionQuery.addListener === 'function') {
+            reducedMotionQuery.addListener(restartAutoplay);
+        }
+
+        window.addEventListener('resize', scheduleRebuild, { passive: true });
+
+        rebuildSlides();
+    }
+
     function buildFallbackInquiryForm(serviceKey) {
         const meta = SERVICE_META[serviceKey] || SERVICE_META['general-admin'];
         const idPrefix = serviceKey.replace(/[^a-z0-9-]/g, '');
@@ -549,6 +738,7 @@
             // Keep the services hub stable on mobile: never hide cards behind reveal state.
             document.body.classList.remove('service-reveal-enabled');
             document.querySelectorAll('.service-animate').forEach((target) => target.classList.add('is-visible'));
+            setupServicesHubCarousel();
         } else {
             applyRevealAnimations();
             ensureServiceInquiryForm();
