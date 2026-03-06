@@ -306,6 +306,7 @@
         let currentPage = 0;
         let autoplayTimer = 0;
         let resizeTimer = 0;
+        let slideWidth = 0;
         const swipeState = {
             active: false,
             startX: 0,
@@ -337,11 +338,7 @@
         };
 
         const getSlideWidth = () => {
-            const slide = track.querySelector('.services-page-slide');
-            if (slide) {
-                return slide.getBoundingClientRect().width;
-            }
-            return viewport?.getBoundingClientRect().width || carousel.clientWidth || window.innerWidth;
+            return slideWidth || viewport?.getBoundingClientRect().width || carousel.clientWidth || window.innerWidth;
         };
 
         const updatePosition = () => {
@@ -421,12 +418,16 @@
             carousel.dataset.carouselMultiple = totalPages > 1 ? 'true' : 'false';
 
             const fragment = document.createDocumentFragment();
+            slideWidth = Math.round(viewport?.clientWidth || carousel.clientWidth || window.innerWidth);
 
             for (let index = 0; index < cards.length; index += perPage) {
                 const slide = document.createElement('div');
                 slide.className = 'services-page-slide';
                 slide.setAttribute('role', 'group');
                 slide.setAttribute('aria-label', `Services page ${Math.floor(index / perPage) + 1} of ${totalPages}`);
+                slide.style.width = `${slideWidth}px`;
+                slide.style.minWidth = `${slideWidth}px`;
+                slide.style.flex = `0 0 ${slideWidth}px`;
 
                 cards.slice(index, index + perPage).forEach((card) => {
                     slide.appendChild(card);

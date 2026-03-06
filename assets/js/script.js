@@ -559,6 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentPage = 0;
     let cycleTimer = null;
     let resizeTimer = null;
+    let slideWidth = 0;
     const swipeState = {
         active: false,
         startX: 0,
@@ -591,11 +592,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function getSlideWidth() {
-        const slide = track.querySelector('.services-home-slide');
-        if (slide) {
-            return slide.getBoundingClientRect().width;
-        }
-        return viewport?.getBoundingClientRect().width || carousel.clientWidth || window.innerWidth;
+        return slideWidth || viewport?.getBoundingClientRect().width || carousel.clientWidth || window.innerWidth;
     }
 
     function updatePosition() {
@@ -666,11 +663,15 @@ document.addEventListener('DOMContentLoaded', function () {
         carousel.dataset.homeCarouselMultiple = totalPages > 1 ? 'true' : 'false';
 
         const fragment = document.createDocumentFragment();
+        slideWidth = Math.round(viewport?.clientWidth || carousel.clientWidth || window.innerWidth);
         for (let index = 0; index < cards.length; index += perPage) {
             const slide = document.createElement('div');
             slide.className = 'services-home-slide';
             slide.setAttribute('role', 'group');
             slide.setAttribute('aria-label', `Homepage services page ${Math.floor(index / perPage) + 1} of ${totalPages}`);
+            slide.style.width = `${slideWidth}px`;
+            slide.style.minWidth = `${slideWidth}px`;
+            slide.style.flex = `0 0 ${slideWidth}px`;
             cards.slice(index, index + perPage).forEach((card) => {
                 slide.appendChild(card);
             });
