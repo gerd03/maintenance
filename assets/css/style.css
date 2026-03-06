@@ -4833,6 +4833,8 @@ body.office-lightbox-open {
 .services-home-viewport {
     min-width: 0;
     overflow: hidden;
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: contain;
 }
 
 .services-grid-home {
@@ -5455,6 +5457,8 @@ html[data-theme="dark"] .service-card-home-media {
 .services-carousel-viewport {
     min-width: 0;
     overflow: hidden;
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: contain;
 }
 
 .services-page-grid {
@@ -5713,6 +5717,22 @@ html[data-theme="dark"] .services-carousel-dot.is-active {
 
     .services-carousel {
         --services-carousel-gap: 14px;
+    }
+
+    .services-carousel-viewport {
+        padding: 6px 0 10px;
+    }
+
+    .services-page-slide {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .services-page-slide>.services-page-card {
+        width: 100%;
+        max-width: 100%;
+        flex-basis: 100%;
+        margin: 0 auto;
     }
 
     .services-page-card {
@@ -6256,24 +6276,25 @@ body.service-reveal-enabled .service-animate.is-visible {
 /* Mobile refinement pass: compact layout + spacing cleanup */
 @media (max-width: 768px) {
     #services-preview .services-home-viewport {
-        padding: 4px 2px 8px;
+        padding: 6px 0 10px;
     }
 
     #services-preview .services-home-slide {
-        justify-content: flex-start;
-        padding: 0 2px;
+        justify-content: center;
+        padding: 0;
     }
 
     #services-preview .services-home-slide > .service-card-home {
         width: 100%;
-        max-width: none;
+        max-width: 100%;
         flex-basis: 100%;
+        margin: 0 auto;
     }
 
     #services-preview .service-card-home.showcase-active,
     #services-preview .service-card-home:hover,
     #services-preview .service-card-home:focus-within {
-        transform: translateY(-2px) scale(1);
+        transform: none;
     }
 
     .container {

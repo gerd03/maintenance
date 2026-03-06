@@ -287,6 +287,7 @@
 
     function setupServicesHubCarousel() {
         const carousel = document.querySelector('[data-services-carousel]');
+        const viewport = carousel?.querySelector('.services-carousel-viewport');
         const track = carousel?.querySelector('[data-services-track]');
         if (!carousel || !track) return;
 
@@ -305,6 +306,13 @@
         let currentPage = 0;
         let autoplayTimer = 0;
         let resizeTimer = 0;
+        const swipeState = {
+            active: false,
+            startX: 0,
+            startY: 0,
+            lastX: 0,
+            lastY: 0,
+        };
 
         const stopAutoplay = () => {
             if (!autoplayTimer) return;
@@ -328,8 +336,17 @@
             });
         };
 
+        const getSlideWidth = () => {
+            const slide = track.querySelector('.services-page-slide');
+            if (slide) {
+                return slide.getBoundingClientRect().width;
+            }
+            return viewport?.getBoundingClientRect().width || carousel.clientWidth || window.innerWidth;
+        };
+
         const updatePosition = () => {
-            track.style.transform = `translate3d(-${currentPage * 100}%, 0, 0)`;
+            const offset = getSlideWidth() * currentPage;
+            track.style.transform = `translate3d(-${offset}px, 0, 0)`;
             updateControls();
         };
 
@@ -366,8 +383,8 @@
         const getPerPage = () => {
             const width = carousel.clientWidth || window.innerWidth;
             if (width >= 1180) return 4;
-            if (width >= 860) return 3;
-            if (width >= 580) return 2;
+            if (width >= 980) return 3;
+            if (width >= 760) return 2;
             return 1;
         };
 
@@ -429,6 +446,60 @@
             resizeTimer = window.setTimeout(rebuildSlides, 120);
         };
 
+        const resetSwipe = () => {
+            swipeState.active = false;
+            swipeState.startX = 0;
+            swipeState.startY = 0;
+            swipeState.lastX = 0;
+            swipeState.lastY = 0;
+        };
+
+        const isSwipeTargetAllowed = (target) => !target.closest('a, button, input, textarea, select, label');
+
+        const handleTouchStart = (event) => {
+            if (event.touches.length !== 1 || !isSwipeTargetAllowed(event.target)) {
+                resetSwipe();
+                return;
+            }
+
+            const touch = event.touches[0];
+            swipeState.active = true;
+            swipeState.startX = touch.clientX;
+            swipeState.startY = touch.clientY;
+            swipeState.lastX = touch.clientX;
+            swipeState.lastY = touch.clientY;
+            stopAutoplay();
+        };
+
+        const handleTouchMove = (event) => {
+            if (!swipeState.active || event.touches.length !== 1) return;
+
+            const touch = event.touches[0];
+            swipeState.lastX = touch.clientX;
+            swipeState.lastY = touch.clientY;
+
+            const deltaX = swipeState.lastX - swipeState.startX;
+            const deltaY = swipeState.lastY - swipeState.startY;
+            if (Math.abs(deltaX) > Math.abs(deltaY) + 8) {
+                event.preventDefault();
+            }
+        };
+
+        const handleTouchEnd = () => {
+            if (!swipeState.active) return;
+
+            const deltaX = swipeState.lastX - swipeState.startX;
+            const deltaY = swipeState.lastY - swipeState.startY;
+            const isHorizontalSwipe = Math.abs(deltaX) > 42 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+
+            if (isHorizontalSwipe) {
+                goToPage(currentPage + (deltaX < 0 ? 1 : -1));
+            }
+
+            resetSwipe();
+            restartAutoplay();
+        };
+
         prevButton?.addEventListener('click', () => {
             goToPage(currentPage - 1);
         });
@@ -444,6 +515,14 @@
             if (!Number.isFinite(pageIndex)) return;
             goToPage(pageIndex);
         });
+
+        viewport?.addEventListener('touchstart', handleTouchStart, { passive: true });
+        viewport?.addEventListener('touchmove', handleTouchMove, { passive: false });
+        viewport?.addEventListener('touchend', handleTouchEnd, { passive: true });
+        viewport?.addEventListener('touchcancel', () => {
+            resetSwipe();
+            restartAutoplay();
+        }, { passive: true });
 
         carousel.addEventListener('mouseenter', stopAutoplay);
         carousel.addEventListener('mouseleave', restartAutoplay);

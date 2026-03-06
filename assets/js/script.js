@@ -531,6 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!section) return;
 
     const carousel = section.querySelector('[data-home-services-carousel]');
+    const viewport = section.querySelector('.services-home-viewport');
     const track = section.querySelector('[data-home-services-track]');
     const pagination = section.querySelector('[data-home-services-pagination]');
     if (!carousel || !track) return;
@@ -558,6 +559,13 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentPage = 0;
     let cycleTimer = null;
     let resizeTimer = null;
+    const swipeState = {
+        active: false,
+        startX: 0,
+        startY: 0,
+        lastX: 0,
+        lastY: 0,
+    };
 
     function clearCycle() {
         if (cycleTimer) {
@@ -582,8 +590,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function getSlideWidth() {
+        const slide = track.querySelector('.services-home-slide');
+        if (slide) {
+            return slide.getBoundingClientRect().width;
+        }
+        return viewport?.getBoundingClientRect().width || carousel.clientWidth || window.innerWidth;
+    }
+
     function updatePosition() {
-        track.style.transform = `translate3d(-${currentPage * 100}%, 0, 0)`;
+        const offset = getSlideWidth() * currentPage;
+        track.style.transform = `translate3d(-${offset}px, 0, 0)`;
         setActiveCards();
         updatePagination();
     }
@@ -591,8 +608,25 @@ document.addEventListener('DOMContentLoaded', function () {
     function getPerPage() {
         const width = carousel.clientWidth || window.innerWidth;
         if (width >= 1180) return 4;
-        if (width >= 720) return 2;
+        if (width >= 900) return 2;
         return 1;
+    }
+
+    function goToPage(targetPage) {
+        if (totalPages <= 1) {
+            currentPage = 0;
+            updatePosition();
+            return;
+        }
+
+        const nextPage = Math.max(0, Math.min(totalPages - 1, targetPage));
+        if (nextPage === currentPage) {
+            updatePagination();
+            return;
+        }
+
+        currentPage = nextPage;
+        updatePosition();
     }
 
     function renderPagination() {
@@ -613,8 +647,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clearCycle();
         if (reducedMotionQuery.matches || lowEndMode || totalPages <= 1 || document.hidden) return;
         cycleTimer = window.setInterval(() => {
-            currentPage = (currentPage + 1) % totalPages;
-            updatePosition();
+            goToPage((currentPage + 1) % totalPages);
         }, 3200);
     }
 
@@ -655,15 +688,78 @@ document.addEventListener('DOMContentLoaded', function () {
         resizeTimer = window.setTimeout(rebuildSlides, 120);
     }
 
+    function resetSwipe() {
+        swipeState.active = false;
+        swipeState.startX = 0;
+        swipeState.startY = 0;
+        swipeState.lastX = 0;
+        swipeState.lastY = 0;
+    }
+
+    function isSwipeTargetAllowed(target) {
+        return !target.closest('a, button, input, textarea, select, label');
+    }
+
+    function handleTouchStart(event) {
+        if (event.touches.length !== 1 || !isSwipeTargetAllowed(event.target)) {
+            resetSwipe();
+            return;
+        }
+
+        const touch = event.touches[0];
+        swipeState.active = true;
+        swipeState.startX = touch.clientX;
+        swipeState.startY = touch.clientY;
+        swipeState.lastX = touch.clientX;
+        swipeState.lastY = touch.clientY;
+        stopCycle();
+    }
+
+    function handleTouchMove(event) {
+        if (!swipeState.active || event.touches.length !== 1) return;
+
+        const touch = event.touches[0];
+        swipeState.lastX = touch.clientX;
+        swipeState.lastY = touch.clientY;
+
+        const deltaX = swipeState.lastX - swipeState.startX;
+        const deltaY = swipeState.lastY - swipeState.startY;
+        if (Math.abs(deltaX) > Math.abs(deltaY) + 8) {
+            event.preventDefault();
+        }
+    }
+
+    function handleTouchEnd() {
+        if (!swipeState.active) return;
+
+        const deltaX = swipeState.lastX - swipeState.startX;
+        const deltaY = swipeState.lastY - swipeState.startY;
+        const isHorizontalSwipe = Math.abs(deltaX) > 42 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+
+        if (isHorizontalSwipe) {
+            goToPage(currentPage + (deltaX < 0 ? 1 : -1));
+        }
+
+        resetSwipe();
+        startCycle();
+    }
+
     pagination?.addEventListener('click', function (event) {
         const dot = event.target.closest('[data-home-services-page]');
         if (!dot) return;
         const nextPage = Number(dot.dataset.homeServicesPage);
         if (!Number.isFinite(nextPage)) return;
-        currentPage = nextPage;
-        updatePosition();
+        goToPage(nextPage);
         startCycle();
     });
+
+    viewport?.addEventListener('touchstart', handleTouchStart, { passive: true });
+    viewport?.addEventListener('touchmove', handleTouchMove, { passive: false });
+    viewport?.addEventListener('touchend', handleTouchEnd, { passive: true });
+    viewport?.addEventListener('touchcancel', function () {
+        resetSwipe();
+        startCycle();
+    }, { passive: true });
 
     carousel.addEventListener('mouseenter', stopCycle);
     carousel.addEventListener('mouseleave', startCycle);
