@@ -4,6 +4,7 @@
     const CHAT_DRAG_HOLD_MS = 380;
     const CHAT_DRAG_MOVE_PX = 8;
     const CHAT_EDGE_PADDING = 16;
+    const CHAT_MOBILE_WIDTH = 900;
 
     const SERVICES = {
         payroll: {
@@ -416,6 +417,18 @@
             }
         }
 
+        function clearSavedWidgetPosition() {
+            try {
+                window.localStorage.removeItem(CHAT_POSITION_KEY);
+            } catch {
+                // Ignore storage failures.
+            }
+        }
+
+        function shouldLockWidgetToViewport() {
+            return window.innerWidth <= CHAT_MOBILE_WIDTH || window.matchMedia('(pointer: coarse)').matches;
+        }
+
         function getSavedWidgetPosition() {
             try {
                 const raw = window.localStorage.getItem(CHAT_POSITION_KEY);
@@ -452,6 +465,11 @@
         }
 
         function applySavedPosition() {
+            if (shouldLockWidgetToViewport()) {
+                applyDefaultWidgetPosition();
+                return;
+            }
+
             const saved = getSavedWidgetPosition();
             if (!saved) {
                 applyDefaultWidgetPosition();
@@ -496,7 +514,9 @@
 
             toggleButton.addEventListener('pointerdown', (event) => {
                 if (widgetRoot.classList.contains('open')) return;
+                if (shouldLockWidgetToViewport()) return;
                 if (event.pointerType === 'mouse' && event.button !== 0) return;
+                if (event.pointerType !== 'mouse') return;
 
                 const rect = widgetRoot.getBoundingClientRect();
                 dragPointer = {
@@ -556,6 +576,10 @@
             });
 
             window.addEventListener('resize', () => {
+                if (shouldLockWidgetToViewport()) {
+                    applyDefaultWidgetPosition();
+                    return;
+                }
                 const hasCustom = widgetRoot.style.left && widgetRoot.style.top;
                 if (!hasCustom) return;
                 const rect = widgetRoot.getBoundingClientRect();
@@ -837,6 +861,9 @@
 
         restoreLeadDraft();
         toggleOtherLocationField();
+        if (shouldLockWidgetToViewport()) {
+            clearSavedWidgetPosition();
+        }
         applySavedPosition();
         bindDragBehavior();
 

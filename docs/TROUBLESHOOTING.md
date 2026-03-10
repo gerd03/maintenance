@@ -60,3 +60,11 @@ Then:
   - `SUPABASE_SERVICE_ROLE_KEY`
   - `ADMIN_USERNAME`
   - `ADMIN_PASSWORD`
+- Run:
+
+```powershell
+npm run check:admin-env
+```
+
+- If it reports `role claim is "anon"`, you pasted the anon key in `SUPABASE_SERVICE_ROLE_KEY`.
+- Use Supabase Dashboard > Project Settings > API > `service_role` key.

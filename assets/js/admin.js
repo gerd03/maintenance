@@ -72,11 +72,15 @@
     clientPoolLoading: false,
     clientPoolRequestSeq: 0,
     selectedClientParticipantIds: new Set(),
+    requestActionSelections: {},
     searchDebounceHandle: 0,
     clientSearchDebounceHandle: 0,
     mobileNavOpen: false,
     theme: '',
     themeManual: savedTheme === 'light' || savedTheme === 'dark',
+    authView: 'login',
+    signupStep: 1,
+    passwordResetToken: '',
     loginRequestInFlight: false,
     nextLoginAttemptAt: 0,
     refreshPromise: null,
@@ -87,20 +91,76 @@
     actionDialogResolver: null,
     actionDialogConfig: null,
     participantAvatarObserver: null,
+    workflowDrawerView: '',
+    overlayFocusStack: [],
+    pendingActionKeys: new Set(),
   };
 
   const els = {
     loginScreen: document.getElementById('loginScreen'),
+    loginLayout: document.querySelector('.login-layout'),
+    loginCard: document.getElementById('loginCard'),
+    authStage: document.getElementById('authStage'),
+    authTabs: Array.from(document.querySelectorAll('.auth-tab[data-auth-view]')),
+    authViewLinks: Array.from(document.querySelectorAll('[data-auth-view-target]')),
+    authPanelLogin: document.getElementById('authPanelLogin'),
+    authPanelSignup: document.getElementById('authPanelSignup'),
+    authPanelRecover: document.getElementById('authPanelRecover'),
+    authPanelReset: document.getElementById('authPanelReset'),
+    authTabReset: document.getElementById('authTabReset'),
+    authViewCounter: document.getElementById('authViewCounter'),
+    authViewLabel: document.getElementById('authViewLabel'),
+    authViewDescription: document.getElementById('authViewDescription'),
+    authProgressBar: document.getElementById('authProgressBar'),
+    signupStepPanels: Array.from(document.querySelectorAll('[data-signup-step]')),
+    signupStepCounter: document.getElementById('signupStepCounter'),
+    signupStepTitle: document.getElementById('signupStepTitle'),
+    signupStepProgress: document.getElementById('signupStepProgress'),
+    signupPrevBtn: document.getElementById('signupPrevBtn'),
+    signupNextBtn: document.getElementById('signupNextBtn'),
     loginForm: document.getElementById('loginForm'),
     loginUsername: document.getElementById('loginUsername'),
     loginPassword: document.getElementById('loginPassword'),
     loginMessage: document.getElementById('loginMessage'),
     loginSubmitBtn: document.querySelector('#loginForm button[type="submit"]'),
+    signupForm: document.getElementById('signupForm'),
+    signupFirstName: document.getElementById('signupFirstName'),
+    signupLastName: document.getElementById('signupLastName'),
+    signupUsername: document.getElementById('signupUsername'),
+    signupSecretAnswerCity: document.getElementById('signupSecretAnswerCity'),
+    signupSecretAnswerSchool: document.getElementById('signupSecretAnswerSchool'),
+    signupSecretAnswerNickname: document.getElementById('signupSecretAnswerNickname'),
+    signupPassword: document.getElementById('signupPassword'),
+    signupConfirmPassword: document.getElementById('signupConfirmPassword'),
+    signupMessage: document.getElementById('signupMessage'),
+    signupSubmitBtn: document.getElementById('signupSubmitBtn'),
+    recoverForm: document.getElementById('recoverForm'),
+    recoverUsername: document.getElementById('recoverUsername'),
+    recoverSecretAnswerCity: document.getElementById('recoverSecretAnswerCity'),
+    recoverSecretAnswerSchool: document.getElementById('recoverSecretAnswerSchool'),
+    recoverSecretAnswerNickname: document.getElementById('recoverSecretAnswerNickname'),
+    recoverMessage: document.getElementById('recoverMessage'),
+    recoverSubmitBtn: document.getElementById('recoverSubmitBtn'),
+    resetPasswordForm: document.getElementById('resetPasswordForm'),
+    resetToken: document.getElementById('resetToken'),
+    resetPassword: document.getElementById('resetPassword'),
+    resetConfirmPassword: document.getElementById('resetConfirmPassword'),
+    resetMessage: document.getElementById('resetMessage'),
+    resetPasswordSubmitBtn: document.getElementById('resetPasswordSubmitBtn'),
     systemNoticeModal: document.getElementById('systemNoticeModal'),
     systemNoticeBackdrop: document.getElementById('systemNoticeBackdrop'),
     systemNoticeClose: document.getElementById('systemNoticeClose'),
     systemNoticeTitle: document.getElementById('systemNoticeTitle'),
     systemNoticeMessage: document.getElementById('systemNoticeMessage'),
+    workflowDrawer: document.getElementById('workflowDrawer'),
+    workflowDrawerBackdrop: document.getElementById('workflowDrawerBackdrop'),
+    workflowDrawerClose: document.getElementById('workflowDrawerClose'),
+    workflowDrawerEyebrow: document.getElementById('workflowDrawerEyebrow'),
+    workflowDrawerTitle: document.getElementById('workflowDrawerTitle'),
+    workflowDrawerSubtitle: document.getElementById('workflowDrawerSubtitle'),
+    sectionDrawerPanel: document.getElementById('sectionDrawerPanel'),
+    accountDrawerPanel: document.getElementById('accountDrawerPanel'),
+    clientRequestDrawerPanel: document.getElementById('clientRequestDrawerPanel'),
     systemActionModal: document.getElementById('systemActionModal'),
     systemActionBackdrop: document.getElementById('systemActionBackdrop'),
     systemActionClose: document.getElementById('systemActionClose'),
@@ -114,6 +174,21 @@
     systemActionSecondaryField: document.getElementById('systemActionSecondaryField'),
     systemActionSecondaryLabel: document.getElementById('systemActionSecondaryLabel'),
     systemActionSecondaryInput: document.getElementById('systemActionSecondaryInput'),
+    systemActionTertiaryField: document.getElementById('systemActionTertiaryField'),
+    systemActionTertiaryLabel: document.getElementById('systemActionTertiaryLabel'),
+    systemActionTertiaryInput: document.getElementById('systemActionTertiaryInput'),
+    systemActionQuaternaryField: document.getElementById('systemActionQuaternaryField'),
+    systemActionQuaternaryLabel: document.getElementById('systemActionQuaternaryLabel'),
+    systemActionQuaternaryInput: document.getElementById('systemActionQuaternaryInput'),
+    systemActionQuinaryField: document.getElementById('systemActionQuinaryField'),
+    systemActionQuinaryLabel: document.getElementById('systemActionQuinaryLabel'),
+    systemActionQuinaryInput: document.getElementById('systemActionQuinaryInput'),
+    systemActionNotesField: document.getElementById('systemActionNotesField'),
+    systemActionNotesLabel: document.getElementById('systemActionNotesLabel'),
+    systemActionNotesInput: document.getElementById('systemActionNotesInput'),
+    systemActionChecklistField: document.getElementById('systemActionChecklistField'),
+    systemActionChecklistLabel: document.getElementById('systemActionChecklistLabel'),
+    systemActionChecklist: document.getElementById('systemActionChecklist'),
     systemActionCancel: document.getElementById('systemActionCancel'),
     systemActionConfirm: document.getElementById('systemActionConfirm'),
 
@@ -124,12 +199,14 @@
     mobileNavClose: document.getElementById('mobileNavClose'),
     navButtons: Array.from(document.querySelectorAll('.nav-btn')),
     userBadge: document.getElementById('userBadge'),
+    changePasswordBtn: document.getElementById('changePasswordBtn'),
     logoutBtn: document.getElementById('logoutBtn'),
     globalMessage: document.getElementById('globalMessage'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     themeToggleLabel: document.getElementById('themeToggleLabel'),
     topbarTitle: document.getElementById('topbarTitle'),
     topbarEyebrow: document.getElementById('topbarEyebrow'),
+    topbarShell: document.querySelector('.topbar-shell'),
 
     viewOverview: document.getElementById('view-overview'),
     viewParticipants: document.getElementById('view-participants'),
@@ -154,20 +231,44 @@
     participantsPrevPage: document.getElementById('participantsPrevPage'),
     participantsNextPage: document.getElementById('participantsNextPage'),
     participantsPageMeta: document.getElementById('participantsPageMeta'),
-    participantsPageSize: document.getElementById('participantsPageSize'),
+    participantsListMeta: document.getElementById('participantsListMeta'),
 
     sectionForm: document.getElementById('sectionForm'),
+    sectionEditId: document.getElementById('sectionEditId'),
     sectionName: document.getElementById('sectionName'),
     sectionDescription: document.getElementById('sectionDescription'),
+    sectionSubmitBtn: document.getElementById('sectionSubmitBtn'),
     sectionsTableBody: document.getElementById('sectionsTableBody'),
+    sectionsListMeta: document.getElementById('sectionsListMeta'),
+    openSectionDrawerBtn: document.getElementById('openSectionDrawerBtn'),
 
     accountForm: document.getElementById('accountForm'),
+    accountFormMode: document.getElementById('accountFormMode'),
+    accountTargetId: document.getElementById('accountTargetId'),
+    accountFirstNameField: document.getElementById('accountFirstNameField'),
+    accountLastNameField: document.getElementById('accountLastNameField'),
+    accountUsernameField: document.getElementById('accountUsernameField'),
+    accountSecretCityField: document.getElementById('accountSecretCityField'),
+    accountSecretSchoolField: document.getElementById('accountSecretSchoolField'),
+    accountSecretNicknameField: document.getElementById('accountSecretNicknameField'),
+    accountPasswordField: document.getElementById('accountPasswordField'),
+    accountPasswordConfirmField: document.getElementById('accountPasswordConfirmField'),
+    accountFormNote: document.getElementById('accountFormNote'),
+    accountFirstName: document.getElementById('accountFirstName'),
+    accountLastName: document.getElementById('accountLastName'),
     accountUsername: document.getElementById('accountUsername'),
-    accountDisplayName: document.getElementById('accountDisplayName'),
+    accountSecretAnswerCity: document.getElementById('accountSecretAnswerCity'),
+    accountSecretAnswerSchool: document.getElementById('accountSecretAnswerSchool'),
+    accountSecretAnswerNickname: document.getElementById('accountSecretAnswerNickname'),
     accountPassword: document.getElementById('accountPassword'),
+    accountPasswordConfirm: document.getElementById('accountPasswordConfirm'),
+    accountSubmitBtn: document.getElementById('accountSubmitBtn'),
     accountsTableBody: document.getElementById('accountsTableBody'),
+    accountsListMeta: document.getElementById('accountsListMeta'),
+    openAccountDrawerBtn: document.getElementById('openAccountDrawerBtn'),
 
     clientPoolSearch: document.getElementById('clientPoolSearch'),
+    clientPoolPanel: document.getElementById('clientPoolPanel'),
     clientPoolSectionFilter: document.getElementById('clientPoolSectionFilter'),
     clientPoolStatusFilter: document.getElementById('clientPoolStatusFilter'),
     selectVisibleCandidatesBtn: document.getElementById('selectVisibleCandidatesBtn'),
@@ -177,9 +278,19 @@
     clientPoolPrevPage: document.getElementById('clientPoolPrevPage'),
     clientPoolNextPage: document.getElementById('clientPoolNextPage'),
     clientPoolPageMeta: document.getElementById('clientPoolPageMeta'),
-    clientPoolPageSize: document.getElementById('clientPoolPageSize'),
+    clientRequesterWorkspace: document.getElementById('clientRequesterWorkspace'),
+    clientAdminWorkspace: document.getElementById('clientAdminWorkspace'),
+    clientRequestsHeroKicker: document.getElementById('clientRequestsHeroKicker'),
+    clientRequestsHeroSubtitle: document.getElementById('clientRequestsHeroSubtitle'),
     clientSelectedMeta: document.getElementById('clientSelectedMeta'),
+    clientRequestHeroSecondaryMeta: document.getElementById('clientRequestHeroSecondaryMeta'),
+    clientSelectedMetaSecondary: document.getElementById('clientSelectedMetaSecondary'),
+    openClientRequestDrawerBtn: document.getElementById('openClientRequestDrawerBtn'),
+    clientRequestSummaryCard: document.getElementById('clientRequestSummaryCard'),
+    clientRequestTrackerCard: document.getElementById('clientRequestTrackerCard'),
+    hiredProfilesCard: document.getElementById('hiredProfilesCard'),
     clientRequestForm: document.getElementById('clientRequestForm'),
+    clientRequestSubmitBtn: document.getElementById('clientRequestSubmitBtn'),
     clientRequestName: document.getElementById('clientRequestName'),
     clientRequestEmail: document.getElementById('clientRequestEmail'),
     clientRequestCompany: document.getElementById('clientRequestCompany'),
@@ -189,14 +300,20 @@
     clientRequestMessage: document.getElementById('clientRequestMessage'),
     clientRequestsList: document.getElementById('clientRequestsList'),
     clientRequestsMeta: document.getElementById('clientRequestsMeta'),
+    clientRequestsMetaSecondary: document.getElementById('clientRequestsMetaSecondary'),
     hiredProfilesTableBody: document.getElementById('hiredProfilesTableBody'),
     hiredProfilesMeta: document.getElementById('hiredProfilesMeta'),
+    hiredProfilesMetaSecondary: document.getElementById('hiredProfilesMetaSecondary'),
+    overviewPipelineBoard: document.getElementById('overviewPipelineBoard'),
 
     participantModal: document.getElementById('participantModal'),
     participantModalBackdrop: document.getElementById('participantModalBackdrop'),
     participantModalClose: document.getElementById('participantModalClose'),
+    participantModalEditBtn: document.getElementById('participantModalEditBtn'),
     participantModalTitle: document.getElementById('participantModalTitle'),
+    participantModalSubtitle: document.getElementById('participantModalSubtitle'),
     participantProfileHero: document.getElementById('participantProfileHero'),
+    participantDetailView: document.getElementById('participantDetailView'),
     participantForm: document.getElementById('participantForm'),
     participantId: document.getElementById('participantId'),
     fullName: document.getElementById('fullName'),
@@ -225,6 +342,56 @@
     return Boolean(state.user && state.user.role === 'admin');
   }
 
+  function getAllowedViewIds() {
+    return isAdmin()
+      ? ['overview', 'participants', 'sections', 'client-requests', 'accounts']
+      : ['overview', 'client-requests'];
+  }
+
+  function sanitizeViewId(viewId) {
+    const normalized = String(viewId || '').trim().toLowerCase();
+    const allowed = getAllowedViewIds();
+    return allowed.includes(normalized) ? normalized : allowed[0];
+  }
+
+  function enforceActiveViewAccess() {
+    const safeView = sanitizeViewId(state.activeView);
+    const changed = safeView !== state.activeView;
+    state.activeView = safeView;
+    return changed;
+  }
+
+  function syncParticipantFilterInputs() {
+    if (els.participantsSearch) {
+      els.participantsSearch.value = state.participantFilters.search || '';
+    }
+    if (els.participantsSectionFilter) {
+      els.participantsSectionFilter.value = state.participantFilters.section || '';
+    }
+    if (els.participantsStatusFilter) {
+      els.participantsStatusFilter.value = state.participantFilters.status || '';
+    }
+  }
+
+  function syncClientPoolFilterInputs() {
+    if (els.clientPoolSearch) {
+      els.clientPoolSearch.value = state.clientPoolFilters.search || '';
+    }
+    if (els.clientPoolSectionFilter) {
+      els.clientPoolSectionFilter.value = state.clientPoolFilters.section || '';
+    }
+    if (els.clientPoolStatusFilter) {
+      els.clientPoolStatusFilter.value = state.clientPoolFilters.status || '';
+    }
+  }
+
+  function normalizeShortcutStatus(status) {
+    const normalized = String(status || '').trim().toLowerCase();
+    return ['talent_pool', 'shortlisted', 'on_hold', 'inactive'].includes(normalized)
+      ? normalized
+      : 'talent_pool';
+  }
+
   function escapeHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -232,6 +399,22 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function safeExternalHref(value) {
+    const rawValue = String(value || '').trim();
+    if (!rawValue) return '';
+
+    try {
+      const parsed = new URL(rawValue);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.toString();
+      }
+    } catch (_) {
+      return '';
+    }
+
+    return '';
   }
 
   function statusLabel(status) {
@@ -279,7 +462,7 @@
     const hiddenCount = Math.max(0, list.length - visible.length);
 
     const pills = visible
-      .map((item) => `<span class="${pillClass}">${escapeHtml(item)}</span>`)
+      .map((item) => `<span class="${pillClass}" title="${escapeHtml(item)}">${escapeHtml(item)}</span>`)
       .join('');
     const toggleButton = list.length > 2
       ? `<button type="button" class="btn btn-inline-more" data-action="toggle-${kind}" data-id="${escapeHtml(participantId)}">${expanded ? 'See less' : `See more (${hiddenCount})`}</button>`
@@ -288,31 +471,78 @@
     return `${pills}${toggleButton}`;
   }
 
+  function renderParticipantAvatar(participant) {
+    if (participant.profilePicture && participant.profilePicture.dataUrl) {
+      return `<img class="participant-avatar participant-avatar-lazy" src="${LAZY_IMAGE_PLACEHOLDER}" data-src="${escapeHtml(participant.profilePicture.dataUrl)}" alt="${escapeHtml(participant.fullName || 'Participant')} profile picture" loading="lazy" decoding="async">`;
+    }
+
+    return `<span class="participant-avatar participant-avatar-fallback">${escapeHtml(initialsFromName(participant.fullName))}</span>`;
+  }
+
+  function renderParticipantNameCell(participant, extraClass = '') {
+    const participantId = escapeHtml(participant.id);
+    const classes = ['participant-name-cell'];
+    if (extraClass) classes.push(extraClass);
+
+    return `
+      <div class="${classes.join(' ')}">
+        ${renderParticipantAvatar(participant)}
+        <div class="participant-name-stack">
+          <button type="button" class="btn btn-link profile-link" data-action="open-profile" data-id="${participantId}">${escapeHtml(participant.fullName || 'Unnamed')}</button>
+          <button type="button" class="btn participant-name-cta" data-action="open-profile" data-id="${participantId}" aria-label="Open full profile">
+            <span class="participant-name-cta-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3.5 12s3-6 8.5-6 8.5 6 8.5 6-3 6-8.5 6-8.5-6-8.5-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+            </span>
+            <span class="participant-name-cta-label">Open full profile</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   function renderParticipantActions(participant) {
     const participantId = escapeHtml(participant.id);
+    const admin = isAdmin();
     const isShortlisted = String(participant.status || '').toLowerCase() === 'shortlisted';
-    const profileAction = `<button type="button" class="btn btn-light btn-compact" data-action="open-profile" data-id="${participantId}">Profile</button>`;
-    const primaryAction = isAdmin()
+    const hasResume = Boolean(participant.resume && participant.resume.dataUrl);
+    const icon = (kind) => {
+      const icons = {
+        profile: '<span class="participant-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0" /><circle cx="12" cy="8" r="4" /></svg></span>',
+        shortlist: '<span class="participant-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3.75 2.55 5.17 5.7.83-4.12 4.01.97 5.67L12 16.75l-5.1 2.68.97-5.67-4.12-4.01 5.7-.83L12 3.75Z" /></svg></span>',
+        pool: '<span class="participant-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h12" /><path d="m12 8 4 4-4 4" /><path d="M4 5h8" /><path d="M4 19h8" /></svg></span>',
+        edit: '<span class="participant-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="m16.5 3.5 4 4L7 21l-4 1 1-4Z" /></svg></span>',
+        download: '<span class="participant-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v10" /><path d="m8 10 4 4 4-4" /><path d="M5 19h14" /></svg></span>',
+        more: '<span class="participant-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" /></svg></span>',
+      };
+      return icons[kind] || '';
+    };
+    const profileAction = admin
+      ? `<button type="button" class="btn btn-light btn-compact participant-action-btn participant-action-secondary participant-action-icon-only" data-action="open-profile" data-id="${participantId}" aria-label="Open profile" title="Open profile">${icon('profile')}<span class="participant-action-label">Profile</span></button>`
+      : `<button type="button" class="btn btn-light btn-compact participant-action-btn participant-action-secondary participant-action-icon-only" data-action="view" data-id="${participantId}" aria-label="View profile" title="View profile">${icon('profile')}<span class="participant-action-label">View</span></button>`;
+    const primaryAction = admin
       ? (isShortlisted
-        ? `<button type="button" class="btn btn-ghost btn-compact" data-action="remove-shortlist" data-id="${participantId}">Move to Pool</button>`
-        : `<button type="button" class="btn btn-primary btn-compact" data-action="quick-shortlist" data-id="${participantId}">Shortlist</button>`)
-      : `<button type="button" class="btn btn-light btn-compact" data-action="view" data-id="${participantId}">View</button>`;
+        ? `<button type="button" class="btn btn-ghost btn-compact participant-action-btn participant-action-primary participant-action-neutral" data-action="remove-shortlist" data-id="${participantId}">${icon('pool')}<span class="participant-action-label">Move to Pool</span></button>`
+        : `<button type="button" class="btn btn-primary btn-compact participant-action-btn participant-action-primary" data-action="quick-shortlist" data-id="${participantId}">${icon('shortlist')}<span class="participant-action-label">Shortlist</span></button>`)
+      : '';
+    const downloadAction = !admin && hasResume
+      ? `<a class="btn btn-light btn-compact participant-action-btn participant-action-download" href="${escapeHtml(participant.resume.dataUrl)}" download="${escapeHtml(participant.resume.fileName || 'resume')}" aria-label="Download resume" title="Download resume">${icon('download')}<span class="participant-action-label">Resume</span></a>`
+      : '';
 
     const menuItems = [];
-    if (isAdmin()) {
-      menuItems.push(`<button type="button" class="row-actions-item" data-action="edit" data-id="${participantId}">Edit participant</button>`);
+    if (admin) {
+      menuItems.push(`<button type="button" class="row-actions-item" data-action="edit" data-id="${participantId}">${icon('edit')}<span>Edit participant</span></button>`);
     }
-    if (participant.resume && participant.resume.dataUrl) {
+    if (hasResume) {
       menuItems.push(`<a class="row-actions-item" href="${escapeHtml(participant.resume.dataUrl)}" download="${escapeHtml(participant.resume.fileName || 'resume')}">Download resume</a>`);
     }
-    if (isAdmin()) {
+    if (admin) {
       menuItems.push(`<button type="button" class="row-actions-item row-actions-item-danger" data-action="delete" data-id="${participantId}">Delete participant</button>`);
     }
 
-    const moreMenu = menuItems.length
+    const moreMenu = admin && menuItems.length
       ? `
         <details class="row-actions-menu">
-          <summary class="btn btn-light btn-compact row-actions-summary">More</summary>
+          <summary class="btn btn-light btn-compact row-actions-summary participant-action-btn participant-action-secondary participant-action-icon-only" aria-label="More actions" title="More actions">${icon('more')}<span class="participant-action-label">More</span></summary>
           <div class="row-actions-popover">
             ${menuItems.join('')}
           </div>
@@ -322,8 +552,9 @@
 
     return `
       <div class="participant-row-actions">
-        ${profileAction}
         ${primaryAction}
+        ${profileAction}
+        ${downloadAction}
         ${moreMenu}
       </div>
     `;
@@ -334,6 +565,48 @@
       if (menu !== exceptMenu) {
         menu.removeAttribute('open');
       }
+    });
+    document.querySelectorAll('.row-actions-host-open').forEach((host) => {
+      if (!exceptMenu || !host.contains(exceptMenu)) {
+        host.classList.remove('row-actions-host-open');
+      }
+    });
+  }
+
+  function syncParticipantActionHost(menu) {
+    if (!menu) return;
+    const host = menu.closest('tr, .participant-detail-actions, .participant-row-actions');
+    const row = menu.closest('tr');
+    if (!host) return;
+    host.classList.toggle('row-actions-host-open', menu.open);
+    if (row) {
+      row.classList.toggle('row-actions-open', menu.open);
+    }
+    if (menu.open) {
+      positionParticipantActionMenu(menu);
+      return;
+    }
+    delete menu.dataset.vertical;
+    delete menu.dataset.horizontal;
+  }
+
+  function positionParticipantActionMenu(menu) {
+    if (!menu) return;
+    const popover = menu.querySelector('.row-actions-popover');
+    if (!popover) return;
+
+    if (MOBILE_NAV_QUERY.matches) {
+      menu.dataset.vertical = 'sheet';
+      menu.dataset.horizontal = 'sheet';
+      return;
+    }
+
+    menu.dataset.vertical = 'down';
+    menu.dataset.horizontal = 'right';
+    window.requestAnimationFrame(() => {
+      const rect = popover.getBoundingClientRect();
+      menu.dataset.vertical = rect.bottom > (window.innerHeight - 16) ? 'up' : 'down';
+      menu.dataset.horizontal = rect.left < 16 ? 'left' : 'right';
     });
   }
 
@@ -348,6 +621,24 @@
     });
   }
 
+  function formatPaginationText(start, end, total, page, totalPages) {
+    if (!total) {
+      return `0 results | ${page}/${totalPages}`;
+    }
+    return `${start}-${end} of ${total} | ${page}/${totalPages}`;
+  }
+
+  function tableActionIcon(kind) {
+    const icons = {
+      rename: '<span class="table-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m12 6 4 4" /></svg></span>',
+      delete: '<span class="table-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14" /><path d="M9 7V4h6v3" /><path d="m7 7 1 13h8l1-13" /></svg></span>',
+      disable: '<span class="table-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="4" /><path d="M10 9v6" /><path d="M14 9v6" /></svg></span>',
+      enable: '<span class="table-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v5" /><path d="M8.2 7.8a6 6 0 1 0 7.6 0" /></svg></span>',
+      reset: '<span class="table-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 4.5V10h5.5" /><path d="M19.5 11a7.5 7.5 0 1 0-2.2 5.3" /></svg></span>',
+    };
+    return icons[kind] || '';
+  }
+
   function setMessage(target, text, isError) {
     if (!target) return;
     target.textContent = text || '';
@@ -358,15 +649,537 @@
     setMessage(els.globalMessage, text, isError);
   }
 
+  function setAuthMessage(view, text, isError) {
+    if (view === 'signup') {
+      setMessage(els.signupMessage, text, isError);
+      return;
+    }
+    if (view === 'recover') {
+      setMessage(els.recoverMessage, text, isError);
+      return;
+    }
+    if (view === 'reset') {
+      setMessage(els.resetMessage, text, isError);
+      return;
+    }
+    setMessage(els.loginMessage, text, isError);
+  }
+
+  function clearAuthMessages() {
+    setMessage(els.loginMessage, '', false);
+    setMessage(els.signupMessage, '', false);
+    setMessage(els.recoverMessage, '', false);
+    setMessage(els.resetMessage, '', false);
+  }
+
+  function focusAuthFieldForView(view) {
+    if (String(view || '').trim() === 'signup') {
+      const signupField = state.signupStep === 2 ? els.signupSecretAnswerCity : els.signupFirstName;
+      if (!(signupField instanceof HTMLElement) || signupField.hidden || signupField.closest('[hidden]')) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        if (typeof signupField.focus === 'function') {
+          signupField.focus({ preventScroll: true });
+        }
+      });
+      return;
+    }
+
+    const fieldMap = {
+      login: els.loginUsername,
+      recover: els.recoverUsername,
+      reset: els.resetPassword,
+    };
+    const field = fieldMap[String(view || '').trim()] || null;
+    if (!(field instanceof HTMLElement) || field.hidden || field.closest('[hidden]')) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (typeof field.focus === 'function') {
+        field.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  function resetAuthViewScroll(options = {}) {
+    const shouldResetStage = options.resetScroll !== false;
+    const shouldResetPage = options.resetPage !== false;
+
+    window.requestAnimationFrame(() => {
+      if (shouldResetStage && els.authStage) {
+        els.authStage.scrollTop = 0;
+      }
+      if (shouldResetPage && window.innerWidth <= 1080) {
+        const top = els.loginScreen ? els.loginScreen.offsetTop : 0;
+        window.scrollTo({ top, left: 0, behavior: 'auto' });
+      }
+    });
+  }
+
+  function getSignupFieldsForStep(step) {
+    if (Number(step) === 2) {
+      return [
+        els.signupSecretAnswerCity,
+        els.signupSecretAnswerSchool,
+        els.signupSecretAnswerNickname,
+        els.signupPassword,
+        els.signupConfirmPassword,
+      ];
+    }
+
+    return [
+      els.signupFirstName,
+      els.signupLastName,
+      els.signupUsername,
+    ];
+  }
+
+  function validateSignupStep(step) {
+    const fields = getSignupFieldsForStep(step).filter((field) => field instanceof HTMLElement);
+    for (const field of fields) {
+      if (typeof field.reportValidity === 'function' && !field.reportValidity()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function setSignupStep(step, options = {}) {
+    const nextStep = Number(step) === 2 ? 2 : 1;
+    state.signupStep = nextStep;
+
+    if (els.loginCard) {
+      els.loginCard.setAttribute('data-signup-step', String(nextStep));
+    }
+
+    els.signupStepPanels.forEach((panel) => {
+      const panelStep = Number(panel.getAttribute('data-signup-step') || '1');
+      const isCurrent = panelStep === nextStep;
+      panel.hidden = !isCurrent;
+      panel.classList.toggle('is-current', isCurrent);
+    });
+
+    if (els.signupStepCounter) {
+      els.signupStepCounter.textContent = `Step ${nextStep} of 2`;
+    }
+    if (els.signupStepTitle) {
+      els.signupStepTitle.textContent = nextStep === 1 ? 'Identity details' : 'Recovery and password';
+    }
+    if (els.signupStepProgress) {
+      els.signupStepProgress.style.width = nextStep === 1 ? '50%' : '100%';
+    }
+    if (els.signupPrevBtn) {
+      els.signupPrevBtn.hidden = nextStep === 1;
+    }
+    if (els.signupNextBtn) {
+      els.signupNextBtn.hidden = nextStep === 2;
+    }
+    if (els.signupSubmitBtn) {
+      els.signupSubmitBtn.hidden = nextStep !== 2;
+    }
+
+    if (els.authStage) {
+      els.authStage.scrollTop = 0;
+    }
+
+    if (options.focus === true) {
+      focusAuthFieldForView('signup');
+    }
+  }
+
+  function setAuthView(view, options = {}) {
+    const nextView = ['login', 'signup', 'recover', 'reset'].includes(String(view || '').trim())
+      ? String(view).trim()
+      : 'login';
+    state.authView = nextView;
+    const authViewMeta = {
+      login: {
+        counter: '01',
+        label: 'Private access',
+        description: 'Use your private account credentials to continue through the secured admin gateway.',
+        progress: '25%',
+      },
+      signup: {
+        counter: '02',
+        label: 'Create access',
+        description: 'Create a viewer account with a stronger recovery setup and clear identity details.',
+        progress: '56%',
+      },
+      recover: {
+        counter: '03',
+        label: 'Verify identity',
+        description: 'Answer the three secret questions to unlock a secure password reset session.',
+        progress: '78%',
+      },
+      reset: {
+        counter: '04',
+        label: 'Set password',
+        description: 'Finish recovery by setting a fresh password before returning to sign in.',
+        progress: '100%',
+      },
+    };
+
+    const viewMap = {
+      login: els.authPanelLogin,
+      signup: els.authPanelSignup,
+      recover: els.authPanelRecover,
+      reset: els.authPanelReset,
+    };
+
+    if (nextView === 'signup' && options.preserveSignupStep !== true) {
+      setSignupStep(1);
+    }
+
+    Object.entries(viewMap).forEach(([key, panel]) => {
+      if (!panel) return;
+      panel.hidden = key !== nextView;
+      panel.classList.toggle('is-current', key === nextView);
+    });
+
+    if (els.authTabReset) {
+      els.authTabReset.hidden = nextView !== 'reset' && !state.passwordResetToken;
+    }
+
+    els.authTabs.forEach((button) => {
+      button.classList.toggle('active', button.getAttribute('data-auth-view') === nextView);
+    });
+
+    if (els.loginCard) {
+      els.loginCard.setAttribute('data-auth-view', nextView);
+    }
+    if (els.loginLayout) {
+      els.loginLayout.setAttribute('data-auth-view', nextView);
+    }
+
+    if (els.authStage) {
+      els.authStage.setAttribute('data-auth-view', nextView);
+    }
+
+    const meta = authViewMeta[nextView] || authViewMeta.login;
+    if (els.authViewCounter) {
+      els.authViewCounter.textContent = meta.counter;
+    }
+    if (els.authViewLabel) {
+      els.authViewLabel.textContent = meta.label;
+    }
+    if (els.authViewDescription) {
+      els.authViewDescription.textContent = meta.description;
+    }
+    if (els.authProgressBar) {
+      els.authProgressBar.style.width = meta.progress;
+    }
+
+    resetAuthViewScroll(options);
+    if (options.focus === true) {
+      focusAuthFieldForView(nextView);
+    }
+  }
+
+  function readResetTokenFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const token = String(params.get('reset_token') || '').trim();
+    state.passwordResetToken = token;
+    if (els.resetToken) {
+      els.resetToken.value = token;
+    }
+    if (els.authTabReset) {
+      els.authTabReset.hidden = !token;
+    }
+    return token;
+  }
+
+  function clearResetTokenFromUrl() {
+    state.passwordResetToken = '';
+    if (els.resetToken) {
+      els.resetToken.value = '';
+    }
+    if (els.authTabReset) {
+      els.authTabReset.hidden = true;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('reset_token');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  }
+
   function syncModalBodyLock() {
+    const workflowOpen = Boolean(els.workflowDrawer && !els.workflowDrawer.hidden);
     const participantOpen = Boolean(els.participantModal && !els.participantModal.hidden);
     const noticeOpen = Boolean(els.systemNoticeModal && !els.systemNoticeModal.hidden);
     const actionOpen = Boolean(els.systemActionModal && !els.systemActionModal.hidden);
-    document.body.classList.toggle('admin-modal-open', participantOpen || noticeOpen || actionOpen);
+    document.body.classList.toggle('admin-modal-open', workflowOpen || participantOpen || noticeOpen || actionOpen);
+  }
+
+  function getFocusableElements(container) {
+    if (!container) return [];
+    return Array.from(container.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((element) => (
+      element instanceof HTMLElement
+      && !element.hidden
+      && !element.closest('[hidden]')
+      && element.getClientRects().length > 0
+    ));
+  }
+
+  function getActiveOverlayPanel() {
+    if (els.systemActionModal && !els.systemActionModal.hidden) {
+      return els.systemActionModal.querySelector('.modal-panel');
+    }
+    if (els.systemNoticeModal && !els.systemNoticeModal.hidden) {
+      return els.systemNoticeModal.querySelector('.modal-panel');
+    }
+    if (els.participantModal && !els.participantModal.hidden) {
+      return els.participantModal.querySelector('.modal-panel');
+    }
+    if (els.workflowDrawer && !els.workflowDrawer.hidden) {
+      return els.workflowDrawer.querySelector('.modal-panel');
+    }
+    return null;
+  }
+
+  function rememberOverlayFocus() {
+    const active = document.activeElement;
+    state.overlayFocusStack.push(active instanceof HTMLElement && active !== document.body ? active : null);
+  }
+
+  function restoreOverlayFocus() {
+    const previous = state.overlayFocusStack.pop();
+    const focusTarget = previous && previous.isConnected && !previous.hasAttribute('disabled')
+      ? previous
+      : getFocusableElements(getActiveOverlayPanel())[0];
+
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      window.setTimeout(() => {
+        focusTarget.focus();
+      }, 0);
+    }
+  }
+
+  function trapFocusWithinOverlay(event) {
+    if (event.key !== 'Tab') return false;
+
+    const overlayPanel = getActiveOverlayPanel();
+    if (!overlayPanel) return false;
+
+    const focusable = getFocusableElements(overlayPanel);
+    if (!focusable.length) return false;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+
+    if (event.shiftKey) {
+      if (active === first || !overlayPanel.contains(active)) {
+        event.preventDefault();
+        last.focus();
+        return true;
+      }
+      return false;
+    }
+
+    if (active === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+
+    if (!overlayPanel.contains(active)) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+
+    return false;
+  }
+
+  function hideWorkflowPanels() {
+    [els.sectionDrawerPanel, els.accountDrawerPanel, els.clientRequestDrawerPanel].forEach((panel) => {
+      if (panel) {
+        panel.hidden = true;
+      }
+    });
+  }
+
+  function setWorkflowDrawerCopy(eyebrow, title, subtitle) {
+    if (els.workflowDrawerEyebrow) {
+      els.workflowDrawerEyebrow.textContent = eyebrow || 'Workspace';
+    }
+    if (els.workflowDrawerTitle) {
+      els.workflowDrawerTitle.textContent = title || 'Drawer';
+    }
+    if (els.workflowDrawerSubtitle) {
+      els.workflowDrawerSubtitle.textContent = subtitle || '';
+    }
+  }
+
+  function showWorkflowDrawer() {
+    if (!els.workflowDrawer) return;
+    if (els.workflowDrawer.hidden) {
+      rememberOverlayFocus();
+    }
+    els.workflowDrawer.hidden = false;
+    closeMobileNav();
+    syncModalBodyLock();
+  }
+
+  function hideWorkflowDrawer() {
+    if (!els.workflowDrawer || els.workflowDrawer.hidden) return;
+    els.workflowDrawer.hidden = true;
+    state.workflowDrawerView = '';
+    hideWorkflowPanels();
+    syncModalBodyLock();
+    restoreOverlayFocus();
+  }
+
+  function resetSectionDrawer() {
+    if (els.sectionForm) {
+      els.sectionForm.reset();
+    }
+    if (els.sectionEditId) {
+      els.sectionEditId.value = '';
+    }
+    if (els.sectionSubmitBtn) {
+      els.sectionSubmitBtn.textContent = 'Save Section';
+    }
+  }
+
+  function openSectionDrawer(mode = 'create', section = null) {
+    resetSectionDrawer();
+    state.workflowDrawerView = 'section';
+    hideWorkflowPanels();
+    if (els.sectionDrawerPanel) {
+      els.sectionDrawerPanel.hidden = false;
+    }
+    if (mode === 'edit' && section) {
+      if (els.sectionEditId) {
+        els.sectionEditId.value = section.id || '';
+      }
+      if (els.sectionName) {
+        els.sectionName.value = section.name || '';
+      }
+      if (els.sectionDescription) {
+        els.sectionDescription.value = section.description || '';
+      }
+      if (els.sectionSubmitBtn) {
+        els.sectionSubmitBtn.textContent = 'Update Section';
+      }
+      setWorkflowDrawerCopy('Section', 'Edit Talent Section', 'Update the section name and routing details without leaving the table.');
+    } else {
+      setWorkflowDrawerCopy('Section', 'New Talent Section', 'Create a clean category for routing, filtering, and staffing.');
+    }
+    showWorkflowDrawer();
+    window.setTimeout(() => {
+      if (els.sectionName) {
+        els.sectionName.focus();
+      }
+    }, 20);
+  }
+
+  function configureAccountDrawer(mode = 'create', account = null, options = {}) {
+    const isReset = mode === 'reset';
+    state.workflowDrawerView = 'account';
+    hideWorkflowPanels();
+    if (els.accountDrawerPanel) {
+      els.accountDrawerPanel.hidden = false;
+    }
+    if (els.accountForm) {
+      els.accountForm.reset();
+    }
+    if (els.accountFormMode) {
+      els.accountFormMode.value = isReset ? 'reset' : 'create';
+    }
+    if (els.accountTargetId) {
+      els.accountTargetId.value = isReset && account ? account.id || '' : '';
+    }
+    if (els.accountFirstNameField) {
+      els.accountFirstNameField.hidden = isReset;
+    }
+    if (els.accountLastNameField) {
+      els.accountLastNameField.hidden = isReset;
+    }
+    if (els.accountSecretCityField) {
+      els.accountSecretCityField.hidden = isReset;
+    }
+    if (els.accountSecretSchoolField) {
+      els.accountSecretSchoolField.hidden = isReset;
+    }
+    if (els.accountSecretNicknameField) {
+      els.accountSecretNicknameField.hidden = isReset;
+    }
+    if (els.accountUsername) {
+      els.accountUsername.readOnly = isReset;
+      els.accountUsername.value = isReset && account ? account.username || '' : '';
+    }
+    if (els.accountPassword) {
+      els.accountPassword.value = '';
+    }
+    if (els.accountPasswordConfirm) {
+      els.accountPasswordConfirm.value = '';
+    }
+    if (els.accountFirstName) {
+      els.accountFirstName.value = '';
+    }
+    if (els.accountLastName) {
+      els.accountLastName.value = '';
+    }
+    if (els.accountSecretAnswerCity) {
+      els.accountSecretAnswerCity.value = '';
+    }
+    if (els.accountSecretAnswerSchool) {
+      els.accountSecretAnswerSchool.value = '';
+    }
+    if (els.accountSecretAnswerNickname) {
+      els.accountSecretAnswerNickname.value = '';
+    }
+    if (els.accountFormNote) {
+      els.accountFormNote.textContent = isReset
+        ? `Set a new password for ${account?.username || 'this account'}.`
+        : 'Create a secure login with 3 secret recovery answers and a strong password.';
+    }
+    if (els.accountSubmitBtn) {
+      els.accountSubmitBtn.textContent = isReset ? 'Reset Password' : 'Create Account';
+    }
+    setWorkflowDrawerCopy(
+      'Account',
+      isReset ? 'Reset Account Password' : 'Create Sub Account',
+      isReset
+        ? 'Update credentials without breaking the current list context.'
+        : 'Provision a secure team login with secret-question recovery and clear naming.',
+    );
+    if (options.show !== false) {
+      showWorkflowDrawer();
+      window.setTimeout(() => {
+        const focusTarget = isReset ? els.accountPassword : els.accountFirstName;
+        if (focusTarget) {
+          focusTarget.focus();
+        }
+      }, 20);
+    }
+  }
+
+  function openClientRequestDrawer() {
+    if (isAdmin() || !els.clientRequestDrawerPanel || els.clientRequestDrawerPanel.dataset.disabled === 'true') return;
+    state.workflowDrawerView = 'client-request';
+    hideWorkflowPanels();
+    if (els.clientRequestDrawerPanel) {
+      els.clientRequestDrawerPanel.hidden = false;
+    }
+    setWorkflowDrawerCopy('Request', 'Compose Client Request', 'Package the current shortlist into a polished request for management.');
+    syncClientRequestDefaults();
+    showWorkflowDrawer();
+    window.setTimeout(() => {
+      if (els.clientRequestName) {
+        els.clientRequestName.focus();
+      }
+    }, 20);
   }
 
   function hideSystemNotice() {
-    if (!els.systemNoticeModal) return;
+    if (!els.systemNoticeModal || els.systemNoticeModal.hidden) return;
     if (state.noticeAutoCloseHandle) {
       clearTimeout(state.noticeAutoCloseHandle);
       state.noticeAutoCloseHandle = 0;
@@ -374,6 +1187,7 @@
     els.systemNoticeModal.hidden = true;
     els.systemNoticeModal.removeAttribute('data-kind');
     syncModalBodyLock();
+    restoreOverlayFocus();
   }
 
   function showSystemNotice(text, isError, options = {}) {
@@ -392,6 +1206,9 @@
       state.noticeAutoCloseHandle = 0;
     }
 
+    if (els.systemNoticeModal.hidden) {
+      rememberOverlayFocus();
+    }
     els.systemNoticeTitle.textContent = title;
     els.systemNoticeMessage.textContent = message;
     els.systemNoticeModal.hidden = false;
@@ -406,7 +1223,11 @@
   }
 
   function notifyAction(text, isError, options = {}) {
-    setGlobalMessage(text, isError);
+    if (options.inlineGlobal === true) {
+      setGlobalMessage(text, isError);
+    } else {
+      setGlobalMessage('', false);
+    }
     showSystemNotice(text, isError, options);
   }
 
@@ -419,15 +1240,25 @@
   }
 
   function hideActionDialog(result = null) {
-    if (!els.systemActionModal) return;
+    if (!els.systemActionModal || els.systemActionModal.hidden) return;
     els.systemActionModal.hidden = true;
-    if (els.systemActionPrimaryInput) {
-      els.systemActionPrimaryInput.value = '';
-    }
-    if (els.systemActionSecondaryInput) {
-      els.systemActionSecondaryInput.value = '';
+    [
+      els.systemActionPrimaryInput,
+      els.systemActionSecondaryInput,
+      els.systemActionTertiaryInput,
+      els.systemActionQuaternaryInput,
+      els.systemActionQuinaryInput,
+      els.systemActionNotesInput,
+    ].forEach((input) => {
+      if (input) {
+        input.value = '';
+      }
+    });
+    if (els.systemActionChecklist) {
+      els.systemActionChecklist.innerHTML = '';
     }
     syncModalBodyLock();
+    restoreOverlayFocus();
     resolveActionDialog(result);
   }
 
@@ -442,13 +1273,54 @@
     const label = String(config.label || 'Value').trim();
     const inputType = String(config.type || 'text').toLowerCase();
     labelEl.textContent = label;
-    inputEl.type = ['password', 'email', 'number', 'date'].includes(inputType) ? inputType : 'text';
+    inputEl.type = ['password', 'email', 'number', 'date', 'url', 'datetime-local'].includes(inputType) ? inputType : 'text';
     inputEl.value = String(config.value || '');
     inputEl.required = config.required === true;
     inputEl.maxLength = Number.isInteger(config.maxLength) && config.maxLength > 0
       ? config.maxLength
       : 240;
     inputEl.placeholder = String(config.placeholder || '');
+    fieldEl.hidden = false;
+  }
+
+  function configureActionTextarea(fieldEl, labelEl, inputEl, config) {
+    if (!fieldEl || !labelEl || !inputEl) return;
+    if (!config) {
+      fieldEl.hidden = true;
+      inputEl.value = '';
+      inputEl.required = false;
+      return;
+    }
+
+    labelEl.textContent = String(config.label || 'Notes').trim() || 'Notes';
+    inputEl.value = String(config.value || '');
+    inputEl.required = config.required === true;
+    inputEl.maxLength = Number.isInteger(config.maxLength) && config.maxLength > 0
+      ? config.maxLength
+      : 3000;
+    inputEl.placeholder = String(config.placeholder || '');
+    fieldEl.hidden = false;
+  }
+
+  function configureActionChecklist(fieldEl, labelEl, listEl, config) {
+    if (!fieldEl || !labelEl || !listEl) return;
+    if (!config) {
+      fieldEl.hidden = true;
+      listEl.innerHTML = '';
+      return;
+    }
+
+    labelEl.textContent = String(config.label || 'Selection').trim() || 'Selection';
+    const options = Array.isArray(config.options) ? config.options : [];
+    const selected = new Set(Array.isArray(config.selected) ? config.selected : []);
+    listEl.innerHTML = options.length
+      ? options.map((option) => `
+        <label class="client-request-profile-row">
+          <input type="checkbox" data-action-checklist="true" value="${escapeHtml(option.value || '')}" ${selected.has(option.value) ? 'checked' : ''}>
+          <span>${escapeHtml(option.label || option.value || '')}</span>
+        </label>
+      `).join('')
+      : '<p class="message">No selectable items available.</p>';
     fieldEl.hidden = false;
   }
 
@@ -466,6 +1338,11 @@
       mode,
       primary: config.primary || null,
       secondary: config.secondary || null,
+      tertiary: config.tertiary || null,
+      quaternary: config.quaternary || null,
+      quinary: config.quinary || null,
+      notes: config.notes || null,
+      checklist: config.checklist || null,
     };
 
     els.systemActionTitle.textContent = String(config.title || (mode === 'prompt' ? 'Input required' : 'Confirm action'));
@@ -488,6 +1365,36 @@
       els.systemActionSecondaryInput,
       mode === 'prompt' ? state.actionDialogConfig.secondary : null,
     );
+    configureActionInput(
+      els.systemActionTertiaryField,
+      els.systemActionTertiaryLabel,
+      els.systemActionTertiaryInput,
+      mode === 'prompt' ? state.actionDialogConfig.tertiary : null,
+    );
+    configureActionInput(
+      els.systemActionQuaternaryField,
+      els.systemActionQuaternaryLabel,
+      els.systemActionQuaternaryInput,
+      mode === 'prompt' ? state.actionDialogConfig.quaternary : null,
+    );
+    configureActionInput(
+      els.systemActionQuinaryField,
+      els.systemActionQuinaryLabel,
+      els.systemActionQuinaryInput,
+      mode === 'prompt' ? state.actionDialogConfig.quinary : null,
+    );
+    configureActionTextarea(
+      els.systemActionNotesField,
+      els.systemActionNotesLabel,
+      els.systemActionNotesInput,
+      mode === 'prompt' ? state.actionDialogConfig.notes : null,
+    );
+    configureActionChecklist(
+      els.systemActionChecklistField,
+      els.systemActionChecklistLabel,
+      els.systemActionChecklist,
+      mode === 'prompt' ? state.actionDialogConfig.checklist : null,
+    );
 
     const confirmText = String(config.confirmText || (mode === 'prompt' ? 'Save' : 'Confirm')).trim();
     if (els.systemActionConfirm) {
@@ -498,12 +1405,17 @@
       els.systemActionCancel.textContent = String(config.cancelText || 'Cancel');
     }
 
+    if (els.systemActionModal.hidden) {
+      rememberOverlayFocus();
+    }
     els.systemActionModal.hidden = false;
     syncModalBodyLock();
 
-    const focusTarget = (!els.systemActionPrimaryField?.hidden && els.systemActionPrimaryInput)
-      ? els.systemActionPrimaryInput
-      : els.systemActionConfirm;
+    const focusTarget = (!els.systemActionNotesField?.hidden && els.systemActionNotesInput)
+      ? els.systemActionNotesInput
+      : (!els.systemActionPrimaryField?.hidden && els.systemActionPrimaryInput)
+        ? els.systemActionPrimaryInput
+        : els.systemActionConfirm;
     if (focusTarget && typeof focusTarget.focus === 'function') {
       window.setTimeout(() => focusTarget.focus(), 20);
     }
@@ -537,6 +1449,11 @@
       danger: options.danger === true,
       primary: options.primary || null,
       secondary: options.secondary || null,
+      tertiary: options.tertiary || null,
+      quaternary: options.quaternary || null,
+      quinary: options.quinary || null,
+      notes: options.notes || null,
+      checklist: options.checklist || null,
     });
     return result && result.values ? result.values : null;
   }
@@ -555,11 +1472,23 @@
 
     const primaryInput = els.systemActionPrimaryInput;
     const secondaryInput = els.systemActionSecondaryInput;
+    const tertiaryInput = els.systemActionTertiaryInput;
+    const quaternaryInput = els.systemActionQuaternaryInput;
+    const quinaryInput = els.systemActionQuinaryInput;
+    const notesInput = els.systemActionNotesInput;
     const primaryRequired = Boolean(config.primary && config.primary.required === true);
     const secondaryRequired = Boolean(config.secondary && config.secondary.required === true);
+    const tertiaryRequired = Boolean(config.tertiary && config.tertiary.required === true);
+    const quaternaryRequired = Boolean(config.quaternary && config.quaternary.required === true);
+    const quinaryRequired = Boolean(config.quinary && config.quinary.required === true);
+    const notesRequired = Boolean(config.notes && config.notes.required === true);
 
     const primaryValue = String(primaryInput?.value || '').trim();
     const secondaryValue = String(secondaryInput?.value || '').trim();
+    const tertiaryValue = String(tertiaryInput?.value || '').trim();
+    const quaternaryValue = String(quaternaryInput?.value || '').trim();
+    const quinaryValue = String(quinaryInput?.value || '').trim();
+    const notesValue = String(notesInput?.value || '').trim();
 
     if (primaryRequired && !primaryValue) {
       if (primaryInput) {
@@ -577,10 +1506,53 @@
       return;
     }
 
+    if (tertiaryRequired && !tertiaryValue) {
+      if (tertiaryInput) {
+        tertiaryInput.focus();
+        tertiaryInput.reportValidity();
+      }
+      return;
+    }
+
+    if (quaternaryRequired && !quaternaryValue) {
+      if (quaternaryInput) {
+        quaternaryInput.focus();
+        quaternaryInput.reportValidity();
+      }
+      return;
+    }
+
+    if (quinaryRequired && !quinaryValue) {
+      if (quinaryInput) {
+        quinaryInput.focus();
+        quinaryInput.reportValidity();
+      }
+      return;
+    }
+
+    if (notesRequired && !notesValue) {
+      if (notesInput) {
+        notesInput.focus();
+        notesInput.reportValidity();
+      }
+      return;
+    }
+
+    const selectedIds = els.systemActionChecklist
+      ? Array.from(els.systemActionChecklist.querySelectorAll('input[data-action-checklist="true"]:checked'))
+        .map((input) => String(input.value || '').trim())
+        .filter(Boolean)
+      : [];
+
     hideActionDialog({
       values: {
         primary: primaryValue,
         secondary: secondaryValue,
+        tertiary: tertiaryValue,
+        quaternary: quaternaryValue,
+        quinary: quinaryValue,
+        notes: notesValue,
+        selectedIds,
       },
     });
   }
@@ -593,12 +1565,18 @@
     state.autoRefreshInFlight = false;
   }
 
+  function hasPendingRequestActionSelections() {
+    return Object.values(state.requestActionSelections || {}).some((value) => value instanceof Set && value.size > 0);
+  }
+
   function shouldAutoRefreshNow() {
     if (!state.token || els.appShell.hidden) return false;
     if (document.visibilityState === 'hidden') return false;
     if (state.loginRequestInFlight) return false;
+    if (els.workflowDrawer && !els.workflowDrawer.hidden) return false;
     if (els.participantModal && !els.participantModal.hidden) return false;
     if (els.systemActionModal && !els.systemActionModal.hidden) return false;
+    if (hasPendingRequestActionSelections()) return false;
     return true;
   }
 
@@ -612,6 +1590,12 @@
       await loadDashboardData(getLoadOptionsForView(state.activeView));
       state.lastRefreshAt = Date.now();
     } catch (error) {
+      if (isBackendConfigError(error)) {
+        const message = String(error?.message || 'Supabase backend is not configured.');
+        clearAuth();
+        setAuthMessage('login', `${message} Add SUPABASE_SERVICE_ROLE_KEY in .env and restart server.`, true);
+        return;
+      }
       console.warn('Background refresh failed:', error?.message || error);
     } finally {
       state.autoRefreshInFlight = false;
@@ -629,7 +1613,7 @@
   function setLoginPending(isPending) {
     const pending = Boolean(isPending);
     if (els.loginSubmitBtn) {
-      els.loginSubmitBtn.disabled = pending;
+      setButtonPending(els.loginSubmitBtn, pending, 'Signing in...', 'Continue');
     }
     if (els.loginUsername) {
       els.loginUsername.disabled = pending;
@@ -637,6 +1621,108 @@
     if (els.loginPassword) {
       els.loginPassword.disabled = pending;
     }
+  }
+
+  function setButtonPending(button, pending, pendingText, defaultText) {
+    if (!button) return;
+    const isPending = Boolean(pending);
+    const iconOnly = button.classList.contains('table-action-icon-only')
+      || button.classList.contains('participant-action-icon-only')
+      || button.classList.contains('row-actions-summary');
+    const labelText = String(pendingText || button.getAttribute('aria-label') || defaultText || button.textContent || 'Working').trim() || 'Working';
+
+    if (isPending) {
+      if (!button.dataset.restoreHtml) {
+        button.dataset.restoreHtml = button.innerHTML;
+      }
+      if (!button.dataset.restoreText) {
+        button.dataset.restoreText = defaultText || button.textContent || '';
+      }
+      button.disabled = true;
+      button.classList.add('is-pending');
+      button.setAttribute('aria-busy', 'true');
+      button.innerHTML = iconOnly
+        ? `<span class="btn-spinner" aria-hidden="true"></span><span class="sr-only">${escapeHtml(labelText)}</span>`
+        : `<span class="btn-spinner" aria-hidden="true"></span><span class="btn-loading-label">${escapeHtml(labelText)}</span>`;
+      return;
+    }
+
+    button.disabled = false;
+    button.classList.remove('is-pending');
+    button.removeAttribute('aria-busy');
+    if (button.dataset.restoreHtml) {
+      button.innerHTML = button.dataset.restoreHtml;
+      delete button.dataset.restoreHtml;
+      delete button.dataset.restoreText;
+      return;
+    }
+    button.textContent = defaultText || labelText;
+  }
+
+  function setElementsDisabled(elements, disabled, exclude = null) {
+    (Array.isArray(elements) ? elements : []).forEach((element) => {
+      if (!element || element === exclude) return;
+      if (disabled) {
+        if (!Object.prototype.hasOwnProperty.call(element.dataset, 'restoreDisabled')) {
+          element.dataset.restoreDisabled = element.disabled ? 'true' : 'false';
+        }
+        element.disabled = true;
+      } else if (Object.prototype.hasOwnProperty.call(element.dataset, 'restoreDisabled')) {
+        element.disabled = element.dataset.restoreDisabled === 'true';
+        delete element.dataset.restoreDisabled;
+      } else {
+        element.disabled = false;
+      }
+    });
+  }
+
+  function getPendingPeers(sourceButton) {
+    if (!sourceButton) return [];
+    const container = sourceButton.closest('.participant-row-actions, .account-actions, .section-actions, .client-request-actions-row, .table-pagination, .drawer-form-actions, .modal-actions, .auth-switcher');
+    if (!container) return [];
+    return Array.from(container.querySelectorAll('button'));
+  }
+
+  async function withPendingAction(options, task) {
+    const config = options && typeof options === 'object' ? options : {};
+    const key = String(config.key || '').trim();
+    if (key && state.pendingActionKeys.has(key)) {
+      return null;
+    }
+
+    const button = config.button || null;
+    const peers = Array.isArray(config.peers) ? config.peers.filter(Boolean) : getPendingPeers(button);
+    const regions = Array.isArray(config.regions) ? config.regions.filter(Boolean) : [];
+    const pendingText = config.pendingText || button?.dataset?.pendingText || button?.getAttribute('aria-label') || 'Working';
+    const defaultText = config.defaultText || button?.dataset?.restoreText || button?.textContent || '';
+
+    if (key) {
+      state.pendingActionKeys.add(key);
+    }
+    if (button) {
+      setButtonPending(button, true, pendingText, defaultText);
+    }
+    setElementsDisabled(peers, true, button);
+    regions.forEach((region) => region.classList.add('is-loading'));
+
+    try {
+      return await task();
+    } finally {
+      regions.forEach((region) => region.classList.remove('is-loading'));
+      setElementsDisabled(peers, false, button);
+      if (button && button.isConnected) {
+        setButtonPending(button, false, pendingText, defaultText);
+      }
+      if (key) {
+        state.pendingActionKeys.delete(key);
+      }
+    }
+  }
+
+  function isBackendConfigError(error) {
+    const message = String(error?.message || '');
+    return /supabase is not configured/i.test(message)
+      || /missing:\s*supabase_service_role_key/i.test(message);
   }
 
   function normalizeTheme(value) {
@@ -673,7 +1759,7 @@
       return;
     }
 
-    applyTheme('dark');
+    applyTheme('light');
   }
 
   function handleThemeToggle() {
@@ -692,6 +1778,25 @@
     return MOBILE_NAV_QUERY.matches;
   }
 
+  function syncMobileLayoutMetrics() {
+    if (!els.appShell) return;
+    if (els.appShell.hidden || !isMobileNavViewport() || !els.topbarShell) {
+      els.appShell.style.removeProperty('--mobile-topbar-offset');
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (els.appShell.hidden || !isMobileNavViewport() || !els.topbarShell) {
+        els.appShell.style.removeProperty('--mobile-topbar-offset');
+        return;
+      }
+
+      const topbarRect = els.topbarShell.getBoundingClientRect();
+      const offset = Math.max(72, Math.ceil(topbarRect.bottom + 8));
+      els.appShell.style.setProperty('--mobile-topbar-offset', `${offset}px`);
+    });
+  }
+
   function setMobileNavOpen(shouldOpen) {
     const canOpen = !els.appShell.hidden && isMobileNavViewport();
     const isOpen = Boolean(shouldOpen) && canOpen;
@@ -704,6 +1809,8 @@
       els.mobileNavToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       els.mobileNavToggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
     }
+
+    syncMobileLayoutMetrics();
   }
 
   function closeMobileNav() {
@@ -720,15 +1827,27 @@
     } else if (els.mobileNavToggle) {
       els.mobileNavToggle.setAttribute('aria-expanded', state.mobileNavOpen ? 'true' : 'false');
     }
+    syncClientPoolPanelForViewport();
+    syncMobileLayoutMetrics();
+  }
+
+  function syncClientPoolPanelForViewport() {
+    if (!(els.clientPoolPanel instanceof HTMLDetailsElement)) return;
+    const viewportState = MOBILE_NAV_QUERY.matches ? 'collapsed' : 'expanded';
+    if (els.clientPoolPanel.dataset.viewportState === viewportState) return;
+    els.clientPoolPanel.open = !MOBILE_NAV_QUERY.matches;
+    els.clientPoolPanel.dataset.viewportState = viewportState;
   }
 
   function showLogin() {
     closeMobileNav();
+    hideWorkflowDrawer();
     stopAutoRefresh();
     hideSystemNotice();
     hideActionDialog(null);
     els.loginScreen.hidden = false;
     els.appShell.hidden = true;
+    setAuthView(state.passwordResetToken ? 'reset' : 'login');
   }
 
   function showApp() {
@@ -750,6 +1869,7 @@
   function clearAuth() {
     setAuthToken('');
     state.user = null;
+    state.activeView = 'overview';
     state.sections = [];
     state.participants = [];
     state.clientPoolParticipants = [];
@@ -775,8 +1895,10 @@
       hasNext: false,
     };
     state.selectedClientParticipantIds = new Set();
+    state.requestActionSelections = {};
     state.participantMetaExpanded.skills = new Set();
     state.participantMetaExpanded.sections = new Set();
+    state.pendingActionKeys = new Set();
     state.loginRequestInFlight = false;
     state.nextLoginAttemptAt = 0;
     state.participantsRequestSeq = 0;
@@ -784,11 +1906,13 @@
     disconnectParticipantAvatarObserver();
     setLoginPending(false);
     stopAutoRefresh();
+    hideWorkflowDrawer();
     hideSystemNotice();
     hideActionDialog(null);
     if (els.participantModal && !els.participantModal.hidden) {
       hideParticipantModal();
     }
+    clearAuthMessages();
     showLogin();
   }
 
@@ -971,11 +2095,12 @@
 
   function hydrateLazyParticipantAvatars() {
     disconnectParticipantAvatarObserver();
+    const avatarRoots = [els.participantsTableBody, els.clientPoolTableBody].filter(Boolean);
+    if (!avatarRoots.length) return;
 
-    if (!els.participantsTableBody) return;
-    const lazyImages = Array.from(
-      els.participantsTableBody.querySelectorAll('img.participant-avatar-lazy[data-src]'),
-    );
+    const lazyImages = avatarRoots.flatMap((root) => Array.from(
+      root.querySelectorAll('img.participant-avatar-lazy[data-src]'),
+    ));
     if (!lazyImages.length) return;
 
     if (typeof IntersectionObserver !== 'function') {
@@ -1068,9 +2193,6 @@
       );
       state.participantFilters.page = state.participantPagination.page;
       state.participantFilters.pageSize = state.participantPagination.pageSize;
-      if (els.participantsPageSize) {
-        els.participantsPageSize.value = String(state.participantPagination.pageSize);
-      }
     } finally {
       if (requestSeq === state.participantsRequestSeq) {
         state.participantsLoading = false;
@@ -1118,9 +2240,6 @@
       );
       state.clientPoolFilters.page = state.clientPoolPagination.page;
       state.clientPoolFilters.pageSize = state.clientPoolPagination.pageSize;
-      if (els.clientPoolPageSize) {
-        els.clientPoolPageSize.value = String(state.clientPoolPagination.pageSize);
-      }
     } finally {
       if (requestSeq === state.clientPoolRequestSeq) {
         state.clientPoolLoading = false;
@@ -1138,9 +2257,15 @@
   }
 
   function renderStats() {
-    els.statParticipants.textContent = String(state.counts.participants || state.participants.length);
-    els.statSections.textContent = String(state.counts.sections || state.sections.length);
-    els.statAccounts.textContent = String(state.counts.subAccounts || state.accounts.length || 0);
+    if (els.statParticipants) {
+      els.statParticipants.textContent = String(state.counts.participants || state.participants.length);
+    }
+    if (els.statSections) {
+      els.statSections.textContent = String(state.counts.sections || state.sections.length);
+    }
+    if (els.statAccounts) {
+      els.statAccounts.textContent = String(state.counts.subAccounts || state.accounts.length || 0);
+    }
   }
 
   function renderUser() {
@@ -1193,9 +2318,42 @@
     return 'Pending';
   }
 
+  function renderClientRequestHero() {
+    const admin = isAdmin();
+    const selectedCount = state.selectedClientParticipantIds.size;
+    const requestCount = state.clientRequests.length;
+    const openRequestCount = state.clientRequests.filter((request) => {
+      const status = String(request?.status || 'pending').toLowerCase();
+      return status !== 'finalized' && status !== 'declined';
+    }).length;
+    const hireCount = state.hiredProfiles.length;
+
+    if (els.clientRequestsHeroKicker) {
+      els.clientRequestsHeroKicker.textContent = admin ? 'Management intake' : 'Request workflow';
+    }
+    if (els.clientRequestsHeroSubtitle) {
+      els.clientRequestsHeroSubtitle.textContent = admin
+        ? 'Review submitted requests, update statuses, and finalize hires without leaving the dashboard.'
+        : 'Choose candidate profiles and send one polished request in a single guided flow.';
+    }
+    if (els.clientSelectedMeta) {
+      els.clientSelectedMeta.textContent = admin ? `${requestCount} requests` : `${selectedCount} selected`;
+    }
+    if (els.clientRequestHeroSecondaryMeta) {
+      els.clientRequestHeroSecondaryMeta.textContent = admin ? `${hireCount} hires` : `${openRequestCount} open`;
+      els.clientRequestHeroSecondaryMeta.hidden = false;
+    }
+    if (els.openClientRequestDrawerBtn) {
+      els.openClientRequestDrawerBtn.hidden = true;
+    }
+  }
+
   function updateClientSelectedMeta() {
-    if (!els.clientSelectedMeta) return;
-    els.clientSelectedMeta.textContent = `${state.selectedClientParticipantIds.size} selected`;
+    const selectedCount = state.selectedClientParticipantIds.size;
+    if (els.clientSelectedMetaSecondary) {
+      els.clientSelectedMetaSecondary.textContent = String(selectedCount);
+    }
+    renderClientRequestHero();
   }
 
   function renderClientSectionFilterOptions() {
@@ -1228,6 +2386,7 @@
           </td>
         </tr>
       `;
+      hydrateLazyParticipantAvatars();
       renderClientPoolPagination();
       updateClientSelectedMeta();
       return;
@@ -1242,6 +2401,7 @@
           </td>
         </tr>
       `;
+      hydrateLazyParticipantAvatars();
       renderClientPoolPagination();
       updateClientSelectedMeta();
       return;
@@ -1263,10 +2423,10 @@
               <input type="checkbox" data-action="toggle-client-participant" data-id="${escapeHtml(participant.id)}" ${checked}>
             </td>
             <td data-label="Name">
-              <button type="button" class="btn btn-link profile-link" data-action="open-profile" data-id="${escapeHtml(participant.id)}">${escapeHtml(participant.fullName || 'Unnamed')}</button>
+              ${renderParticipantNameCell(participant, 'client-pool-name-cell')}
             </td>
             <td data-label="Email">${escapeHtml(participant.email || '-')}</td>
-            <td data-label="Section">${escapeHtml(sectionLabel)}</td>
+            <td data-label="Section"><span class="client-pool-section-summary">${escapeHtml(sectionLabel)}</span></td>
             <td data-label="Status">
               <span class="pill-status status-${escapeHtml(participant.status || 'talent_pool')}">${escapeHtml(statusLabel(participant.status))}</span>
             </td>
@@ -1275,6 +2435,7 @@
       })
       .join('');
 
+    hydrateLazyParticipantAvatars();
     renderClientPoolPagination();
     updateClientSelectedMeta();
   }
@@ -1299,26 +2460,36 @@
     const end = total > 0 ? Math.min(total, page * pageSize) : 0;
 
     els.clientPoolPagination.hidden = false;
-    els.clientPoolPageMeta.textContent = `${start}-${end} of ${total} (Page ${page} / ${totalPages})`;
+    els.clientPoolPageMeta.textContent = formatPaginationText(start, end, total, page, totalPages);
     if (els.clientPoolPrevPage) {
       els.clientPoolPrevPage.disabled = state.clientPoolLoading || !pageMeta.hasPrev;
     }
     if (els.clientPoolNextPage) {
       els.clientPoolNextPage.disabled = state.clientPoolLoading || !pageMeta.hasNext;
     }
-    if (els.clientPoolPageSize) {
-      const expectedValue = String(pageSize);
-      if (els.clientPoolPageSize.value !== expectedValue) {
-        els.clientPoolPageSize.value = expectedValue;
-      }
-      els.clientPoolPageSize.disabled = state.clientPoolLoading;
-    }
+  }
+
+  function requestEventLabel(eventType) {
+    const normalized = String(eventType || '').toLowerCase();
+    if (normalized === 'submitted') return 'Submitted';
+    if (normalized === 'approved') return 'Approved';
+    if (normalized === 'scheduled') return 'Scheduled';
+    if (normalized === 'declined') return 'Declined';
+    if (normalized === 'finalized') return 'Finalized';
+    return 'Update';
   }
 
   function renderClientRequests() {
     if (!els.clientRequestsList) return;
+    const openRequestCount = state.clientRequests.filter((request) => {
+      const status = String(request?.status || 'pending').toLowerCase();
+      return status !== 'finalized' && status !== 'declined';
+    }).length;
     if (els.clientRequestsMeta) {
       els.clientRequestsMeta.textContent = `${state.clientRequests.length} requests`;
+    }
+    if (els.clientRequestsMetaSecondary) {
+      els.clientRequestsMetaSecondary.textContent = String(openRequestCount);
     }
 
     if (!state.clientRequests.length) {
@@ -1335,14 +2506,59 @@
         const interviewAt = request.interviewDateTime ? formatDateTime(request.interviewDateTime) : 'Not set';
         const ceoAt = request.ceoMeetingDateTime ? formatDateTime(request.ceoMeetingDateTime) : 'Not set';
         const ceoMode = request.ceoIncluded ? 'Included' : 'Not required';
-        const profileOptions = selectedProfiles
-          .map((profile) => `
-            <label class="client-request-profile-row">
-              <input type="checkbox" data-manual-hire="${escapeHtml(request.id)}" value="${escapeHtml(profile.id)}">
-              <span>${escapeHtml(profile.fullName || 'Unnamed')}</span>
-            </label>
+        const admin = isAdmin();
+        const latestEvent = Array.isArray(request.events) && request.events.length ? request.events[0] : null;
+        const requestNote = String(latestEvent?.note || request.approvalNotes || '').trim();
+        const eventHistory = Array.isArray(request.events) ? request.events : [];
+        const interviewLink = safeExternalHref(request.interviewMeetingLink);
+        const ceoLink = safeExternalHref(request.ceoMeetingLink);
+        const eventHistoryMarkup = admin && eventHistory.length
+          ? `
+            <details class="client-request-history">
+              <summary>History (${eventHistory.length})</summary>
+              <div class="client-request-history-list">
+                ${eventHistory.map((event) => `
+                  <div class="client-request-history-item">
+                    <div class="client-request-history-head">
+                      <strong>${escapeHtml(requestEventLabel(event.eventType))}</strong>
+                      <span>${escapeHtml(formatDateTime(event.createdAt))}</span>
+                    </div>
+                    ${event.note ? `<p>${escapeHtml(event.note)}</p>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </details>
+            `
+          : '';
+        const summaryItems = [
+          { key: 'profiles', label: 'Profiles', value: String(selectedCount) },
+          { key: 'interview', label: 'Interview', value: interviewAt },
+          { key: 'ceo-meeting', label: 'CEO Meeting', value: ceoAt },
+          { key: 'ceo-mode', label: 'CEO Mode', value: ceoMode },
+        ];
+        const summaryMarkup = summaryItems
+          .map((item) => `
+            <div class="client-request-summary-item client-request-summary-item-${escapeHtml(item.key)}">
+              <span><i class="client-request-summary-dot" aria-hidden="true"></i>${escapeHtml(item.label)}</span>
+              <strong>${escapeHtml(item.value)}</strong>
+            </div>
           `)
           .join('');
+        const requestIdentityMeta = [
+          request.clientEmail ? `Email: ${request.clientEmail}` : '',
+          request.clientCompany ? `Company: ${request.clientCompany}` : '',
+        ].filter(Boolean);
+        const requestIdentityMarkup = requestIdentityMeta.length
+          ? `<p class="client-request-meta client-request-meta-inline">${escapeHtml(requestIdentityMeta.join('  |  '))}</p>`
+          : '';
+        const linksMarkup = interviewLink || ceoLink
+          ? `
+            <div class="client-request-link-list">
+              ${interviewLink ? `<a class="client-request-link" href="${escapeHtml(interviewLink)}" target="_blank" rel="noopener noreferrer">Interview link</a>` : ''}
+              ${ceoLink ? `<a class="client-request-link" href="${escapeHtml(ceoLink)}" target="_blank" rel="noopener noreferrer">CEO meeting link</a>` : ''}
+            </div>
+          `
+          : '';
 
         const finalizedNames = (request.finalizedParticipantIds || [])
           .map((participantId) => {
@@ -1352,37 +2568,65 @@
           .filter(Boolean)
           .join(', ');
 
-        const statusControls = isAdmin() && status !== 'finalized'
-          ? `
-            <button type="button" class="btn btn-light" data-action="set-request-status" data-status="approved" data-id="${escapeHtml(request.id)}">Mark Approved</button>
-            <button type="button" class="btn btn-light" data-action="set-request-status" data-status="scheduled" data-id="${escapeHtml(request.id)}">Mark Scheduled</button>
-            <button type="button" class="btn btn-light" data-action="set-request-status" data-status="declined" data-id="${escapeHtml(request.id)}">Decline</button>
-          `
-          : '';
+        const actionButtons = [];
+        if (admin && status !== 'finalized' && status !== 'declined') {
+          if (status === 'pending') {
+            actionButtons.push(`<button type="button" class="btn btn-light client-request-action-btn" data-action="set-request-status" data-status="approved" data-id="${escapeHtml(request.id)}">Approve</button>`);
+          }
+          if (status === 'approved') {
+            actionButtons.push(`<button type="button" class="btn btn-light client-request-action-btn" data-action="set-request-status" data-status="scheduled" data-id="${escapeHtml(request.id)}">Schedule</button>`);
+          }
+          if (status === 'approved' || status === 'scheduled') {
+            actionButtons.push(`<button type="button" class="btn btn-primary client-request-action-btn" data-action="finalize-request" data-id="${escapeHtml(request.id)}">Finalize</button>`);
+          }
+          actionButtons.push(`<button type="button" class="btn btn-light client-request-action-btn client-request-action-danger" data-action="set-request-status" data-status="declined" data-id="${escapeHtml(request.id)}">Decline</button>`);
+        }
 
-        const finalizeBlock = status === 'finalized'
-          ? `<p class="client-request-meta">Finalized profiles: ${escapeHtml(finalizedNames || 'No profiles recorded')}</p>`
+        const finalizeBlock = status === 'finalized' || status === 'declined'
+          ? `<p class="client-request-meta">${status === 'finalized'
+            ? `Finalized profiles: ${escapeHtml(finalizedNames || 'No profiles recorded')}`
+            : 'This request has been declined.'}</p>`
           : `
-            <div class="client-request-profiles">
-              ${profileOptions || '<p class="message">No selected profiles.</p>'}
-            </div>
-            <div class="client-request-actions-row">
-              <button type="button" class="btn btn-primary" data-action="finalize-all" data-id="${escapeHtml(request.id)}">Hire All Selected</button>
-              <button type="button" class="btn btn-light" data-action="finalize-manual" data-id="${escapeHtml(request.id)}">Finalize Checked Profiles</button>
-              ${statusControls}
-            </div>
+            ${actionButtons.length ? `
+              <div class="client-request-actions-row">
+                ${actionButtons.join('')}
+              </div>
+            ` : ''}
           `;
 
+        const messageMarkup = `
+          <div class="client-request-message-block">
+            <span class="client-request-block-label client-request-block-label-message">Client message</span>
+            <p class="client-request-message">${escapeHtml(request.requestMessage || 'No message provided.')}</p>
+          </div>
+        `;
+        const noteMarkup = requestNote
+          ? `
+            <div class="client-request-note-block">
+              <span class="client-request-block-label client-request-block-label-note">Admin note</span>
+              <p class="client-request-note">${escapeHtml(requestNote)}</p>
+            </div>
+            `
+          : '';
+
         return `
-          <article class="client-request-item">
+          <article class="client-request-item client-request-item-${escapeHtml(status)}">
             <div class="client-request-head">
-              <strong>${escapeHtml(request.clientName || 'Client')}</strong>
+              <div class="client-request-title-block">
+                <span class="client-request-kicker">Client request</span>
+                <strong>${escapeHtml(request.clientName || 'Client')}</strong>
+              </div>
               <span class="pill-status ${statusClass}">${escapeHtml(requestStatusLabel(status))}</span>
             </div>
-            <p class="client-request-meta">Email: ${escapeHtml(request.clientEmail || '-')} | Company: ${escapeHtml(request.clientCompany || '-')}</p>
-            <p class="client-request-meta">Profiles selected: ${selectedCount} | Interview: ${escapeHtml(interviewAt)} | CEO meeting: ${escapeHtml(ceoAt)} (${escapeHtml(ceoMode)})</p>
-            <p class="client-request-message">${escapeHtml(request.requestMessage || 'No message provided.')}</p>
+            ${requestIdentityMarkup}
+            <div class="client-request-summary-grid">
+              ${summaryMarkup}
+            </div>
+            ${linksMarkup}
+            ${messageMarkup}
+            ${noteMarkup}
             ${finalizeBlock}
+            ${eventHistoryMarkup}
           </article>
         `;
       })
@@ -1393,6 +2637,9 @@
     if (!els.hiredProfilesTableBody) return;
     if (els.hiredProfilesMeta) {
       els.hiredProfilesMeta.textContent = `${state.hiredProfiles.length} hires`;
+    }
+    if (els.hiredProfilesMetaSecondary) {
+      els.hiredProfilesMetaSecondary.textContent = String(state.hiredProfiles.length);
     }
 
     if (!state.hiredProfiles.length) {
@@ -1419,10 +2666,28 @@
   }
 
   function renderClientWorkspace() {
-    renderClientSectionFilterOptions();
-    renderClientPoolTable();
+    const admin = isAdmin();
+    renderClientRequestHero();
     renderClientRequests();
     renderHiredProfilesTable();
+
+    if (els.clientRequesterWorkspace) {
+      els.clientRequesterWorkspace.hidden = admin;
+    }
+    if (els.clientAdminWorkspace) {
+      els.clientAdminWorkspace.hidden = !admin;
+    }
+    if (els.clientRequestSummaryCard) {
+      els.clientRequestSummaryCard.hidden = admin;
+    }
+
+    if (admin) {
+      return;
+    }
+
+    renderClientSectionFilterOptions();
+    syncClientPoolFilterInputs();
+    renderClientPoolTable();
   }
 
   function renderOverview() {
@@ -1468,20 +2733,79 @@
 
     if (!recent.length) {
       els.overviewRecentList.innerHTML = '<p class="message empty-state">No participants added yet.</p>';
+    } else {
+      els.overviewRecentList.innerHTML = recent
+        .map((participant) => `
+          <div class="compact-row">
+            <div class="compact-main">
+              <strong>${escapeHtml(participant.fullName || 'Unnamed')}</strong>
+              <span class="compact-sub">${escapeHtml(statusLabel(participant.status))}</span>
+            </div>
+            <span>${escapeHtml(formatDate(participant.updatedAt))}</span>
+          </div>
+        `)
+        .join('');
+    }
+
+    if (!els.overviewPipelineBoard) return;
+    const participants = Array.isArray(state.participants) ? state.participants : [];
+    const statusCounts = participants.reduce((accumulator, participant) => {
+      const key = String(participant?.status || 'talent_pool').trim() || 'talent_pool';
+      accumulator[key] = (accumulator[key] || 0) + 1;
+      return accumulator;
+    }, {});
+    const statusOrder = ['talent_pool', 'shortlisted', 'on_hold', 'inactive'];
+    els.overviewPipelineBoard.innerHTML = statusOrder
+      .map((status) => `
+        <button type="button" class="pipeline-stat" data-action="overview-status-shortcut" data-status="${escapeHtml(status)}" aria-label="Show ${escapeHtml(statusLabel(status))}">
+          <span class="pill-status status-${escapeHtml(status)}">${escapeHtml(statusLabel(status))}</span>
+          <strong>${Number.parseInt(String(statusCounts[status] || 0), 10) || 0}</strong>
+        </button>
+      `)
+      .join('');
+  }
+
+  async function jumpToOverviewStatus(status) {
+    const safeStatus = normalizeShortcutStatus(status);
+    closeMobileNav();
+    hideWorkflowDrawer();
+
+    if (isAdmin()) {
+      state.participantFilters.search = '';
+      state.participantFilters.section = '';
+      state.participantFilters.status = safeStatus;
+      state.participantFilters.page = 1;
+      state.activeView = 'participants';
+      renderView();
+      syncParticipantFilterInputs();
+      await applyParticipantFiltersFromInputs();
       return;
     }
 
-    els.overviewRecentList.innerHTML = recent
-      .map((participant) => `
-        <div class="compact-row">
-          <div class="compact-main">
-            <strong>${escapeHtml(participant.fullName || 'Unnamed')}</strong>
-            <span class="compact-sub">${escapeHtml(statusLabel(participant.status))}</span>
-          </div>
-          <span>${escapeHtml(formatDate(participant.updatedAt))}</span>
-        </div>
-      `)
-      .join('');
+    state.clientPoolFilters.search = '';
+    state.clientPoolFilters.section = '';
+    state.clientPoolFilters.status = safeStatus;
+    state.clientPoolFilters.page = 1;
+    state.activeView = 'client-requests';
+    renderView();
+    if (els.clientPoolPanel instanceof HTMLDetailsElement) {
+      els.clientPoolPanel.open = true;
+    }
+    syncClientPoolFilterInputs();
+    await applyClientPoolFiltersFromInputs();
+    renderClientWorkspace();
+  }
+
+  function handleOverviewPipelineClick(event) {
+    const trigger = event.target.closest('[data-action="overview-status-shortcut"]');
+    if (!trigger) return;
+    const status = trigger.getAttribute('data-status');
+    void jumpToOverviewStatus(status).catch((error) => {
+      notifyAction(error.message || 'Failed to open the selected status view.', true, {
+        title: 'Open failed',
+        autoClose: false,
+      });
+    });
   }
 
   function renderParticipantsPagination() {
@@ -1504,23 +2828,21 @@
     const end = total > 0 ? Math.min(total, page * pageSize) : 0;
 
     els.participantsPagination.hidden = false;
-    els.participantsPageMeta.textContent = `${start}-${end} of ${total} (Page ${page} / ${totalPages})`;
+    els.participantsPageMeta.textContent = formatPaginationText(start, end, total, page, totalPages);
     if (els.participantsPrevPage) {
       els.participantsPrevPage.disabled = state.participantsLoading || !pageMeta.hasPrev;
     }
     if (els.participantsNextPage) {
       els.participantsNextPage.disabled = state.participantsLoading || !pageMeta.hasNext;
     }
-    if (els.participantsPageSize) {
-      const expectedValue = String(pageSize);
-      if (els.participantsPageSize.value !== expectedValue) {
-        els.participantsPageSize.value = expectedValue;
-      }
-      els.participantsPageSize.disabled = state.participantsLoading;
-    }
   }
 
   function renderParticipantsTable() {
+    if (els.participantsListMeta) {
+      const totalProfiles = Number.parseInt(String(state.participantPagination?.total || state.participants.length), 10) || state.participants.length;
+      els.participantsListMeta.textContent = `${totalProfiles} profiles`;
+    }
+
     if (state.participantsLoading) {
       disconnectParticipantAvatarObserver();
       els.participantsTableBody.innerHTML = `
@@ -1560,10 +2882,6 @@
           contactParts.push(`<div class="participant-contact-secondary">${escapeHtml(participant.email)}</div>`);
         }
         const contactMarkup = contactParts.length ? `<div class="participant-contact">${contactParts.join('')}</div>` : '<span>-</span>';
-        const avatar = participant.profilePicture && participant.profilePicture.dataUrl
-          ? `<img class="participant-avatar participant-avatar-lazy" src="${LAZY_IMAGE_PLACEHOLDER}" data-src="${escapeHtml(participant.profilePicture.dataUrl)}" alt="${escapeHtml(participant.fullName || 'Participant')} profile picture" loading="lazy" decoding="async">`
-          : `<span class="participant-avatar participant-avatar-fallback">${escapeHtml(initialsFromName(participant.fullName))}</span>`;
-        const safeName = escapeHtml(participant.fullName || '');
         const skillMarkup = renderParticipantPills(participant.id, 'skills', skillList, 'pill pill-skill');
         const sectionMarkup = renderParticipantPills(participant.id, 'sections', sectionList, 'pill pill-section');
         const actionsMarkup = renderParticipantActions(participant);
@@ -1571,10 +2889,7 @@
         return `
           <tr>
             <td data-label="Name">
-              <div class="participant-name-cell">
-                ${avatar}
-                <button type="button" class="btn btn-link profile-link" data-action="open-profile" data-id="${escapeHtml(participant.id)}">${safeName}</button>
-              </div>
+              ${renderParticipantNameCell(participant)}
             </td>
             <td data-label="Contact">
               ${contactMarkup}
@@ -1605,6 +2920,10 @@
   }
 
   function renderSectionsTable() {
+    if (els.sectionsListMeta) {
+      els.sectionsListMeta.textContent = `${state.sections.length} section${state.sections.length === 1 ? '' : 's'}`;
+    }
+
     const counts = new Map();
     Object.entries(state.sectionParticipantCounts || {}).forEach(([sectionId, count]) => {
       counts.set(sectionId, Number.parseInt(String(count || 0), 10) || 0);
@@ -1629,9 +2948,9 @@
           <td data-label="Participants">${counts.get(section.id) || 0}</td>
           <td data-label="Actions">
             ${isAdmin() ? `
-              <div class="pill-group">
-                <button type="button" class="btn btn-light" data-action="rename-section" data-id="${escapeHtml(section.id)}">Rename</button>
-                <button type="button" class="btn btn-danger" data-action="delete-section" data-id="${escapeHtml(section.id)}">Delete</button>
+              <div class="section-actions">
+                <button type="button" class="btn btn-light table-action-btn table-action-icon-only table-action-rename" data-action="rename-section" data-id="${escapeHtml(section.id)}" aria-label="Rename section" title="Rename section">${tableActionIcon('rename')}<span class="table-action-label">Rename</span></button>
+                <button type="button" class="btn btn-danger table-action-btn table-action-icon-only table-action-delete" data-action="delete-section" data-id="${escapeHtml(section.id)}" aria-label="Delete section" title="Delete section">${tableActionIcon('delete')}<span class="table-action-label">Delete</span></button>
               </div>
             ` : '<span>-</span>'}
           </td>
@@ -1641,6 +2960,10 @@
   }
 
   function renderAccountsTable() {
+    if (els.accountsListMeta) {
+      els.accountsListMeta.textContent = `${state.accounts.length} account${state.accounts.length === 1 ? '' : 's'}`;
+    }
+
     if (!isAdmin()) {
       els.accountsTableBody.innerHTML = '';
       return;
@@ -1649,7 +2972,7 @@
     if (!state.accounts.length) {
       els.accountsTableBody.innerHTML = `
         <tr>
-          <td colspan="5"><p class="message">No sub-accounts yet.</p></td>
+          <td colspan="5"><p class="message accounts-empty">No sub-accounts yet. Create one above to give your team dashboard access.</p></td>
         </tr>
       `;
       return;
@@ -1658,17 +2981,17 @@
     els.accountsTableBody.innerHTML = state.accounts
       .map((account) => `
         <tr>
-          <td data-label="Username">@${escapeHtml(account.username)}</td>
-          <td data-label="Display Name">${escapeHtml(account.displayName || account.username)}</td>
-          <td data-label="Status">${account.isActive ? 'Active' : 'Inactive'}</td>
-          <td data-label="Created">${escapeHtml(formatDate(account.createdAt))}</td>
+          <td data-label="Username"><span class="account-username">@${escapeHtml(account.username)}</span></td>
+          <td data-label="Display Name"><span class="account-display-name">${escapeHtml(account.displayName || account.username)}</span></td>
+          <td data-label="Status"><span class="account-status ${account.isActive ? 'is-active' : 'is-inactive'}">${account.isActive ? 'Active' : 'Inactive'}</span></td>
+          <td data-label="Created"><time datetime="${escapeHtml(account.createdAt || '')}">${escapeHtml(formatDate(account.createdAt))}</time></td>
           <td data-label="Actions">
-            <div class="pill-group">
-              <button type="button" class="btn btn-light" data-action="toggle-account" data-id="${escapeHtml(account.id)}">
-                ${account.isActive ? 'Disable' : 'Enable'}
+            <div class="account-actions">
+              <button type="button" class="btn btn-light table-action-btn table-action-icon-only ${account.isActive ? 'table-action-disable' : 'table-action-enable'}" data-action="toggle-account" data-id="${escapeHtml(account.id)}" aria-label="${account.isActive ? 'Disable account' : 'Enable account'}" title="${account.isActive ? 'Disable account' : 'Enable account'}">
+                ${tableActionIcon(account.isActive ? 'disable' : 'enable')}<span class="table-action-label">${account.isActive ? 'Disable' : 'Enable'}</span>
               </button>
-              <button type="button" class="btn btn-light" data-action="reset-account-password" data-id="${escapeHtml(account.id)}">Reset Password</button>
-              <button type="button" class="btn btn-danger" data-action="delete-account" data-id="${escapeHtml(account.id)}">Delete</button>
+              <button type="button" class="btn btn-light table-action-btn table-action-icon-only table-action-reset" data-action="reset-account-password" data-id="${escapeHtml(account.id)}" aria-label="Reset password" title="Reset password">${tableActionIcon('reset')}<span class="table-action-label">Reset</span></button>
+              <button type="button" class="btn btn-danger table-action-btn table-action-icon-only table-action-delete" data-action="delete-account" data-id="${escapeHtml(account.id)}" aria-label="Delete account" title="Delete account">${tableActionIcon('delete')}<span class="table-action-label">Delete</span></button>
             </div>
           </td>
         </tr>
@@ -1758,6 +3081,7 @@
       : `<span class="participant-profile-hero-avatar participant-avatar participant-avatar-fallback">${escapeHtml(initialsFromName(participant.fullName))}</span>`;
     const sectionCount = Array.isArray(participant.sections) ? participant.sections.length : 0;
     const skillCount = Array.isArray(participant.skills) ? participant.skills.length : 0;
+    const hasContact = Boolean(participant.contactNumber || participant.email);
 
     els.participantProfileHero.innerHTML = `
       <div class="participant-profile-hero-main">
@@ -1768,12 +3092,91 @@
         </div>
       </div>
       <div class="participant-profile-hero-meta">
+        ${hasContact ? `<span>${escapeHtml(participant.contactNumber || participant.email)}</span>` : ''}
         <span>${sectionCount} sections</span>
         <span>${skillCount} skills</span>
         <span>Updated ${escapeHtml(formatDate(participant.updatedAt))}</span>
       </div>
     `;
     els.participantProfileHero.hidden = false;
+  }
+
+  function renderParticipantDetailView(mode, participant) {
+    if (!els.participantDetailView) return;
+
+    if (!participant || mode !== 'view') {
+      els.participantDetailView.hidden = true;
+      els.participantDetailView.innerHTML = '';
+      return;
+    }
+
+    const sections = (participant.sections || []).map((sectionId) => sectionNameById(sectionId)).filter(Boolean);
+    const skills = Array.isArray(participant.skills) ? participant.skills.filter(Boolean) : [];
+    const detailSectionsMarkup = sections.length
+      ? sections.map((section) => `<span class="pill pill-section" title="${escapeHtml(section)}">${escapeHtml(section)}</span>`).join('')
+      : '<span class="participant-detail-empty">No sections assigned.</span>';
+    const detailSkillsMarkup = skills.length
+      ? skills.map((skill) => `<span class="pill pill-skill" title="${escapeHtml(skill)}">${escapeHtml(skill)}</span>`).join('')
+      : '<span class="participant-detail-empty">No skills added.</span>';
+    const resume = participant.resume && participant.resume.dataUrl
+      ? `<a class="btn btn-light btn-compact" href="${escapeHtml(participant.resume.dataUrl)}" download="${escapeHtml(participant.resume.fileName || 'resume')}">Download Resume</a>`
+      : '<span class="participant-detail-empty">No resume uploaded.</span>';
+    const profilePicture = participant.profilePicture && participant.profilePicture.dataUrl
+      ? `<a class="btn btn-light btn-compact" href="${escapeHtml(participant.profilePicture.dataUrl)}" target="_blank" rel="noopener noreferrer">Open Profile Image</a>`
+      : '<span class="participant-detail-empty">No profile picture uploaded.</span>';
+
+    els.participantDetailView.innerHTML = `
+      <div class="participant-detail-grid">
+        <article class="participant-detail-card">
+          <span class="participant-detail-label">Contact</span>
+          <div class="participant-detail-stack">
+            <strong>${escapeHtml(participant.contactNumber || 'No contact number')}</strong>
+            <span>${escapeHtml(participant.email || 'No email')}</span>
+          </div>
+        </article>
+        <article class="participant-detail-card">
+          <span class="participant-detail-label">Personal</span>
+          <div class="participant-detail-stack">
+            <strong>${escapeHtml(participant.gender || 'Not specified')}</strong>
+            <span>${escapeHtml(participant.birthdate || 'Birthdate not set')}</span>
+            <span>${participant.age === null || participant.age === undefined || participant.age === '' ? 'Age not set' : `Age ${escapeHtml(String(participant.age))}`}</span>
+          </div>
+        </article>
+        <article class="participant-detail-card participant-detail-card-wide">
+          <span class="participant-detail-label">Address</span>
+          <p class="participant-detail-copy">${escapeHtml(participant.address || 'No address added.')}</p>
+        </article>
+        <article class="participant-detail-card participant-detail-card-wide">
+          <span class="participant-detail-label">Talent Sections</span>
+          <div class="pill-group participant-detail-pill-group">
+            ${detailSectionsMarkup}
+          </div>
+        </article>
+        <article class="participant-detail-card participant-detail-card-wide">
+          <span class="participant-detail-label">Skills</span>
+          <div class="pill-group participant-detail-pill-group">
+            ${detailSkillsMarkup}
+          </div>
+        </article>
+        <article class="participant-detail-card participant-detail-card-wide">
+          <span class="participant-detail-label">Notes</span>
+          <p class="participant-detail-copy">${escapeHtml(participant.notes || 'No notes added.')}</p>
+        </article>
+        <article class="participant-detail-card">
+          <span class="participant-detail-label">Profile Picture</span>
+          <div class="participant-detail-stack">
+            ${profilePicture}
+          </div>
+        </article>
+        <article class="participant-detail-card">
+          <span class="participant-detail-label">Resume</span>
+          <div class="participant-detail-stack">
+            ${resume}
+          </div>
+        </article>
+      </div>
+    `;
+    els.participantDetailView.hidden = false;
   }
 
   function lockParticipantFormForViewMode(isViewMode) {
@@ -1805,11 +3208,16 @@
   }
 
   function showParticipantModal() {
+    hideWorkflowDrawer();
+    if (els.participantModal.hidden) {
+      rememberOverlayFocus();
+    }
     els.participantModal.hidden = false;
     syncModalBodyLock();
   }
 
   function hideParticipantModal() {
+    if (els.participantModal.hidden) return;
     els.participantModal.hidden = true;
     state.editingParticipantId = '';
     state.profilePictureDraft = null;
@@ -1818,10 +3226,22 @@
     els.participantId.value = '';
     renderSectionsChecklist([]);
     renderParticipantProfileHero('create', null);
+    renderParticipantDetailView('create', null);
     renderProfilePictureMeta(null);
     renderResumeMeta(null);
     lockParticipantFormForViewMode(false);
+    if (els.participantModalEditBtn) {
+      els.participantModalEditBtn.hidden = true;
+      els.participantModalEditBtn.dataset.id = '';
+    }
+    if (els.participantModalSubtitle) {
+      els.participantModalSubtitle.textContent = 'Capture profile, role fit, and section assignment in one pass.';
+    }
+    if (els.participantForm) {
+      els.participantForm.hidden = false;
+    }
     syncModalBodyLock();
+    restoreOverlayFocus();
   }
 
   function getParticipantById(participantId) {
@@ -1854,15 +3274,33 @@
 
     renderSectionsChecklist(participant?.sections || []);
     renderParticipantProfileHero(mode, participant || null);
+    renderParticipantDetailView(mode, participant || null);
     renderProfilePictureMeta(participant || null);
     renderResumeMeta(participant || null);
+    if (els.participantForm) {
+      els.participantForm.hidden = isView;
+    }
+    if (els.participantModalEditBtn) {
+      const canEditFromView = isView && isAdmin() && participant?.id;
+      els.participantModalEditBtn.hidden = !canEditFromView;
+      els.participantModalEditBtn.dataset.id = canEditFromView ? participant.id : '';
+    }
 
     if (isCreate) {
       els.participantModalTitle.textContent = 'Add Participant';
+      if (els.participantModalSubtitle) {
+        els.participantModalSubtitle.textContent = 'Capture profile, role fit, and section assignment in one pass.';
+      }
     } else if (isEdit) {
       els.participantModalTitle.textContent = 'Edit Participant';
+      if (els.participantModalSubtitle) {
+        els.participantModalSubtitle.textContent = 'Update the participant record without leaving the current workflow.';
+      }
     } else {
       els.participantModalTitle.textContent = 'Participant Profile';
+      if (els.participantModalSubtitle) {
+        els.participantModalSubtitle.textContent = 'Review the full participant profile, assets, and routing details.';
+      }
     }
 
     lockParticipantFormForViewMode(isView);
@@ -1983,7 +3421,20 @@
     }
 
     if (includeClientWorkspace) {
-      await loadClientPoolPage();
+      if (isAdmin()) {
+        state.clientPoolParticipants = [];
+        state.clientPoolPagination = {
+          page: 1,
+          pageSize: state.clientPoolFilters.pageSize || 20,
+          total: 0,
+          totalPages: 1,
+          hasPrev: false,
+          hasNext: false,
+        };
+        state.selectedClientParticipantIds = new Set();
+      } else {
+        await loadClientPoolPage();
+      }
 
       try {
         const clientRequestsRes = await api('/api/admin/client-requests');
@@ -1995,6 +3446,12 @@
         console.warn('Client request workspace unavailable:', error.message || error);
       }
     }
+
+    const validRequestIds = new Set((state.clientRequests || []).map((request) => request.id).filter(Boolean));
+    state.requestActionSelections = Object.fromEntries(
+      Object.entries(state.requestActionSelections || {})
+        .filter(([requestId]) => validRequestIds.has(requestId)),
+    );
 
     const validParticipantIds = new Set([
       ...state.participants.map((participant) => participant.id),
@@ -2031,6 +3488,7 @@
   }
 
   function renderView() {
+    enforceActiveViewAccess();
     const views = [
       { id: 'overview', el: els.viewOverview, title: 'Overview' },
       { id: 'participants', el: els.viewParticipants, title: 'Participants' },
@@ -2052,8 +3510,16 @@
       els.topbarTitle.textContent = activeView.title;
     }
     if (els.topbarEyebrow) {
-      els.topbarEyebrow.textContent = 'Applicant Talent Pipeline';
+      const eyebrowByView = {
+        overview: 'Live CRM summary',
+        participants: 'Profile review and shortlist workflow',
+        sections: 'Organize talent lanes and teams',
+        'client-requests': isAdmin() ? 'Management request intake and hiring decisions' : 'Candidate picks and interview scheduling',
+        accounts: 'Sub-account access, recovery, and security',
+      };
+      els.topbarEyebrow.textContent = eyebrowByView[state.activeView] || 'Applicant Talent Pipeline';
     }
+    syncMobileLayoutMetrics();
   }
 
   function syncClientRequestDefaults() {
@@ -2065,33 +3531,40 @@
 
   function applyRoleAccess() {
     const admin = isAdmin();
-    const accountsNav = els.navButtons.find((button) => button.getAttribute('data-view') === 'accounts');
+    const allowedViews = new Set(getAllowedViewIds());
+    document.body.classList.toggle('is-admin', admin);
     document.body.classList.toggle('is-viewer', !admin);
     els.createParticipantBtn.hidden = !admin;
-    els.sectionForm.hidden = !admin;
-    els.accountForm.hidden = !admin;
-    if (accountsNav) {
-      accountsNav.hidden = !admin;
+    if (els.openSectionDrawerBtn) {
+      els.openSectionDrawerBtn.hidden = !admin;
     }
+    if (els.openAccountDrawerBtn) {
+      els.openAccountDrawerBtn.hidden = !admin;
+    }
+    els.navButtons.forEach((button) => {
+      const view = String(button.getAttribute('data-view') || '').trim();
+      button.hidden = !allowedViews.has(view);
+    });
 
     syncClientRequestDefaults();
+    renderClientRequestHero();
 
-    if (!admin && state.activeView === 'accounts') {
-      state.activeView = 'overview';
+    if (enforceActiveViewAccess()) {
       renderView();
     }
   }
 
   function getLoadOptionsForView(viewId) {
-    const view = String(viewId || '').trim().toLowerCase();
+    const view = sanitizeViewId(viewId);
     return {
-      includeParticipants: view === 'participants',
+      includeParticipants: view === 'participants' || view === 'overview',
       includeAccounts: view === 'accounts',
       includeClientWorkspace: view === 'client-requests',
     };
   }
 
   async function runRefreshAndRender() {
+    enforceActiveViewAccess();
     await loadDashboardData(getLoadOptionsForView(state.activeView));
     renderUser();
     applyRoleAccess();
@@ -2113,7 +3586,8 @@
   }
 
   async function refreshForView(viewId) {
-    const options = getLoadOptionsForView(viewId);
+    state.activeView = sanitizeViewId(viewId);
+    const options = getLoadOptionsForView(state.activeView);
 
     try {
       await loadDashboardData(options);
@@ -2169,21 +3643,235 @@
       state.user = response.user;
       state.nextLoginAttemptAt = 0;
       els.loginPassword.value = '';
-      showApp();
+      clearResetTokenFromUrl();
+      clearAuthMessages();
       await refreshAndRender();
+      showApp();
       notifyAction('Signed in successfully.', false, { title: 'Welcome back' });
     } catch (error) {
       if (error.status === 401) {
         state.nextLoginAttemptAt = Date.now() + LOGIN_RETRY_COOLDOWN_MS;
       }
-      if (els.appShell.hidden) {
-        setMessage(els.loginMessage, error.message || 'Login failed.', true);
+      const message = String(error?.message || 'Login failed.');
+      if (isBackendConfigError(error)) {
+        clearAuth();
+        setAuthMessage('login', `${message} Add SUPABASE_SERVICE_ROLE_KEY in .env and restart server.`, true);
+      } else if (els.appShell.hidden) {
+        setMessage(els.loginMessage, message, true);
       } else {
-        notifyAction(error.message || 'Failed to load dashboard data.', true, { title: 'Sign-in error', autoClose: false });
+        notifyAction(message || 'Failed to load dashboard data.', true, { title: 'Sign-in error', autoClose: false });
       }
     } finally {
       state.loginRequestInFlight = false;
       setLoginPending(false);
+    }
+  }
+
+  async function handleSignup(event) {
+    event.preventDefault();
+    clearAuthMessages();
+
+    if (state.signupStep !== 2) {
+      if (!validateSignupStep(1)) {
+        return;
+      }
+      setSignupStep(2, { focus: true });
+      return;
+    }
+
+    const firstName = String(els.signupFirstName.value || '').trim();
+    const lastName = String(els.signupLastName.value || '').trim();
+    const username = String(els.signupUsername.value || '').trim();
+    const secretAnswerCityOfBirth = String(els.signupSecretAnswerCity.value || '').trim();
+    const secretAnswerFirstSchool = String(els.signupSecretAnswerSchool.value || '').trim();
+    const secretAnswerChildhoodNickname = String(els.signupSecretAnswerNickname.value || '').trim();
+    const password = String(els.signupPassword.value || '');
+    const confirmPassword = String(els.signupConfirmPassword.value || '');
+
+    if (!firstName || !lastName || !username || !password || !confirmPassword) {
+      setAuthMessage('signup', 'First name, last name, username, password, and confirmation are required.', true);
+      return;
+    }
+
+    if (!secretAnswerCityOfBirth || !secretAnswerFirstSchool || !secretAnswerChildhoodNickname) {
+      setAuthMessage('signup', 'All three secret recovery answers are required.', true);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setAuthMessage('signup', 'Password confirmation does not match.', true);
+      return;
+    }
+
+    setButtonPending(els.signupSubmitBtn, true, 'Creating...', 'Create Account');
+    try {
+      await api('/api/admin/signup', {
+        method: 'POST',
+        body: {
+          firstName,
+          lastName,
+          username,
+          password,
+          confirmPassword,
+          secretAnswers: {
+            city_of_birth: secretAnswerCityOfBirth,
+            first_school: secretAnswerFirstSchool,
+            childhood_nickname: secretAnswerChildhoodNickname,
+          },
+        },
+      });
+      els.signupForm.reset();
+      setSignupStep(1);
+      els.loginUsername.value = username;
+      setAuthView('login', { focus: true, resetScroll: true });
+      setAuthMessage('login', 'Account created. You can now sign in.', false);
+    } catch (error) {
+      setAuthMessage('signup', error.message || 'Failed to create account.', true);
+    } finally {
+      setButtonPending(els.signupSubmitBtn, false, 'Creating...', 'Create Account');
+    }
+  }
+
+  async function handleRecoverAccount(event) {
+    event.preventDefault();
+    clearAuthMessages();
+
+    const username = String(els.recoverUsername.value || '').trim();
+    const secretAnswerCityOfBirth = String(els.recoverSecretAnswerCity.value || '').trim();
+    const secretAnswerFirstSchool = String(els.recoverSecretAnswerSchool.value || '').trim();
+    const secretAnswerChildhoodNickname = String(els.recoverSecretAnswerNickname.value || '').trim();
+    if (!username) {
+      setAuthMessage('recover', 'Username is required.', true);
+      return;
+    }
+
+    if (!secretAnswerCityOfBirth || !secretAnswerFirstSchool || !secretAnswerChildhoodNickname) {
+      setAuthMessage('recover', 'Answer all three secret questions to continue.', true);
+      return;
+    }
+
+    setButtonPending(els.recoverSubmitBtn, true, 'Verifying...', 'Verify Answers');
+    try {
+      const response = await api('/api/admin/password-reset/request', {
+        method: 'POST',
+        body: {
+          username,
+          secretAnswers: {
+            city_of_birth: secretAnswerCityOfBirth,
+            first_school: secretAnswerFirstSchool,
+            childhood_nickname: secretAnswerChildhoodNickname,
+          },
+        },
+      });
+      state.passwordResetToken = String(response.resetToken || '').trim();
+      if (els.resetToken) {
+        els.resetToken.value = state.passwordResetToken;
+      }
+      setAuthView('reset', { focus: true, resetScroll: true });
+      setAuthMessage('reset', response.message || 'Answers verified. Set a new password.', false);
+    } catch (error) {
+      setAuthMessage('recover', error.message || 'Failed to start account recovery.', true);
+    } finally {
+      setButtonPending(els.recoverSubmitBtn, false, 'Verifying...', 'Verify Answers');
+    }
+  }
+
+  async function handleResetPassword(event) {
+    event.preventDefault();
+    clearAuthMessages();
+
+    const token = String(els.resetToken.value || state.passwordResetToken || '').trim();
+    const newPassword = String(els.resetPassword.value || '');
+    const confirmPassword = String(els.resetConfirmPassword.value || '');
+
+    if (!token || !newPassword || !confirmPassword) {
+      setAuthMessage('reset', 'Reset token, new password, and confirmation are required.', true);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setAuthMessage('reset', 'Password confirmation does not match.', true);
+      return;
+    }
+
+    setButtonPending(els.resetPasswordSubmitBtn, true, 'Updating...', 'Update Password');
+    try {
+      const response = await api('/api/admin/password-reset/confirm', {
+        method: 'POST',
+        body: {
+          token,
+          newPassword,
+          confirmPassword,
+        },
+      });
+      els.resetPasswordForm.reset();
+      clearResetTokenFromUrl();
+      setAuthView('login', { focus: true, resetScroll: true });
+      setAuthMessage('login', response.message || 'Password updated successfully. You can now sign in.', false);
+    } catch (error) {
+      setAuthMessage('reset', error.message || 'Failed to update password.', true);
+    } finally {
+      setButtonPending(els.resetPasswordSubmitBtn, false, 'Updating...', 'Update Password');
+    }
+  }
+
+  async function handleChangePassword() {
+    if (!state.user) {
+      return;
+    }
+
+    const values = await showSystemPromptDialog({
+      title: 'Change password',
+      subtitle: state.user.displayName || state.user.username || '',
+      message: 'Enter your current password, then choose a new password.',
+      confirmText: 'Update',
+      primary: {
+        label: 'Current password',
+        value: '',
+        type: 'password',
+        required: true,
+        maxLength: 120,
+        placeholder: 'Current password',
+      },
+      secondary: {
+        label: 'New password',
+        value: '',
+        type: 'password',
+        required: true,
+        maxLength: 120,
+        placeholder: 'At least 8 chars, with letters and numbers',
+      },
+      tertiary: {
+        label: 'Confirm new password',
+        value: '',
+        type: 'password',
+        required: true,
+        maxLength: 120,
+        placeholder: 'Repeat new password',
+      },
+    });
+
+    if (!values) {
+      return;
+    }
+
+    if (String(values.secondary || '') !== String(values.tertiary || '')) {
+      notifyAction('Password confirmation does not match.', true, { title: 'Update failed', autoClose: false });
+      return;
+    }
+
+    try {
+      const response = await api('/api/admin/change-password', {
+        method: 'POST',
+        body: {
+          currentPassword: String(values.primary || ''),
+          newPassword: String(values.secondary || ''),
+          confirmPassword: String(values.tertiary || ''),
+        },
+      });
+      notifyAction(response.message || 'Password updated successfully.', false, { title: 'Updated' });
+    } catch (error) {
+      notifyAction(error.message || 'Failed to update password.', true, { title: 'Update failed', autoClose: false });
     }
   }
 
@@ -2196,11 +3884,13 @@
     try {
       const me = await api('/api/admin/me');
       state.user = me.user;
+      enforceActiveViewAccess();
+      applyRoleAccess();
       showApp();
       await refreshAndRender();
     } catch {
       clearAuth();
-      setMessage(els.loginMessage, 'Session expired. Please sign in again.', true);
+      setAuthMessage('login', 'Session expired. Please sign in again.', true);
     }
   }
 
@@ -2210,27 +3900,36 @@
 
     const payload = collectParticipantPayload();
     if (!payload.fullName) {
-      setGlobalMessage('Full name is required.', true);
+      notifyAction('Full name is required.', true, { title: 'Save failed', autoClose: false });
       return;
     }
 
     try {
-      if (state.editingParticipantId) {
-        await api('/api/admin/participants', {
-          method: 'PUT',
-          body: {
-            id: state.editingParticipantId,
-            ...payload,
-          },
-        });
-        notifyAction('Participant updated.', false, { title: 'Saved' });
-      } else {
-        await api('/api/admin/participants', {
-          method: 'POST',
-          body: payload,
-        });
-        notifyAction('Participant created.', false, { title: 'Saved' });
-      }
+      await withPendingAction({
+        key: `participant-form:${state.editingParticipantId || 'create'}`,
+        button: els.saveParticipantBtn,
+        peers: [els.saveParticipantBtn, els.deleteParticipantBtn],
+        regions: [els.participantForm],
+        pendingText: state.editingParticipantId ? 'Saving...' : 'Creating...',
+        defaultText: 'Save',
+      }, async () => {
+        if (state.editingParticipantId) {
+          await api('/api/admin/participants', {
+            method: 'PUT',
+            body: {
+              id: state.editingParticipantId,
+              ...payload,
+            },
+          });
+          notifyAction('Participant updated.', false, { title: 'Saved' });
+        } else {
+          await api('/api/admin/participants', {
+            method: 'POST',
+            body: payload,
+          });
+          notifyAction('Participant created.', false, { title: 'Saved' });
+        }
+      });
 
       hideParticipantModal();
       refreshAfterAction();
@@ -2244,7 +3943,7 @@
     }
   }
 
-  async function removeParticipant(participantId) {
+  async function removeParticipant(participantId, sourceButton = null) {
     if (!participantId || !isAdmin()) return;
     const confirmed = await showSystemConfirmDialog({
       title: 'Delete participant',
@@ -2256,9 +3955,17 @@
     if (!confirmed) return;
 
     try {
-      await api('/api/admin/participants', {
-        method: 'DELETE',
-        body: { id: participantId },
+      await withPendingAction({
+        key: `participant-delete:${participantId}`,
+        button: sourceButton || els.deleteParticipantBtn,
+        peers: sourceButton ? getPendingPeers(sourceButton) : [els.saveParticipantBtn, els.deleteParticipantBtn],
+        pendingText: 'Deleting...',
+        defaultText: sourceButton ? (sourceButton.getAttribute('aria-label') || 'Delete') : 'Delete',
+      }, async () => {
+        await api('/api/admin/participants', {
+          method: 'DELETE',
+          body: { id: participantId },
+        });
       });
       hideParticipantModal();
       refreshAfterAction();
@@ -2268,16 +3975,22 @@
     }
   }
 
-  async function quickUpdateParticipantStatus(participantId, status) {
+  async function quickUpdateParticipantStatus(participantId, status, sourceButton = null) {
     if (!participantId || !isAdmin()) return;
 
     try {
-      await api('/api/admin/participants', {
-        method: 'PUT',
-        body: {
-          id: participantId,
-          status,
-        },
+      await withPendingAction({
+        key: `participant-status:${participantId}`,
+        button: sourceButton,
+        pendingText: status === 'shortlisted' ? 'Shortlisting...' : 'Updating...',
+      }, async () => {
+        await api('/api/admin/participants', {
+          method: 'PUT',
+          body: {
+            id: participantId,
+            status,
+          },
+        });
       });
       refreshAfterAction();
       notifyAction(`Participant moved to ${statusLabel(status)}.`, false, { title: 'Updated' });
@@ -2290,23 +4003,33 @@
     event.preventDefault();
     if (!isAdmin()) return;
 
+    const sectionId = String(els.sectionEditId?.value || '').trim();
     const name = String(els.sectionName.value || '').trim();
     const description = String(els.sectionDescription.value || '').trim();
     if (!name) {
-      setGlobalMessage('Section name is required.', true);
+      notifyAction('Section name is required.', true, { title: 'Save failed', autoClose: false });
       return;
     }
 
     try {
-      await api('/api/admin/sections', {
-        method: 'POST',
-        body: { name, description },
+      await withPendingAction({
+        key: `section-form:${sectionId || 'create'}`,
+        button: els.sectionSubmitBtn,
+        pendingText: sectionId ? 'Updating...' : 'Creating...',
+        defaultText: sectionId ? 'Update Section' : 'Save Section',
+        regions: [els.sectionForm],
+      }, async () => {
+        await api('/api/admin/sections', {
+          method: sectionId ? 'PUT' : 'POST',
+          body: sectionId ? { id: sectionId, name, description } : { name, description },
+        });
       });
-      els.sectionForm.reset();
+      resetSectionDrawer();
+      hideWorkflowDrawer();
       refreshAfterAction();
-      notifyAction('Section added.', false, { title: 'Saved' });
+      notifyAction(sectionId ? 'Section updated.' : 'Section added.', false, { title: sectionId ? 'Updated' : 'Saved' });
     } catch (error) {
-      notifyAction(error.message || 'Failed to add section.', true, { title: 'Save failed', autoClose: false });
+      notifyAction(error.message || 'Failed to save section.', true, { title: 'Save failed', autoClose: false });
     }
   }
 
@@ -2314,25 +4037,75 @@
     event.preventDefault();
     if (!isAdmin()) return;
 
+    const mode = String(els.accountFormMode?.value || 'create').trim();
+    const targetId = String(els.accountTargetId?.value || '').trim();
+    const firstName = String(els.accountFirstName.value || '').trim();
+    const lastName = String(els.accountLastName.value || '').trim();
     const username = String(els.accountUsername.value || '').trim();
-    const displayName = String(els.accountDisplayName.value || '').trim();
+    const secretAnswerCityOfBirth = String(els.accountSecretAnswerCity.value || '').trim();
+    const secretAnswerFirstSchool = String(els.accountSecretAnswerSchool.value || '').trim();
+    const secretAnswerChildhoodNickname = String(els.accountSecretAnswerNickname.value || '').trim();
     const password = String(els.accountPassword.value || '');
+    const confirmPassword = String(els.accountPasswordConfirm.value || '');
 
-    if (!username || !password) {
-      setGlobalMessage('Username and password are required.', true);
+    if (password !== confirmPassword) {
+      notifyAction('Password confirmation does not match.', true, { title: 'Save failed', autoClose: false });
+      return;
+    }
+
+    if (mode === 'reset') {
+      if (!targetId || !username || !password || !confirmPassword) {
+        notifyAction('Username, new password, and confirmation are required.', true, { title: 'Save failed', autoClose: false });
+        return;
+      }
+    } else if (!firstName || !lastName || !username || !password || !confirmPassword) {
+      notifyAction('First name, last name, username, password, and confirmation are required.', true, { title: 'Save failed', autoClose: false });
+      return;
+    } else if (!secretAnswerCityOfBirth || !secretAnswerFirstSchool || !secretAnswerChildhoodNickname) {
+      notifyAction('All three secret recovery answers are required.', true, { title: 'Save failed', autoClose: false });
       return;
     }
 
     try {
-      await api('/api/admin/accounts', {
-        method: 'POST',
-        body: { username, displayName, password },
+      await withPendingAction({
+        key: `account-form:${mode}:${targetId || username}`,
+        button: els.accountSubmitBtn,
+        pendingText: mode === 'reset' ? 'Updating...' : 'Creating...',
+        defaultText: mode === 'reset' ? 'Reset Password' : 'Create Account',
+        regions: [els.accountForm],
+      }, async () => {
+        if (mode === 'reset') {
+          await api('/api/admin/accounts', {
+            method: 'PUT',
+            body: {
+              id: targetId,
+              password,
+            },
+          });
+        } else {
+          await api('/api/admin/accounts', {
+            method: 'POST',
+            body: {
+              firstName,
+              lastName,
+              username,
+              password,
+              confirmPassword,
+              secretAnswers: {
+                city_of_birth: secretAnswerCityOfBirth,
+                first_school: secretAnswerFirstSchool,
+                childhood_nickname: secretAnswerChildhoodNickname,
+              },
+            },
+          });
+        }
       });
-      els.accountForm.reset();
+      configureAccountDrawer('create', null, { show: false });
+      hideWorkflowDrawer();
       refreshAfterAction();
-      notifyAction('Sub-account created.', false, { title: 'Saved' });
+      notifyAction(mode === 'reset' ? 'Password updated.' : 'Sub-account created.', false, { title: mode === 'reset' ? 'Updated' : 'Saved' });
     } catch (error) {
-      notifyAction(error.message || 'Failed to create sub-account.', true, { title: 'Save failed', autoClose: false });
+      notifyAction(error.message || 'Failed to save sub-account.', true, { title: 'Save failed', autoClose: false });
     }
   }
 
@@ -2379,18 +4152,31 @@
     }
 
     if (action === 'delete') {
-      await removeParticipant(participantId);
+      await removeParticipant(participantId, actionButton);
       return;
     }
 
     if (action === 'quick-shortlist') {
-      await quickUpdateParticipantStatus(participantId, 'shortlisted');
+      await quickUpdateParticipantStatus(participantId, 'shortlisted', actionButton);
       return;
     }
 
     if (action === 'remove-shortlist') {
-      await quickUpdateParticipantStatus(participantId, 'talent_pool');
+      await quickUpdateParticipantStatus(participantId, 'talent_pool', actionButton);
     }
+  }
+
+  function handleParticipantDetailClick(event) {
+    const actionButton = event.target.closest('[data-action]');
+    if (!actionButton) return;
+
+    const action = String(actionButton.getAttribute('data-action') || '').trim();
+    if (action !== 'edit-participant-detail') return;
+
+    const participantId = String(actionButton.getAttribute('data-id') || '').trim();
+    const participant = getParticipantById(participantId);
+    if (!participant || !isAdmin()) return;
+    openParticipantModal('edit', participant);
   }
 
   async function handleSectionsTableClick(event) {
@@ -2412,9 +4198,17 @@
       if (!confirmed) return;
 
       try {
-        await api('/api/admin/sections', {
-          method: 'DELETE',
-          body: { id: sectionId },
+        await withPendingAction({
+          key: `section-delete:${sectionId}`,
+          button: actionButton,
+          peers: getPendingPeers(actionButton),
+          pendingText: 'Deleting...',
+          defaultText: actionButton.getAttribute('aria-label') || 'Delete section',
+        }, async () => {
+          await api('/api/admin/sections', {
+            method: 'DELETE',
+            body: { id: sectionId },
+          });
         });
         refreshAfterAction();
         notifyAction('Section deleted.', false, { title: 'Deleted' });
@@ -2427,44 +4221,7 @@
     if (action === 'rename-section') {
       const section = state.sections.find((entry) => entry.id === sectionId);
       if (!section) return;
-
-      const values = await showSystemPromptDialog({
-        title: 'Update section',
-        subtitle: 'Edit section details',
-        message: 'Update the section name and description.',
-        confirmText: 'Save',
-        primary: {
-          label: 'Section name',
-          value: section.name || '',
-          required: true,
-          maxLength: 120,
-          placeholder: 'Section name',
-        },
-        secondary: {
-          label: 'Section description',
-          value: section.description || '',
-          required: false,
-          maxLength: 240,
-          placeholder: 'Description (optional)',
-        },
-      });
-      if (!values) return;
-      const name = String(values.primary || '').trim();
-      if (!name) {
-        notifyAction('Section name is required.', true, { title: 'Update failed', autoClose: false });
-        return;
-      }
-      const description = String(values.secondary || '').trim();
-      try {
-        await api('/api/admin/sections', {
-          method: 'PUT',
-          body: { id: sectionId, name, description },
-        });
-        refreshAfterAction();
-        notifyAction('Section updated.', false, { title: 'Updated' });
-      } catch (error) {
-        notifyAction(error.message || 'Failed to update section.', true, { title: 'Update failed', autoClose: false });
-      }
+      openSectionDrawer('edit', section);
     }
   }
 
@@ -2479,9 +4236,20 @@
 
     if (action === 'toggle-account') {
       try {
-        await api('/api/admin/accounts', {
-          method: 'PUT',
-          body: { id: accountId, isActive: !account.isActive },
+        await withPendingAction({
+          key: `account-toggle:${accountId}`,
+          button: actionButton,
+          peers: getPendingPeers(actionButton),
+          pendingText: account.isActive ? 'Disabling...' : 'Enabling...',
+          defaultText: actionButton.getAttribute('aria-label') || 'Update account',
+        }, async () => {
+          await api('/api/admin/accounts', {
+            method: 'PUT',
+            body: {
+              id: accountId,
+              isActive: !account.isActive,
+            },
+          });
         });
         refreshAfterAction();
         notifyAction('Account status updated.', false, { title: 'Updated' });
@@ -2492,32 +4260,7 @@
     }
 
     if (action === 'reset-account-password') {
-      const values = await showSystemPromptDialog({
-        title: 'Reset password',
-        subtitle: account.username,
-        message: `Set new password for ${account.username}.`,
-        confirmText: 'Update',
-        primary: {
-          label: 'New password',
-          value: '',
-          type: 'password',
-          required: true,
-          maxLength: 120,
-          placeholder: 'Minimum 8 characters',
-        },
-      });
-      if (!values) return;
-      const password = String(values.primary || '');
-      if (!password) return;
-      try {
-        await api('/api/admin/accounts', {
-          method: 'PUT',
-          body: { id: accountId, password },
-        });
-        notifyAction('Password updated.', false, { title: 'Updated' });
-      } catch (error) {
-        notifyAction(error.message || 'Failed to reset password.', true, { title: 'Update failed', autoClose: false });
-      }
+      configureAccountDrawer('reset', account);
       return;
     }
 
@@ -2532,9 +4275,17 @@
       if (!confirmed) return;
 
       try {
-        await api('/api/admin/accounts', {
-          method: 'DELETE',
-          body: { id: accountId },
+        await withPendingAction({
+          key: `account-delete:${accountId}`,
+          button: actionButton,
+          peers: getPendingPeers(actionButton),
+          pendingText: 'Deleting...',
+          defaultText: actionButton.getAttribute('aria-label') || 'Delete account',
+        }, async () => {
+          await api('/api/admin/accounts', {
+            method: 'DELETE',
+            body: { id: accountId },
+          });
         });
         refreshAfterAction();
         notifyAction('Sub-account deleted.', false, { title: 'Deleted' });
@@ -2622,12 +4373,14 @@
     const target = event.target.closest('[data-view]');
     if (!target) return;
 
-    const nextView = target.getAttribute('data-view');
-    if (!isAdmin() && nextView === 'accounts') {
+    const requestedView = String(target.getAttribute('data-view') || '').trim();
+    const nextView = sanitizeViewId(requestedView);
+    if (nextView !== requestedView) {
       return;
     }
 
     state.activeView = nextView;
+    hideWorkflowDrawer();
     renderView();
     closeMobileNav();
 
@@ -2643,7 +4396,7 @@
       renderClientWorkspace();
     }
 
-    if (nextView === 'accounts' || nextView === 'client-requests' || nextView === 'participants') {
+    if (nextView === 'accounts' || nextView === 'client-requests' || nextView === 'participants' || nextView === 'overview') {
       void refreshForView(nextView);
     }
   }
@@ -2696,14 +4449,6 @@
     void goToParticipantsPage(state.participantPagination.page + 1);
   }
 
-  function handleParticipantsPageSizeChange() {
-    const pageSize = Number.parseInt(String(els.participantsPageSize?.value || ''), 10);
-    if (!Number.isInteger(pageSize) || pageSize < 5) return;
-    state.participantFilters.pageSize = pageSize;
-    state.participantFilters.page = 1;
-    void goToParticipantsPage(1);
-  }
-
   async function applyClientPoolFiltersFromInputs() {
     state.clientPoolFilters.search = String(els.clientPoolSearch?.value || '').trim();
     state.clientPoolFilters.section = String(els.clientPoolSectionFilter?.value || '').trim();
@@ -2750,14 +4495,6 @@
   function handleClientPoolNextPage() {
     if (!state.clientPoolPagination.hasNext) return;
     void goToClientPoolPage(state.clientPoolPagination.page + 1);
-  }
-
-  function handleClientPoolPageSizeChange() {
-    const pageSize = Number.parseInt(String(els.clientPoolPageSize?.value || ''), 10);
-    if (!Number.isInteger(pageSize) || pageSize < 5) return;
-    state.clientPoolFilters.pageSize = pageSize;
-    state.clientPoolFilters.page = 1;
-    void goToClientPoolPage(1);
   }
 
   function handleClientPoolTableChange(event) {
@@ -2842,9 +4579,18 @@
 
     try {
       const payload = collectClientRequestPayload();
-      await api('/api/admin/client-requests', {
-        method: 'POST',
-        body: payload,
+      await withPendingAction({
+        key: `client-request-submit:${state.user?.accountId || state.user?.username || 'anonymous'}`,
+        button: els.clientRequestSubmitBtn,
+        peers: [els.clientRequestSubmitBtn],
+        regions: [els.clientRequestForm],
+        pendingText: 'Sending...',
+        defaultText: 'Send Request',
+      }, async () => {
+        await api('/api/admin/client-requests', {
+          method: 'POST',
+          body: payload,
+        });
       });
 
       state.selectedClientParticipantIds = new Set();
@@ -2861,6 +4607,7 @@
         els.clientCeoIncluded.checked = true;
       }
 
+      hideWorkflowDrawer();
       refreshAfterAction();
       notifyAction('Client request submitted. Management has been notified.', false, { title: 'Saved' });
     } catch (error) {
@@ -2868,65 +4615,188 @@
     }
   }
 
-  function collectManualHireIds(requestId) {
-    if (!els.clientRequestsList) return [];
-    return Array.from(els.clientRequestsList.querySelectorAll('input[data-manual-hire]'))
-      .filter((input) => input.getAttribute('data-manual-hire') === requestId && input.checked)
-      .map((input) => String(input.value || '').trim())
-      .filter(Boolean);
+  function getClientRequestById(requestId) {
+    return state.clientRequests.find((request) => request.id === requestId) || null;
   }
 
-  async function finalizeClientRequestSelection(requestId, hireMode, hiredParticipantIds = []) {
+  function getRequestActionSelectionSet(request) {
+    if (!request?.id) {
+      return new Set();
+    }
+
+    if (!(state.requestActionSelections[request.id] instanceof Set)) {
+      const defaultIds = Array.isArray(request.finalizedParticipantIds) && request.finalizedParticipantIds.length
+        ? request.finalizedParticipantIds
+        : Array.isArray(request.selectedParticipants)
+          ? request.selectedParticipants.map((profile) => profile.id).filter(Boolean)
+          : [];
+      state.requestActionSelections[request.id] = new Set(defaultIds);
+    }
+
+    return state.requestActionSelections[request.id];
+  }
+
+  async function promptForRequestStatusUpdate(request, status) {
+    if (!request) return null;
+    const nextStatus = String(status || '').trim().toLowerCase();
+    if (!nextStatus) return null;
+
+    if (nextStatus === 'scheduled') {
+      return showSystemPromptDialog({
+        title: 'Schedule client request',
+        subtitle: 'Add optional notes and meeting details for the client email.',
+        message: `Scheduling ${request.clientName || 'this request'}. Add meeting times or links if available.`,
+        confirmText: 'Save Schedule',
+        primary: {
+          label: 'Interview date and time',
+          type: 'datetime-local',
+          value: request.interviewDateTime ? request.interviewDateTime.slice(0, 16) : '',
+        },
+        secondary: {
+          label: 'Interview link',
+          type: 'url',
+          value: request.interviewMeetingLink || '',
+          placeholder: 'https://meet.google.com/...',
+        },
+        tertiary: {
+          label: 'CEO meeting date and time',
+          type: 'datetime-local',
+          value: request.ceoMeetingDateTime ? request.ceoMeetingDateTime.slice(0, 16) : '',
+        },
+        quaternary: {
+          label: 'CEO meeting link',
+          type: 'url',
+          value: request.ceoMeetingLink || '',
+          placeholder: 'https://teams.microsoft.com/...',
+        },
+        notes: {
+          label: 'Admin note',
+          value: request.approvalNotes || '',
+          placeholder: 'Optional note for the client email.',
+        },
+      });
+    }
+
+    return showSystemPromptDialog({
+      title: `${requestStatusLabel(nextStatus)} request`,
+      subtitle: 'Add an optional note for the client email.',
+      message: `${requestStatusLabel(nextStatus)} ${request.clientName || 'this request'}.`,
+      confirmText: requestStatusLabel(nextStatus),
+      danger: nextStatus === 'declined',
+      notes: {
+        label: 'Admin note',
+        value: request.approvalNotes || '',
+        placeholder: nextStatus === 'declined'
+          ? 'Optional explanation for the client.'
+          : 'Optional update for the client.',
+      },
+    });
+  }
+
+  async function promptForFinalizeRequest(request) {
+    if (!request) return null;
+    const selectedSet = getRequestActionSelectionSet(request);
+    return showSystemPromptDialog({
+      title: 'Finalize request',
+      subtitle: 'Select the hired profiles and add an optional final note.',
+      message: `Finalize hiring for ${request.clientName || 'this request'}.`,
+      confirmText: 'Finalize',
+      notes: {
+        label: 'Final note',
+        value: request.approvalNotes || '',
+        placeholder: 'Optional final message for the client.',
+      },
+      checklist: {
+        label: 'Hired profiles',
+        selected: Array.from(selectedSet),
+        options: (request.selectedParticipants || []).map((profile) => ({
+          value: profile.id,
+          label: profile.fullName || 'Unnamed',
+        })),
+      },
+    });
+  }
+
+  async function finalizeClientRequestSelection(requestId, hireMode, hiredParticipantIds = [], notes = '') {
     await api(`/api/admin/client-requests/${encodeURIComponent(requestId)}/finalize`, {
       method: 'POST',
       body: {
         hireMode,
         hiredParticipantIds,
+        notes,
       },
     });
   }
 
-  async function setClientRequestStatus(requestId, status) {
+  async function setClientRequestStatus(requestId, status, payload = {}) {
     await api(`/api/admin/client-requests/${encodeURIComponent(requestId)}/status`, {
       method: 'PUT',
-      body: { status },
+      body: {
+        status,
+        note: payload.notes || '',
+        interviewDateTime: payload.primary || '',
+        interviewMeetingLink: payload.secondary || '',
+        ceoMeetingDateTime: payload.tertiary || '',
+        ceoMeetingLink: payload.quaternary || '',
+      },
     });
   }
 
   async function handleClientRequestsListClick(event) {
     const actionButton = event.target.closest('[data-action]');
     if (!actionButton) return;
+    if (!isAdmin()) return;
 
     const action = String(actionButton.getAttribute('data-action') || '').trim();
     const requestId = String(actionButton.getAttribute('data-id') || '').trim();
     if (!action || !requestId) return;
+    const request = getClientRequestById(requestId);
+    if (!request) return;
 
     try {
-      if (action === 'finalize-all') {
-        await finalizeClientRequestSelection(requestId, 'all');
-        refreshAfterAction();
-        notifyAction('Hiring finalized for all selected profiles. Notification sent.', false, { title: 'Updated' });
-        return;
-      }
+      if (action === 'finalize-request') {
+        const values = await promptForFinalizeRequest(request);
+        if (!values) return;
 
-      if (action === 'finalize-manual') {
-        const selectedIds = collectManualHireIds(requestId);
-        if (!selectedIds.length) {
-          setGlobalMessage('Select at least one profile before manual finalization.', true);
-          return;
-        }
-
-        await finalizeClientRequestSelection(requestId, 'manual', selectedIds);
+        const selectedIds = Array.isArray(values.selectedIds) ? values.selectedIds : [];
+        state.requestActionSelections[requestId] = new Set(selectedIds);
+        const hireMode = selectedIds.length === (request.selectedParticipants || []).length ? 'all' : 'manual';
+        await withPendingAction({
+          key: `client-request-finalize:${requestId}`,
+          button: actionButton,
+          peers: getPendingPeers(actionButton),
+          pendingText: 'Finalizing...',
+          defaultText: actionButton.textContent || 'Finalize',
+        }, async () => {
+          await finalizeClientRequestSelection(requestId, hireMode, selectedIds, values.notes || '');
+        });
+        delete state.requestActionSelections[requestId];
         refreshAfterAction();
-        notifyAction('Manual hiring finalization saved. Notification sent.', false, { title: 'Updated' });
+        notifyAction(
+          selectedIds.length
+            ? 'Selected profiles finalized successfully.'
+            : 'Hiring finalized for all selected profiles.',
+          false,
+          { title: 'Updated' },
+        );
         return;
       }
 
       if (action === 'set-request-status') {
         const status = String(actionButton.getAttribute('data-status') || '').trim();
-        if (!status || !isAdmin()) return;
+        if (!status) return;
 
-        await setClientRequestStatus(requestId, status);
+        const values = await promptForRequestStatusUpdate(request, status);
+        if (!values) return;
+        await withPendingAction({
+          key: `client-request-status:${requestId}:${status}`,
+          button: actionButton,
+          peers: getPendingPeers(actionButton),
+          pendingText: `${requestStatusLabel(status)}...`,
+          defaultText: actionButton.textContent || requestStatusLabel(status),
+        }, async () => {
+          await setClientRequestStatus(requestId, status, values);
+        });
         refreshAfterAction();
         notifyAction(`Request status updated to ${requestStatusLabel(status)}.`, false, { title: 'Updated' });
       }
@@ -2935,14 +4805,79 @@
     }
   }
 
+  function handleAuthTabClick(event) {
+    const nextView = event.currentTarget.getAttribute('data-auth-view');
+    if (!nextView) return;
+    clearAuthMessages();
+    if (nextView === 'reset' && !state.passwordResetToken) {
+      return;
+    }
+    setAuthView(nextView, { focus: true, resetScroll: true });
+  }
+
+  function handleAuthViewLinkClick(event) {
+    const nextView = event.currentTarget.getAttribute('data-auth-view-target');
+    if (!nextView) return;
+    clearAuthMessages();
+    if (nextView === 'reset' && !state.passwordResetToken) {
+      return;
+    }
+    setAuthView(nextView, { focus: true, resetScroll: true });
+  }
+
+  function handleSignupNextStep() {
+    clearAuthMessages();
+    if (!validateSignupStep(1)) return;
+    setSignupStep(2, { focus: true });
+  }
+
+  function handleSignupPrevStep() {
+    clearAuthMessages();
+    setSignupStep(1, { focus: true });
+  }
+
+  function handleSignupFormKeydown(event) {
+    if (event.key !== 'Enter' || state.signupStep !== 1) return;
+    if (event.target instanceof HTMLTextAreaElement) return;
+    event.preventDefault();
+    handleSignupNextStep();
+  }
+
   function bindEvents() {
     els.loginForm.addEventListener('submit', handleLogin);
+    if (els.signupForm) {
+      els.signupForm.addEventListener('submit', handleSignup);
+      els.signupForm.addEventListener('keydown', handleSignupFormKeydown);
+    }
+    if (els.signupNextBtn) {
+      els.signupNextBtn.addEventListener('click', handleSignupNextStep);
+    }
+    if (els.signupPrevBtn) {
+      els.signupPrevBtn.addEventListener('click', handleSignupPrevStep);
+    }
+    if (els.recoverForm) {
+      els.recoverForm.addEventListener('submit', handleRecoverAccount);
+    }
+    if (els.resetPasswordForm) {
+      els.resetPasswordForm.addEventListener('submit', handleResetPassword);
+    }
+    els.authTabs.forEach((button) => {
+      button.addEventListener('click', handleAuthTabClick);
+    });
+    els.authViewLinks.forEach((button) => {
+      button.addEventListener('click', handleAuthViewLinkClick);
+    });
 
     els.logoutBtn.addEventListener('click', () => {
       closeMobileNav();
       clearAuth();
-      setMessage(els.loginMessage, 'You have been signed out.', false);
+      setAuthMessage('login', 'You have been signed out.', false);
     });
+    if (els.changePasswordBtn) {
+      els.changePasswordBtn.addEventListener('click', () => {
+        void handleChangePassword();
+      });
+    }
 
     if (els.themeToggleBtn) {
       els.themeToggleBtn.addEventListener('click', handleThemeToggle);
@@ -2956,6 +4891,12 @@
     }
     if (els.sidebarScrim) {
       els.sidebarScrim.addEventListener('click', closeMobileNav);
+    }
+    if (els.workflowDrawerClose) {
+      els.workflowDrawerClose.addEventListener('click', hideWorkflowDrawer);
+    }
+    if (els.workflowDrawerBackdrop) {
+      els.workflowDrawerBackdrop.addEventListener('click', hideWorkflowDrawer);
     }
 
     els.navButtons.forEach((button) => {
@@ -2974,9 +4915,6 @@
     }
     if (els.participantsNextPage) {
       els.participantsNextPage.addEventListener('click', handleParticipantsNextPage);
-    }
-    if (els.participantsPageSize) {
-      els.participantsPageSize.addEventListener('change', handleParticipantsPageSizeChange);
     }
 
     if (els.clientPoolSearch) {
@@ -2997,9 +4935,6 @@
     }
     if (els.clientPoolNextPage) {
       els.clientPoolNextPage.addEventListener('click', handleClientPoolNextPage);
-    }
-    if (els.clientPoolPageSize) {
-      els.clientPoolPageSize.addEventListener('change', handleClientPoolPageSizeChange);
     }
     if (els.selectVisibleCandidatesBtn) {
       els.selectVisibleCandidatesBtn.addEventListener('click', handleSelectVisibleCandidates);
@@ -3022,6 +4957,24 @@
       if (!isAdmin()) return;
       openParticipantModal('create', null);
     });
+    if (els.openSectionDrawerBtn) {
+      els.openSectionDrawerBtn.addEventListener('click', () => {
+        if (!isAdmin()) return;
+        openSectionDrawer('create');
+      });
+    }
+    if (els.openAccountDrawerBtn) {
+      els.openAccountDrawerBtn.addEventListener('click', () => {
+        if (!isAdmin()) return;
+        configureAccountDrawer('create');
+      });
+    }
+    if (els.openClientRequestDrawerBtn) {
+      els.openClientRequestDrawerBtn.addEventListener('click', openClientRequestDrawer);
+    }
+    if (els.overviewPipelineBoard) {
+      els.overviewPipelineBoard.addEventListener('click', handleOverviewPipelineClick);
+    }
 
     els.participantsTableBody.addEventListener('click', handleParticipantsTableClick);
     els.sectionsTableBody.addEventListener('click', handleSectionsTableClick);
@@ -3035,6 +4988,12 @@
       if (!state.editingParticipantId) return;
       await removeParticipant(state.editingParticipantId);
     });
+    if (els.participantDetailView) {
+      els.participantDetailView.addEventListener('click', handleParticipantDetailClick);
+    }
+    if (els.participantModalEditBtn) {
+      els.participantModalEditBtn.addEventListener('click', handleParticipantDetailClick);
+    }
     els.participantModalClose.addEventListener('click', hideParticipantModal);
     els.participantModalBackdrop.addEventListener('click', hideParticipantModal);
     els.profilePictureFile.addEventListener('change', handleProfilePictureFileChange);
@@ -3044,6 +5003,16 @@
     document.addEventListener('click', (event) => {
       closeParticipantActionMenus(event.target.closest('.row-actions-menu'));
     });
+    document.addEventListener('toggle', (event) => {
+      const menu = event.target;
+      if (!(menu instanceof HTMLDetailsElement) || !menu.classList.contains('row-actions-menu')) {
+        return;
+      }
+      if (menu.open) {
+        closeParticipantActionMenus(menu);
+      }
+      syncParticipantActionHost(menu);
+    }, true);
     if (els.systemNoticeClose) {
       els.systemNoticeClose.addEventListener('click', hideSystemNotice);
     }
@@ -3072,6 +5041,12 @@
     } else if (typeof SYSTEM_THEME_QUERY.addListener === 'function') {
       SYSTEM_THEME_QUERY.addListener(handleSystemThemeChange);
     }
+    window.addEventListener('resize', () => {
+      syncMobileLayoutMetrics();
+      document.querySelectorAll('.row-actions-menu[open]').forEach((menu) => {
+        positionParticipantActionMenu(menu);
+      });
+    });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         void refreshInBackground();
@@ -3081,7 +5056,16 @@
       void refreshInBackground();
     });
     document.addEventListener('keydown', (event) => {
+      if (trapFocusWithinOverlay(event)) {
+        return;
+      }
+
       if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (els.workflowDrawer && !els.workflowDrawer.hidden) {
+        hideWorkflowDrawer();
         return;
       }
 
@@ -3110,20 +5094,12 @@
 
   function initialize() {
     initializeTheme();
-    if (els.participantsPageSize) {
-      const initialPageSize = Number.parseInt(String(els.participantsPageSize.value || ''), 10);
-      if (Number.isInteger(initialPageSize) && initialPageSize >= 5) {
-        state.participantFilters.pageSize = initialPageSize;
-      }
-    }
-    if (els.clientPoolPageSize) {
-      const initialPoolPageSize = Number.parseInt(String(els.clientPoolPageSize.value || ''), 10);
-      if (Number.isInteger(initialPoolPageSize) && initialPoolPageSize >= 5) {
-        state.clientPoolFilters.pageSize = initialPoolPageSize;
-      }
-    }
+    readResetTokenFromUrl();
     bindEvents();
     syncMobileNavForViewport();
+    syncClientPoolPanelForViewport();
+    syncMobileLayoutMetrics();
+    setAuthView(state.passwordResetToken ? 'reset' : 'login');
     bootstrapSession();
   }
 

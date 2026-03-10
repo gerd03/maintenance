@@ -13,14 +13,9 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Read at request-time so changes in local .env are reflected after restart.
-  const runtimeResendKey = (process.env.RESEND_API_KEY || '').trim();
-
   res.json({
     status: 'ok',
     message: 'Server is running',
-    resendConfigured: !!runtimeResendKey,
-    apiKeyLength: runtimeResendKey ? runtimeResendKey.length : 0
   });
 };
 

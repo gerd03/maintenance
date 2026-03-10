@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260306a">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260310z">
 </head>
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
@@ -18,38 +18,203 @@
   <section id="loginScreen" class="login-screen">
     <div class="login-layout">
       <aside class="login-showcase">
-        <div class="showcase-brand">
-          <img class="brand-avatar brand-avatar-logo" src="/assets/images/brand/aoas-logo.png" alt="AOAS logo" width="44" height="44" loading="eager" decoding="async">
-          <p class="eyebrow">AOAS Talent CRM</p>
+        <div class="showcase-atmosphere" aria-hidden="true">
+          <span class="showcase-orb showcase-orb-a"></span>
+          <span class="showcase-orb showcase-orb-b"></span>
+          <span class="showcase-orb showcase-orb-c"></span>
         </div>
-        <h1>Manage your talent pipeline <span>beautifully.</span></h1>
-        <p>Track participants, organize sections, and manage sub-accounts from one premium command center.</p>
-        <div class="showcase-tags">
-          <span>PARTICIPANTS</span>
-          <span>SECTIONS</span>
-          <span>ACCOUNTS</span>
+        <div class="showcase-shell">
+          <div class="showcase-brand">
+            <img class="brand-avatar brand-avatar-logo" src="/assets/images/brand/aoas-logo.png" alt="AOAS logo" width="44" height="44" loading="eager" decoding="async">
+            <p class="eyebrow">AOAS Talent CRM</p>
+          </div>
+          <div class="showcase-copy">
+            <h1>Run your talent pipeline <span>beautifully.</span></h1>
+            <p>Review participants, manage sections, and control account access from one polished CRM workspace.</p>
+            <div class="showcase-tags">
+              <span>PARTICIPANTS</span>
+              <span>SECTIONS</span>
+              <span>ACCOUNTS</span>
+            </div>
+          </div>
+          <div class="showcase-preview" aria-hidden="true">
+            <article class="preview-card preview-card-primary">
+              <div class="preview-card-head">
+                <span>Pipeline Pulse</span>
+                <strong>Live</strong>
+              </div>
+              <div class="preview-metrics">
+                <div class="preview-metric">
+                  <small>Profiles</small>
+                  <strong>124</strong>
+                </div>
+                <div class="preview-metric">
+                  <small>Shortlisted</small>
+                  <strong>31</strong>
+                </div>
+                <div class="preview-metric">
+                  <small>Teams</small>
+                  <strong>06</strong>
+                </div>
+              </div>
+              <div class="preview-lanes">
+                <span class="preview-lane preview-lane-a"></span>
+                <span class="preview-lane preview-lane-b"></span>
+                <span class="preview-lane preview-lane-c"></span>
+              </div>
+            </article>
+          </div>
         </div>
       </aside>
 
       <div class="login-panel">
-        <div class="login-card">
+        <div id="loginCard" class="login-card" data-auth-view="login">
           <div class="login-brand">
             <p class="eyebrow">Sign In</p>
             <h2>Welcome back</h2>
-            <p>Enter your credentials to continue.</p>
+            <p>Sign in with a private server-side account. Recovery stays protected with secret questions.</p>
           </div>
-          <form id="loginForm" class="login-form">
-            <label>
-              Username
-              <input id="loginUsername" name="username" type="text" required maxlength="40" autocomplete="username" placeholder="Enter username (admin or AOAS)">
-            </label>
-            <label>
-              Password
-              <input id="loginPassword" name="password" type="password" required maxlength="120" autocomplete="current-password" placeholder="Enter password">
-            </label>
-            <button type="submit" class="btn btn-primary">Continue</button>
-          </form>
-          <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
+          <div class="auth-deck-meta">
+            <div class="auth-deck-topline">
+              <span id="authViewCounter" class="auth-view-counter">01</span>
+              <span id="authViewLabel" class="auth-view-label">Private access</span>
+            </div>
+            <p id="authViewDescription" class="auth-view-description">Use your private account credentials to continue through the secured admin gateway.</p>
+            <div class="auth-progress-track" aria-hidden="true">
+              <span id="authProgressBar" class="auth-progress-bar"></span>
+            </div>
+          </div>
+          <div class="auth-switcher" role="tablist" aria-label="Authentication views">
+            <button id="authTabLogin" type="button" class="auth-tab active" data-auth-view="login">Sign In</button>
+            <button id="authTabSignup" type="button" class="auth-tab" data-auth-view="signup">Create</button>
+            <button id="authTabRecover" type="button" class="auth-tab" data-auth-view="recover">Recover</button>
+            <button id="authTabReset" type="button" class="auth-tab" data-auth-view="reset" hidden>Reset</button>
+          </div>
+
+          <div class="auth-stage" id="authStage">
+            <section id="authPanelLogin" class="auth-panel" data-auth-panel="login">
+              <form id="loginForm" class="login-form">
+                <label>
+                  Username
+                  <input id="loginUsername" name="username" type="text" required maxlength="40" autocomplete="username" placeholder="Enter username">
+                </label>
+                <label>
+                  Password
+                  <input id="loginPassword" name="password" type="password" required maxlength="120" autocomplete="current-password" placeholder="Enter password">
+                </label>
+                <button type="submit" class="btn btn-primary">Continue</button>
+              </form>
+              <div class="auth-inline-links">
+                <button type="button" class="auth-link-btn" data-auth-view-target="signup">Create account</button>
+                <button type="button" class="auth-link-btn" data-auth-view-target="recover">Forgot password?</button>
+              </div>
+              <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
+            </section>
+
+            <section id="authPanelSignup" class="auth-panel" data-auth-panel="signup" hidden>
+              <form id="signupForm" class="login-form signup-form">
+                <div class="auth-stepper signup-stepper" aria-live="polite">
+                  <div class="auth-stepper-copy">
+                    <span id="signupStepCounter" class="auth-stepper-counter">Step 1 of 2</span>
+                    <strong id="signupStepTitle" class="auth-stepper-title">Identity details</strong>
+                  </div>
+                  <div class="auth-stepper-track" aria-hidden="true">
+                    <span id="signupStepProgress" class="auth-stepper-progress"></span>
+                  </div>
+                </div>
+                <div class="auth-form-step is-current" data-signup-step="1">
+                  <label>
+                    First Name
+                    <input id="signupFirstName" name="firstName" type="text" required maxlength="60" autocomplete="given-name" placeholder="First name">
+                  </label>
+                  <label>
+                    Last Name
+                    <input id="signupLastName" name="lastName" type="text" required maxlength="60" autocomplete="family-name" placeholder="Last name">
+                  </label>
+                  <label>
+                    Username
+                    <input id="signupUsername" name="username" type="text" required maxlength="40" autocomplete="username" placeholder="username">
+                  </label>
+                </div>
+                <div class="auth-form-step" data-signup-step="2" hidden>
+                  <label>
+                    Secret Answer: City of Birth
+                    <input id="signupSecretAnswerCity" name="secretAnswerCityOfBirth" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your city of birth">
+                  </label>
+                  <label>
+                    Secret Answer: First School
+                    <input id="signupSecretAnswerSchool" name="secretAnswerFirstSchool" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your first school">
+                  </label>
+                  <label>
+                    Secret Answer: Childhood Nickname
+                    <input id="signupSecretAnswerNickname" name="secretAnswerChildhoodNickname" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your childhood nickname">
+                  </label>
+                  <label>
+                    Password
+                    <input id="signupPassword" name="password" type="password" required maxlength="120" autocomplete="new-password" placeholder="At least 8 chars, with letters and numbers">
+                  </label>
+                  <label>
+                    Confirm Password
+                    <input id="signupConfirmPassword" name="confirmPassword" type="password" required maxlength="120" autocomplete="new-password" placeholder="Repeat password">
+                  </label>
+                </div>
+                <div class="signup-step-actions">
+                  <button id="signupPrevBtn" type="button" class="btn btn-light" hidden>Back</button>
+                  <button id="signupNextBtn" type="button" class="btn btn-light">Next</button>
+                  <button id="signupSubmitBtn" type="submit" class="btn btn-primary" hidden>Create Account</button>
+                </div>
+              </form>
+              <div class="auth-inline-links">
+                <button type="button" class="auth-link-btn" data-auth-view-target="login">Back to sign in</button>
+              </div>
+              <p id="signupMessage" class="message" role="status" aria-live="polite"></p>
+            </section>
+
+            <section id="authPanelRecover" class="auth-panel" data-auth-panel="recover" hidden>
+              <form id="recoverForm" class="login-form">
+                <label>
+                  Username
+                  <input id="recoverUsername" name="username" type="text" required maxlength="40" autocomplete="username" placeholder="Enter username">
+                </label>
+                <label>
+                  Secret Answer: City of Birth
+                  <input id="recoverSecretAnswerCity" name="secretAnswerCityOfBirth" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your city of birth">
+                </label>
+                <label>
+                  Secret Answer: First School
+                  <input id="recoverSecretAnswerSchool" name="secretAnswerFirstSchool" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your first school">
+                </label>
+                <label>
+                  Secret Answer: Childhood Nickname
+                  <input id="recoverSecretAnswerNickname" name="secretAnswerChildhoodNickname" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your childhood nickname">
+                </label>
+                <button id="recoverSubmitBtn" type="submit" class="btn btn-primary">Verify Answers</button>
+              </form>
+              <div class="auth-inline-links">
+                <button type="button" class="auth-link-btn" data-auth-view-target="login">Back to sign in</button>
+              </div>
+              <p id="recoverMessage" class="message" role="status" aria-live="polite"></p>
+            </section>
+
+            <section id="authPanelReset" class="auth-panel" data-auth-panel="reset" hidden>
+              <form id="resetPasswordForm" class="login-form">
+                <input id="resetToken" name="token" type="hidden">
+                <label>
+                  New Password
+                  <input id="resetPassword" name="newPassword" type="password" required maxlength="120" autocomplete="new-password" placeholder="At least 8 chars, with letters and numbers">
+                </label>
+                <label>
+                  Confirm Password
+                  <input id="resetConfirmPassword" name="confirmPassword" type="password" required maxlength="120" autocomplete="new-password" placeholder="Repeat password">
+                </label>
+                <button id="resetPasswordSubmitBtn" type="submit" class="btn btn-primary">Update Password</button>
+              </form>
+              <div class="auth-inline-links">
+                <button type="button" class="auth-link-btn" data-auth-view-target="login">Back to sign in</button>
+              </div>
+              <p id="resetMessage" class="message" role="status" aria-live="polite"></p>
+            </section>
+          </div>
         </div>
       </div>
     </div>
@@ -104,12 +269,13 @@
       </nav>
       <div class="sidebar-footer">
         <p id="userBadge" class="user-badge"></p>
+        <button id="changePasswordBtn" class="btn btn-light" type="button">Change password</button>
         <button id="logoutBtn" class="btn btn-ghost" type="button">Sign out</button>
       </div>
     </aside>
 
     <div class="content-wrap">
-      <header class="topbar card">
+      <header class="topbar card topbar-shell">
         <div class="topbar-copy">
           <div class="topbar-title-row">
             <button
@@ -140,6 +306,20 @@
 
       <main class="view-stack">
         <section id="view-overview" class="view active">
+          <article class="card overview-command-card">
+            <div class="workspace-head">
+              <div class="workspace-copy">
+                <p class="workspace-kicker">Executive snapshot</p>
+                <h4>Command Center</h4>
+                <p class="card-subtitle">Monitor pipeline health, recent movement, and section coverage from one premium overview.</p>
+              </div>
+              <div class="workspace-actions">
+                <span id="overviewSectionsMeta" class="head-meta"></span>
+                <span id="overviewRecentMeta" class="head-meta"></span>
+              </div>
+            </div>
+          </article>
+
           <div class="stats-row">
             <article class="card stat-card">
               <span class="stat-icon" aria-hidden="true">
@@ -155,28 +335,35 @@
               <p>Talent Sections</p>
               <strong id="statSections">0</strong>
             </article>
-            <article class="card stat-card">
-              <span class="stat-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v2h16v-2c0-2.76-3.58-5-8-5Z" /></svg>
-              </span>
-              <p>Sub Accounts</p>
-              <strong id="statAccounts">0</strong>
-            </article>
           </div>
 
-          <div class="grid-two">
-            <article class="card">
-              <div class="card-head">
-                <h4>Section Coverage</h4>
-                <span id="overviewSectionsMeta" class="head-meta"></span>
+          <div class="overview-grid">
+            <article class="card overview-panel">
+              <div class="card-head compact-card-head">
+                <div>
+                  <h4>Section Coverage</h4>
+                  <p class="card-subtitle">Where talent is concentrated right now.</p>
+                </div>
               </div>
               <div id="overviewSectionChips" class="chip-list"></div>
             </article>
 
-            <article class="card">
-              <div class="card-head">
-                <h4>Recently Updated</h4>
-                <span id="overviewRecentMeta" class="head-meta"></span>
+            <article class="card overview-panel">
+              <div class="card-head compact-card-head">
+                <div>
+                  <h4>Pipeline Snapshot</h4>
+                  <p class="card-subtitle">Live counts by participant status.</p>
+                </div>
+              </div>
+              <div id="overviewPipelineBoard" class="overview-pipeline-board"></div>
+            </article>
+
+            <article class="card overview-panel">
+              <div class="card-head compact-card-head">
+                <div>
+                  <h4>Recently Updated</h4>
+                  <p class="card-subtitle">The most recent participant movement.</p>
+                </div>
               </div>
               <div id="overviewRecentList" class="compact-list"></div>
             </article>
@@ -184,18 +371,30 @@
         </section>
 
         <section id="view-participants" class="view">
-          <article class="card">
-            <div class="toolbar">
-              <label>
-                Search
+          <article class="card workspace-card participants-card">
+            <div class="workspace-head">
+              <div class="workspace-copy">
+                <p class="workspace-kicker">Flagship workflow</p>
+                <h4>Talent Directory</h4>
+                <p class="card-subtitle">Review, shortlist, and update profiles with a cleaner high-signal workflow.</p>
+              </div>
+              <div class="workspace-actions">
+                <span id="participantsListMeta" class="head-meta">0 profiles</span>
+                <button id="createParticipantBtn" type="button" class="btn btn-primary">New Participant</button>
+              </div>
+            </div>
+
+            <div class="utility-bar participants-toolbar">
+              <label class="utility-field utility-field-search">
+                <span>Search</span>
                 <input id="participantsSearch" type="text" placeholder="Search by name, email, or skill">
               </label>
-              <label>
-                Section
+              <label class="utility-field">
+                <span>Section</span>
                 <select id="participantsSectionFilter"></select>
               </label>
-              <label>
-                Status
+              <label class="utility-field">
+                <span>Status</span>
                 <select id="participantsStatusFilter">
                   <option value="">All statuses</option>
                   <option value="talent_pool">Talent Pool</option>
@@ -204,11 +403,10 @@
                   <option value="inactive">Inactive</option>
                 </select>
               </label>
-              <button id="createParticipantBtn" type="button" class="btn btn-primary">New Participant</button>
             </div>
 
-            <div class="table-wrap">
-              <table class="data-table">
+            <div class="table-wrap participants-table-wrap">
+              <table class="data-table participants-table">
                 <thead>
                   <tr>
                     <th>Name</th>
@@ -223,33 +421,46 @@
                 <tbody id="participantsTableBody"></tbody>
               </table>
             </div>
-            <div id="participantsPagination" class="table-pagination" hidden>
-              <button id="participantsPrevPage" type="button" class="btn btn-light">Previous</button>
+            <div id="participantsPagination" class="table-pagination participants-pagination" hidden>
+              <button id="participantsPrevPage" type="button" class="btn btn-light pagination-btn">
+                <span class="pagination-btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M14.5 6 8.5 12l6 6" /></svg>
+                </span>
+                <span class="pagination-btn-label">Prev</span>
+              </button>
               <p id="participantsPageMeta" class="table-pagination-meta"></p>
-              <label class="table-pagination-size">
-                Rows
-                <select id="participantsPageSize">
-                  <option value="10">10</option>
-                  <option value="20" selected>20</option>
-                  <option value="40">40</option>
-                  <option value="80">80</option>
-                </select>
-              </label>
-              <button id="participantsNextPage" type="button" class="btn btn-light">Next</button>
+              <button id="participantsNextPage" type="button" class="btn btn-light pagination-btn">
+                <span class="pagination-btn-label">Next</span>
+                <span class="pagination-btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6" /></svg>
+                </span>
+              </button>
             </div>
           </article>
         </section>
 
         <section id="view-sections" class="view">
-          <article class="card">
-            <div class="card-head">
-              <h4>Talent Sections</h4>
+          <article class="card workspace-card management-hero-card">
+            <div class="workspace-head">
+              <div class="workspace-copy">
+                <p class="workspace-kicker">Taxonomy and routing</p>
+                <h4>Talent Sections</h4>
+                <p class="card-subtitle">Define the lanes your team uses to organize, assign, and filter talent.</p>
+              </div>
+              <div class="workspace-actions">
+                <span id="sectionsListMeta" class="head-meta">0 sections</span>
+                <button id="openSectionDrawerBtn" type="button" class="btn btn-primary">New Section</button>
+              </div>
             </div>
-            <form id="sectionForm" class="inline-form">
-              <input id="sectionName" type="text" maxlength="120" placeholder="Section name (e.g., Mobile App Developers)">
-              <input id="sectionDescription" type="text" maxlength="240" placeholder="Description (optional)">
-              <button type="submit" class="btn btn-primary">Add Section</button>
-            </form>
+          </article>
+
+          <article class="card list-card sections-list-card">
+            <div class="card-head compact-card-head">
+              <div>
+                <h4>Talent Sections</h4>
+                <p class="card-subtitle">Existing categories and quick actions.</p>
+              </div>
+            </div>
             <div class="table-wrap">
               <table class="data-table">
                 <thead>
@@ -267,18 +478,29 @@
         </section>
 
         <section id="view-accounts" class="view">
-          <article class="card">
-            <div class="card-head">
-              <h4>Sub Accounts</h4>
+          <article class="card workspace-card management-hero-card">
+            <div class="workspace-head">
+              <div class="workspace-copy">
+                <p class="workspace-kicker">Access and recovery</p>
+                <h4>Sub Accounts</h4>
+                <p class="card-subtitle">Manage team logins, secret-question recovery, and account security without clutter.</p>
+              </div>
+              <div class="workspace-actions">
+                <span id="accountsListMeta" class="head-meta">0 accounts</span>
+                <button id="openAccountDrawerBtn" type="button" class="btn btn-primary">New Account</button>
+              </div>
             </div>
-            <form id="accountForm" class="inline-form">
-              <input id="accountUsername" type="text" maxlength="40" autocomplete="username" placeholder="username">
-              <input id="accountDisplayName" type="text" maxlength="120" autocomplete="name" placeholder="display name">
-              <input id="accountPassword" type="password" maxlength="120" autocomplete="new-password" placeholder="password (min 8 chars)">
-              <button type="submit" class="btn btn-primary">Create Account</button>
-            </form>
-            <div class="table-wrap">
-              <table class="data-table">
+          </article>
+
+          <article class="card list-card">
+            <div class="card-head account-card-head compact-card-head">
+              <div>
+                <h4>Sub Accounts</h4>
+                <p class="card-subtitle">Manage usernames, resets, and account status.</p>
+              </div>
+            </div>
+            <div class="table-wrap accounts-table-wrap">
+              <table class="data-table accounts-table">
                 <thead>
                   <tr>
                     <th>Username</th>
@@ -295,146 +517,317 @@
         </section>
 
         <section id="view-client-requests" class="view">
-          <article class="card">
-            <div class="card-head">
-              <h4>Select Candidate Profiles</h4>
-              <span id="clientSelectedMeta" class="head-meta">0 selected</span>
-            </div>
-            <div class="toolbar client-toolbar">
-              <label>
-                Search
-                <input id="clientPoolSearch" type="text" placeholder="Search candidates by name, email, skill">
-              </label>
-              <label>
-                Section
-                <select id="clientPoolSectionFilter"></select>
-              </label>
-              <label>
-                Status
-                <select id="clientPoolStatusFilter">
-                  <option value="">Talent Pool + Shortlisted</option>
-                  <option value="shortlisted">Shortlisted</option>
-                  <option value="talent_pool">Talent Pool</option>
-                  <option value="on_hold">On Hold</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </label>
-              <div class="client-select-actions">
-                <button id="selectVisibleCandidatesBtn" type="button" class="btn btn-light">Select Visible</button>
-                <button id="clearSelectedCandidatesBtn" type="button" class="btn btn-light">Clear</button>
+          <article class="card workspace-card client-workspace-card">
+            <div class="workspace-head">
+              <div class="workspace-copy">
+                <p id="clientRequestsHeroKicker" class="workspace-kicker">Request workflow</p>
+                <h4>Client Requests</h4>
+                <p id="clientRequestsHeroSubtitle" class="card-subtitle">Build a shortlist, compose a request, and track decisions without losing context.</p>
+              </div>
+              <div class="workspace-actions client-workspace-actions">
+                <div class="workspace-meta-row client-requests-meta-row">
+                  <span id="clientSelectedMeta" class="head-meta">0 selected</span>
+                  <span id="clientRequestHeroSecondaryMeta" class="head-meta">0 open</span>
+                </div>
+                <button id="openClientRequestDrawerBtn" type="button" class="btn btn-primary" hidden>Compose Request</button>
               </div>
             </div>
-            <div class="table-wrap">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Select</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Section</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="clientPoolTableBody"></tbody>
-              </table>
-            </div>
-            <div id="clientPoolPagination" class="table-pagination" hidden>
-              <button id="clientPoolPrevPage" type="button" class="btn btn-light">Previous</button>
-              <p id="clientPoolPageMeta" class="table-pagination-meta"></p>
-              <label class="table-pagination-size">
-                Rows
-                <select id="clientPoolPageSize">
-                  <option value="10">10</option>
-                  <option value="20" selected>20</option>
-                  <option value="40">40</option>
-                </select>
-              </label>
-              <button id="clientPoolNextPage" type="button" class="btn btn-light">Next</button>
-            </div>
           </article>
 
-          <article class="card">
-            <div class="card-head">
-              <h4>Request Interview & CEO Schedule</h4>
-            </div>
-            <form id="clientRequestForm" class="client-request-form">
-              <label>
-                Client Name
-                <input id="clientRequestName" type="text" required maxlength="120" autocomplete="name" placeholder="Company representative name">
-              </label>
-              <label>
-                Client Email
-                <input id="clientRequestEmail" type="email" required maxlength="320" autocomplete="email" placeholder="you@company.com">
-              </label>
-              <label>
-                Company
-                <input id="clientRequestCompany" type="text" maxlength="160" autocomplete="off" placeholder="Company name">
-              </label>
-              <label>
-                Preferred Interview Date & Time
-                <input id="clientInterviewDateTime" type="datetime-local">
-              </label>
-              <label>
-                Preferred CEO Meeting Date & Time
-                <input id="clientCeoMeetingDateTime" type="datetime-local">
-              </label>
-              <label class="checkbox-row">
-                <input id="clientCeoIncluded" type="checkbox" checked>
-                Include CEO in interview session
-              </label>
-              <label class="span-2">
-                Message to Management
-                <textarea id="clientRequestMessage" rows="4" maxlength="5000" placeholder="Tell us what role you need, what skills matter most, and interview expectations."></textarea>
-              </label>
-              <div class="client-request-actions span-2">
-                <button type="submit" class="btn btn-primary">Send Request</button>
+          <div id="clientRequesterWorkspace" class="client-workspace-grid client-requester-workspace">
+            <details id="clientPoolPanel" class="card client-pool-card collapsible-card client-pool-collapsible" open>
+              <summary class="card-head compact-card-head collapsible-summary client-pool-summary">
+                <div class="collapsible-summary-copy">
+                  <h4>Select Candidate Profiles</h4>
+                  <p class="card-subtitle">Choose the strongest candidates, then send a polished request.</p>
+                </div>
+                <span class="collapse-chip">Candidates</span>
+              </summary>
+              <div class="collapsible-body client-pool-collapsible-body">
+                <div class="utility-bar client-toolbar client-pool-toolbar">
+                  <label class="utility-field utility-field-search">
+                    <span>Search</span>
+                    <input id="clientPoolSearch" type="text" placeholder="Search candidates by name, email, skill">
+                  </label>
+                  <label class="utility-field">
+                    <span>Section</span>
+                    <select id="clientPoolSectionFilter"></select>
+                  </label>
+                  <label class="utility-field">
+                    <span>Status</span>
+                    <select id="clientPoolStatusFilter">
+                      <option value="">Talent Pool + Shortlisted</option>
+                      <option value="shortlisted">Shortlisted</option>
+                      <option value="talent_pool">Talent Pool</option>
+                      <option value="on_hold">On Hold</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </label>
+                  <div class="client-select-actions">
+                    <button id="selectVisibleCandidatesBtn" type="button" class="btn btn-light">Select Visible</button>
+                    <button id="clearSelectedCandidatesBtn" type="button" class="btn btn-light">Clear</button>
+                  </div>
+                </div>
+                <div class="table-wrap client-pool-table-wrap">
+                  <table class="data-table client-pool-table">
+                    <thead>
+                      <tr>
+                        <th>Select</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Section</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="clientPoolTableBody"></tbody>
+                  </table>
+                </div>
+                <div id="clientPoolPagination" class="table-pagination client-pool-pagination" hidden>
+                  <button id="clientPoolPrevPage" type="button" class="btn btn-light pagination-btn">
+                    <span class="pagination-btn-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><path d="M14.5 6 8.5 12l6 6" /></svg>
+                    </span>
+                    <span class="pagination-btn-label">Prev</span>
+                  </button>
+                  <p id="clientPoolPageMeta" class="table-pagination-meta"></p>
+                  <button id="clientPoolNextPage" type="button" class="btn btn-light pagination-btn">
+                    <span class="pagination-btn-label">Next</span>
+                    <span class="pagination-btn-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6" /></svg>
+                    </span>
+                  </button>
+                </div>
+
               </div>
-            </form>
-          </article>
+            </details>
 
-          <article class="card">
-            <div class="card-head">
-              <h4>Request Tracker</h4>
-              <span id="clientRequestsMeta" class="head-meta"></span>
-            </div>
-            <div id="clientRequestsList" class="client-requests-list"></div>
-          </article>
+            <article id="clientRequestSummaryCard" class="card client-request-summary-card client-request-builder-card">
+              <div class="card-head compact-card-head">
+                <div>
+                  <h4>Request Builder</h4>
+                  <p class="card-subtitle">Pick candidate profiles, complete the request details, and send everything in one smooth flow.</p>
+                </div>
+                <span class="head-meta">Builder</span>
+              </div>
+              <div class="client-summary-grid client-request-builder-summary">
+                <div class="client-summary-item">
+                  <span>Selected profiles</span>
+                  <strong id="clientSelectedMetaSecondary">0</strong>
+                </div>
+                <div class="client-summary-item">
+                  <span>Open requests</span>
+                  <strong id="clientRequestsMetaSecondary">0</strong>
+                </div>
+                <div class="client-summary-item">
+                  <span>Finalized hires</span>
+                  <strong id="hiredProfilesMetaSecondary">0</strong>
+                </div>
+              </div>
+              <form id="clientRequestForm" class="client-request-form client-request-form-grid client-request-builder-form">
+                <label>
+                  Client Name
+                  <input id="clientRequestName" type="text" required maxlength="120" autocomplete="name" placeholder="Company representative name">
+                </label>
+                <label>
+                  Client Email
+                  <input id="clientRequestEmail" type="email" required maxlength="320" autocomplete="email" placeholder="you@company.com">
+                </label>
+                <label>
+                  Company
+                  <input id="clientRequestCompany" type="text" maxlength="160" autocomplete="off" placeholder="Company name">
+                </label>
+                <label>
+                  Preferred Interview Date & Time
+                  <input id="clientInterviewDateTime" type="datetime-local">
+                </label>
+                <label>
+                  Preferred CEO Meeting Date & Time
+                  <input id="clientCeoMeetingDateTime" type="datetime-local">
+                </label>
+                <label class="checkbox-row">
+                  <input id="clientCeoIncluded" type="checkbox" checked>
+                  Include CEO in interview session
+                </label>
+                <label class="span-2">
+                  Message to Management
+                  <textarea id="clientRequestMessage" rows="5" maxlength="5000" placeholder="Tell us what role you need, what skills matter most, and interview expectations."></textarea>
+                </label>
+                <div class="client-request-actions span-2 drawer-form-actions">
+                  <button id="clientRequestSubmitBtn" type="submit" class="btn btn-primary">Send Request</button>
+                </div>
+              </form>
+            </article>
+          </div>
 
-          <article class="card">
-            <div class="card-head">
-              <h4>Hired Profiles by Client</h4>
-              <span id="hiredProfilesMeta" class="head-meta"></span>
-            </div>
-            <div class="table-wrap">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Applicant</th>
-                    <th>Client</th>
-                    <th>Company</th>
-                    <th>Hired At</th>
-                  </tr>
-                </thead>
-                <tbody id="hiredProfilesTableBody"></tbody>
-              </table>
-            </div>
-          </article>
+          <div id="clientAdminWorkspace" class="client-admin-workspace" hidden>
+            <article id="clientRequestTrackerCard" class="card request-tracker-card">
+              <div class="card-head compact-card-head">
+                <div>
+                  <h4>Request Tracker</h4>
+                  <p class="card-subtitle">Review status changes, schedules, and finalization actions.</p>
+                </div>
+                <span id="clientRequestsMeta" class="head-meta"></span>
+              </div>
+              <div id="clientRequestsList" class="client-requests-list"></div>
+            </article>
+
+            <article id="hiredProfilesCard" class="card hired-profiles-card">
+              <div class="card-head compact-card-head">
+                <div>
+                  <h4>Hired Profiles by Client</h4>
+                  <p class="card-subtitle">Finalized placements across recent client requests.</p>
+                </div>
+                <span id="hiredProfilesMeta" class="head-meta"></span>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Applicant</th>
+                      <th>Client</th>
+                      <th>Company</th>
+                      <th>Hired At</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hiredProfilesTableBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
         </section>
       </main>
     </div>
+
+    <nav class="mobile-tabbar" aria-label="Primary admin navigation">
+      <button type="button" class="nav-btn mobile-tab-btn" data-view="overview">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+        </span>
+        <span class="nav-text">Overview</span>
+      </button>
+      <button type="button" class="nav-btn mobile-tab-btn" data-view="participants">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-8 2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 1c-2.7 0-8 1.35-8 4v3h16v-3c0-2.65-5.3-4-8-4ZM8 15c-.64 0-1.36.07-2.09.22C3.98 15.64 2 16.63 2 18.5V21h5v-3c0-1.1.42-2.05 1.15-2.81A1.7 1.7 0 0 0 8 15Z" /></svg>
+        </span>
+        <span class="nav-text">Talent</span>
+      </button>
+      <button type="button" class="nav-btn mobile-tab-btn" data-view="sections">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" /></svg>
+        </span>
+        <span class="nav-text">Sections</span>
+      </button>
+      <button type="button" class="nav-btn mobile-tab-btn" data-view="client-requests">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.91V17h2V9L12 3Zm0 14L5.74 13.58 4.3 14.36 12 18.55l7.7-4.19-1.44-.78L12 17Z" /></svg>
+        </span>
+        <span class="nav-text">Requests</span>
+      </button>
+      <button type="button" class="nav-btn mobile-tab-btn" data-view="accounts">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v2h16v-2c0-2.76-3.58-5-8-5Z" /></svg>
+        </span>
+        <span class="nav-text">Accounts</span>
+      </button>
+    </nav>
   </div>
 
-  <div id="participantModal" class="modal" hidden>
+  <section id="workflowDrawer" class="modal workflow-drawer" hidden aria-modal="true" role="dialog" aria-labelledby="workflowDrawerTitle">
+    <div id="workflowDrawerBackdrop" class="modal-backdrop"></div>
+    <div class="modal-panel workflow-drawer-panel">
+      <header class="modal-head workflow-drawer-head">
+        <div class="modal-head-copy">
+          <p id="workflowDrawerEyebrow" class="eyebrow">Workspace</p>
+          <h4 id="workflowDrawerTitle">Drawer</h4>
+          <p id="workflowDrawerSubtitle" class="modal-subtitle">Create, update, and compose without leaving the current list.</p>
+        </div>
+        <button id="workflowDrawerClose" class="btn btn-light modal-close-btn" type="button">Close</button>
+      </header>
+      <div class="workflow-drawer-body">
+        <section id="sectionDrawerPanel" class="workflow-drawer-view" hidden>
+          <form id="sectionForm" class="drawer-form">
+            <input id="sectionEditId" type="hidden">
+            <label class="field">
+              <span class="field-label">Section Name</span>
+              <input id="sectionName" type="text" maxlength="120" placeholder="Section name (e.g., Mobile App Developers)">
+            </label>
+            <label class="field">
+              <span class="field-label">Description</span>
+              <input id="sectionDescription" type="text" maxlength="240" placeholder="Description (optional)">
+            </label>
+            <footer class="drawer-form-actions">
+              <button id="sectionSubmitBtn" type="submit" class="btn btn-primary">Save Section</button>
+            </footer>
+          </form>
+        </section>
+
+        <section id="accountDrawerPanel" class="workflow-drawer-view" hidden>
+          <form id="accountForm" class="account-form-grid drawer-form">
+            <input id="accountFormMode" type="hidden" value="create">
+            <input id="accountTargetId" type="hidden">
+            <label id="accountFirstNameField" class="account-field">
+              <span>First Name</span>
+              <input id="accountFirstName" type="text" maxlength="60" autocomplete="given-name" placeholder="e.g. Alex">
+            </label>
+            <label id="accountLastNameField" class="account-field">
+              <span>Last Name</span>
+              <input id="accountLastName" type="text" maxlength="60" autocomplete="family-name" placeholder="e.g. Santos">
+            </label>
+            <label id="accountUsernameField" class="account-field">
+              <span>Username</span>
+              <input id="accountUsername" type="text" maxlength="40" autocomplete="username" placeholder="team.username">
+            </label>
+            <label id="accountSecretCityField" class="account-field">
+              <span>City of Birth</span>
+              <input id="accountSecretAnswerCity" type="text" maxlength="120" autocomplete="off" placeholder="Secret answer">
+            </label>
+            <label id="accountSecretSchoolField" class="account-field">
+              <span>First School</span>
+              <input id="accountSecretAnswerSchool" type="text" maxlength="120" autocomplete="off" placeholder="Secret answer">
+            </label>
+            <label id="accountSecretNicknameField" class="account-field">
+              <span>Childhood Nickname</span>
+              <input id="accountSecretAnswerNickname" type="text" maxlength="120" autocomplete="off" placeholder="Secret answer">
+            </label>
+            <label id="accountPasswordField" class="account-field">
+              <span>Password</span>
+              <input id="accountPassword" type="password" maxlength="120" autocomplete="new-password" placeholder="Minimum 8 characters">
+            </label>
+            <label id="accountPasswordConfirmField" class="account-field">
+              <span>Confirm Password</span>
+              <input id="accountPasswordConfirm" type="password" maxlength="120" autocomplete="new-password" placeholder="Re-enter password">
+            </label>
+            <p id="accountFormNote" class="account-form-note">Passwords must be 8-120 characters and include at least one letter and one number.</p>
+            <footer class="drawer-form-actions">
+              <button id="accountSubmitBtn" type="submit" class="btn btn-primary account-submit-btn">Create Account</button>
+            </footer>
+          </form>
+        </section>
+
+        <section id="clientRequestDrawerPanel" class="workflow-drawer-view" data-disabled="true" hidden>
+          <div class="drawer-empty-state">
+            <p>Client requests now use the inline request builder in the Client Requests workspace.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <div id="participantModal" class="modal participant-drawer" hidden>
     <div id="participantModalBackdrop" class="modal-backdrop"></div>
     <div class="modal-panel">
       <header class="modal-head">
         <div class="modal-head-copy">
           <h4 id="participantModalTitle">Participant</h4>
-          <p class="modal-subtitle">Capture profile, role fit, and section assignment in one pass.</p>
+          <p id="participantModalSubtitle" class="modal-subtitle">Capture profile, role fit, and section assignment in one pass.</p>
         </div>
-        <button id="participantModalClose" class="btn btn-light modal-close-btn" type="button">Close</button>
+        <div class="modal-head-actions">
+          <button id="participantModalEditBtn" class="btn btn-primary modal-edit-btn" type="button" data-action="edit-participant-detail" hidden>Edit</button>
+          <button id="participantModalClose" class="btn btn-light modal-close-btn" type="button">Close</button>
+        </div>
       </header>
       <section id="participantProfileHero" class="participant-profile-hero" hidden></section>
+      <section id="participantDetailView" class="participant-detail-view" hidden></section>
       <form id="participantForm" class="modal-form">
         <input id="participantId" type="hidden">
         <label class="field">
@@ -540,6 +933,26 @@
           <span id="systemActionSecondaryLabel" class="field-label">Value</span>
           <input id="systemActionSecondaryInput" type="text" maxlength="240">
         </label>
+        <label id="systemActionTertiaryField" class="field action-modal-field" hidden>
+          <span id="systemActionTertiaryLabel" class="field-label">Value</span>
+          <input id="systemActionTertiaryInput" type="text" maxlength="240">
+        </label>
+        <label id="systemActionQuaternaryField" class="field action-modal-field" hidden>
+          <span id="systemActionQuaternaryLabel" class="field-label">Value</span>
+          <input id="systemActionQuaternaryInput" type="text" maxlength="240">
+        </label>
+        <label id="systemActionQuinaryField" class="field action-modal-field" hidden>
+          <span id="systemActionQuinaryLabel" class="field-label">Value</span>
+          <input id="systemActionQuinaryInput" type="text" maxlength="240">
+        </label>
+        <label id="systemActionNotesField" class="field action-modal-field" hidden>
+          <span id="systemActionNotesLabel" class="field-label">Notes</span>
+          <textarea id="systemActionNotesInput" rows="4" maxlength="3000" placeholder="Optional note"></textarea>
+        </label>
+        <fieldset id="systemActionChecklistField" class="field action-modal-field action-modal-checklist" hidden>
+          <legend id="systemActionChecklistLabel" class="field-label">Selection</legend>
+          <div id="systemActionChecklist"></div>
+        </fieldset>
         <footer class="modal-actions action-modal-actions">
           <button id="systemActionCancel" type="button" class="btn btn-light">Cancel</button>
           <button id="systemActionConfirm" type="submit" class="btn btn-primary">Confirm</button>
@@ -548,6 +961,6 @@
     </div>
   </section>
 
-  <script src="/assets/js/admin.js?v=20260306a" defer></script>
+  <script src="/assets/js/admin.js?v=20260310z" defer></script>
 </body>
 </html>

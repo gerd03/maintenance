@@ -1,3 +1,14 @@
+require('dotenv').config();
+const { Resend } = require('resend');
+const {
+  buildPublicBaseUrl,
+  buildPasswordResetEmailTemplate,
+} = require('../lib/admin-auth-notifications');
+const {
+  buildClientRequestEmailTemplate: buildAdminClientRequestEmailTemplate,
+  buildClientStatusEmailTemplate,
+  getSupportEmail,
+} = require('../lib/admin-crm-email');
 const {
   STATUS_OPTIONS,
   resolveUserFromRequest,
@@ -15,22 +26,71 @@ const {
   getSystemAdminPublic,
   listAccounts,
   createSubAccount,
+  createPublicAccount,
   updateSubAccount,
   deleteSubAccount,
+  changeOwnPassword,
+  createPasswordResetRequest,
+  resetPasswordWithToken,
   listClientRequests,
   createClientRequest,
   updateClientRequestStatus,
   finalizeClientRequest,
+  markClientRequestEventNotification,
   authenticateUser,
   createTokenForUser,
 } = require('../lib/admin-crm');
 
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+
+function allowedOrigins() {
+  return new Set(
+    String(process.env.CORS_ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+function isAllowedOrigin(req, originRaw) {
+  if (!originRaw) {
+    return true;
+  }
+
+  try {
+    const origin = new URL(originRaw);
+    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '')
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+
+    return origin.host.toLowerCase() === host || allowedOrigins().has(origin.origin.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 function setCors(req, res, methods) {
   const origin = req.headers.origin;
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  if (origin && isAllowedOrigin(req, origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', methods || 'GET,OPTIONS,POST,PUT,DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
+}
+
+function rejectIfUntrustedOrigin(req, res) {
+  const origin = req.headers.origin;
+  if (origin && !isAllowedOrigin(req, origin)) {
+    res.status(403).json({
+      success: false,
+      error: 'Origin not allowed.',
+    });
+    return true;
+  }
+  return false;
 }
 
 function parseBody(body) {
@@ -86,6 +146,8 @@ function toPublicUser(user) {
   return {
     username: user.username,
     displayName: user.displayName || user.username,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
     role: user.role,
   };
 }
@@ -96,6 +158,39 @@ function sendError(res, error) {
     success: false,
     error: error?.message || 'Unexpected admin endpoint error.',
   });
+}
+
+async function sendPasswordResetEmail(resetPayload, req) {
+  if (!resetPayload || resetPayload.delivery !== 'email') {
+    return false;
+  }
+
+  if (!resend || !RESEND_API_KEY || !resetPayload.account?.recoveryEmail) {
+    return false;
+  }
+
+  const baseUrl = buildPublicBaseUrl(req);
+  const resetUrl = `${baseUrl}/admin?reset_token=${encodeURIComponent(resetPayload.resetToken || '')}`;
+  const template = buildPasswordResetEmailTemplate({
+    account: resetPayload.account,
+    resetUrl,
+    expiresAt: resetPayload.expiresAt,
+  });
+
+  const { error } = await resend.emails.send({
+    from: 'AOAS CRM <support@attainmentofficeadserv.org>',
+    to: [resetPayload.account.recoveryEmail],
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
+
+  if (error) {
+    console.error('Password reset email failed:', JSON.stringify(error, null, 2));
+    return false;
+  }
+
+  return true;
 }
 
 function normalizePath(req) {
@@ -128,6 +223,9 @@ function clientRequestPathParts(pathname) {
 
 async function handleLogin(req, res) {
   setCors(req, res, 'POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -171,8 +269,127 @@ async function handleLogin(req, res) {
   }
 }
 
+async function handleSignup(req, res) {
+  setCors(req, res, 'POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  if (req.method !== 'POST') {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const payload = parseBody(req.body);
+    const account = await createPublicAccount(payload);
+    res.status(201).json({
+      success: true,
+      account,
+      message: 'Account created successfully. You can now sign in.',
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+async function handlePasswordResetRequest(req, res) {
+  setCors(req, res, 'POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  if (req.method !== 'POST') {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const payload = parseBody(req.body);
+    const resetPayload = await createPasswordResetRequest(payload, {
+      requestedIp: String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim(),
+      requestedUserAgent: req.headers['user-agent'] || '',
+    });
+    res.status(200).json({
+      success: true,
+      resetToken: resetPayload.resetToken || '',
+      expiresAt: resetPayload.expiresAt || '',
+      message: 'Secret answers verified. You can now set a new password.',
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+async function handlePasswordResetConfirm(req, res) {
+  setCors(req, res, 'POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  if (req.method !== 'POST') {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const payload = parseBody(req.body);
+    await resetPasswordWithToken(payload);
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully. You can now sign in.',
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+async function handleChangePassword(req, res) {
+  setCors(req, res, 'POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  if (req.method !== 'POST') {
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const user = await resolveUserFromRequest(req);
+    assertAuthenticated(user);
+    const payload = parseBody(req.body);
+    await changeOwnPassword(user, payload);
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully.',
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
 async function handleMe(req, res) {
   setCors(req, res, 'GET,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -197,6 +414,9 @@ async function handleMe(req, res) {
 
 async function handleDashboard(req, res) {
   setCors(req, res, 'GET,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -225,6 +445,9 @@ async function handleDashboard(req, res) {
 
 async function handleSections(req, res) {
   setCors(req, res, 'GET,POST,PUT,DELETE,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -281,6 +504,9 @@ async function handleSections(req, res) {
 
 async function handleParticipants(req, res) {
   setCors(req, res, 'GET,POST,PUT,DELETE,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -364,6 +590,9 @@ async function handleParticipants(req, res) {
 
 async function handleAccounts(req, res) {
   setCors(req, res, 'GET,POST,PUT,DELETE,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -423,6 +652,9 @@ async function handleAccounts(req, res) {
 
 async function handleClientRequests(req, res) {
   setCors(req, res, 'GET,POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -443,10 +675,35 @@ async function handleClientRequests(req, res) {
 
     if (req.method === 'POST') {
       const requestRecord = await createClientRequest(payload, user);
+      let notificationSent = false;
+
+      if (resend && RESEND_API_KEY) {
+        try {
+          const template = buildAdminClientRequestEmailTemplate(requestRecord);
+          const { error } = await resend.emails.send({
+            from: 'AOAS CRM <support@attainmentofficeadserv.org>',
+            to: [getSupportEmail()],
+            reply_to: requestRecord.clientEmail,
+            headers: {
+              'Reply-To': requestRecord.clientEmail,
+            },
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          });
+
+          if (!error) {
+            notificationSent = true;
+          }
+        } catch (emailError) {
+          console.error('Client request notification error:', emailError.message || emailError);
+        }
+      }
+
       res.status(201).json({
         success: true,
         request: requestRecord,
-        notificationSent: false,
+        notificationSent,
       });
       return;
     }
@@ -468,6 +725,9 @@ async function handleClientRequests(req, res) {
 
 async function handleClientRequestStatus(req, res, requestId) {
   setCors(req, res, 'PUT,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -490,8 +750,49 @@ async function handleClientRequestStatus(req, res, requestId) {
       return;
     }
 
-    const requestRecord = await updateClientRequestStatus(requestId, payload, user);
-    res.status(200).json({ success: true, request: requestRecord });
+    const result = await updateClientRequestStatus(requestId, payload, user);
+    let notificationSent = false;
+    let notificationError = '';
+
+    if (resend && RESEND_API_KEY && result.request?.clientEmail) {
+      try {
+        const template = buildClientStatusEmailTemplate(result.request, {
+          event: result.event,
+        });
+        const { error } = await resend.emails.send({
+          from: 'AOAS CRM <support@attainmentofficeadserv.org>',
+          to: [result.request.clientEmail],
+          reply_to: getSupportEmail(),
+          headers: {
+            'Reply-To': getSupportEmail(),
+          },
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
+
+        if (error) {
+          notificationError = error.message || 'Email send failed.';
+        } else {
+          notificationSent = true;
+        }
+      } catch (emailError) {
+        notificationError = emailError.message || 'Email send failed.';
+      }
+    }
+
+    if (result.event?.id) {
+      await markClientRequestEventNotification(result.event.id, {
+        notificationSent,
+        notificationError,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      request: result.request,
+      notificationSent,
+    });
   } catch (error) {
     sendError(res, error);
   }
@@ -499,6 +800,9 @@ async function handleClientRequestStatus(req, res, requestId) {
 
 async function handleClientRequestFinalize(req, res, requestId) {
   setCors(req, res, 'POST,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -514,6 +818,7 @@ async function handleClientRequestFinalize(req, res, requestId) {
   try {
     const user = await resolveUserFromRequest(req);
     assertAuthenticated(user);
+    assertAdmin(user);
 
     if (!requestId) {
       res.status(400).json({ success: false, error: 'request id is required.' });
@@ -521,11 +826,49 @@ async function handleClientRequestFinalize(req, res, requestId) {
     }
 
     const result = await finalizeClientRequest(requestId, payload, user);
+    let notificationSent = false;
+    let notificationError = '';
+
+    if (resend && RESEND_API_KEY && result.request?.clientEmail) {
+      try {
+        const template = buildClientStatusEmailTemplate(result.request, {
+          event: result.event,
+          hiredProfiles: result.hiredProfiles || [],
+        });
+        const { error } = await resend.emails.send({
+          from: 'AOAS CRM <support@attainmentofficeadserv.org>',
+          to: [result.request.clientEmail],
+          reply_to: getSupportEmail(),
+          headers: {
+            'Reply-To': getSupportEmail(),
+          },
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
+
+        if (error) {
+          notificationError = error.message || 'Email send failed.';
+        } else {
+          notificationSent = true;
+        }
+      } catch (emailError) {
+        notificationError = emailError.message || 'Email send failed.';
+      }
+    }
+
+    if (result.event?.id) {
+      await markClientRequestEventNotification(result.event.id, {
+        notificationSent,
+        notificationError,
+      });
+    }
+
     res.status(200).json({
       success: true,
       request: result.request,
       hiredProfiles: result.hiredProfiles || [],
-      notificationSent: false,
+      notificationSent,
     });
   } catch (error) {
     sendError(res, error);
@@ -533,10 +876,14 @@ async function handleClientRequestFinalize(req, res, requestId) {
 }
 
 module.exports = async (req, res) => {
+  require('dotenv').config({ override: true });
   const pathname = normalizePath(req);
 
   if (!pathname || pathname === '/') {
     setCors(req, res, 'GET,OPTIONS');
+    if (rejectIfUntrustedOrigin(req, res)) {
+      return;
+    }
     if (req.method === 'OPTIONS') {
       res.status(204).end();
       return;
@@ -550,6 +897,22 @@ module.exports = async (req, res) => {
 
   if (pathname === 'login') {
     await handleLogin(req, res);
+    return;
+  }
+  if (pathname === 'signup') {
+    await handleSignup(req, res);
+    return;
+  }
+  if (pathname === 'password-reset/request') {
+    await handlePasswordResetRequest(req, res);
+    return;
+  }
+  if (pathname === 'password-reset/confirm') {
+    await handlePasswordResetConfirm(req, res);
+    return;
+  }
+  if (pathname === 'change-password') {
+    await handleChangePassword(req, res);
     return;
   }
   if (pathname === 'me') {
@@ -588,6 +951,9 @@ module.exports = async (req, res) => {
   }
 
   setCors(req, res, 'GET,POST,PUT,DELETE,OPTIONS');
+  if (rejectIfUntrustedOrigin(req, res)) {
+    return;
+  }
   if (req.method === 'OPTIONS') {
     res.status(204).end();
     return;

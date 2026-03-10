@@ -6189,10 +6189,16 @@ body.service-reveal-enabled .service-animate.is-visible {
         right: 14px;
         bottom: max(12px, env(safe-area-inset-bottom));
         width: auto;
+        left: auto !important;
+        top: auto !important;
     }
 
     .aoas-chat-widget.open {
         width: min(290px, calc(100vw - 20px));
+        right: 10px !important;
+        left: auto !important;
+        top: auto !important;
+        bottom: max(12px, env(safe-area-inset-bottom)) !important;
     }
 
     .aoas-chat-toggle {

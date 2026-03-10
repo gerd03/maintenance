@@ -7,6 +7,15 @@ const { Resend } = require('resend');
 const { handleContactSubmission } = require('./lib/contact-handler');
 const careersApiHandler = require('./api/careers');
 const {
+  buildPublicBaseUrl,
+  buildPasswordResetEmailTemplate,
+} = require('./lib/admin-auth-notifications');
+const {
+  buildClientRequestEmailTemplate: buildAdminClientRequestEmailTemplate,
+  buildClientStatusEmailTemplate,
+  getSupportEmail,
+} = require('./lib/admin-crm-email');
+const {
   appendJsonLine,
   readJsonLines,
   buildMetricsFromRecords,
@@ -33,16 +42,81 @@ const {
   deleteParticipant,
   listAccounts,
   createSubAccount,
+  createPublicAccount,
   updateSubAccount,
   deleteSubAccount,
+  changeOwnPassword,
+  createPasswordResetRequest,
+  resetPasswordWithToken,
   listClientRequests,
   createClientRequest,
   updateClientRequestStatus,
   finalizeClientRequest,
+  markClientRequestEventNotification,
 } = require('./lib/admin-crm');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+function readEnvValue(...keys) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+function decodeJwtPayload(token) {
+  if (typeof token !== 'string' || token.split('.').length < 2) {
+    return null;
+  }
+
+  const payloadPart = token.split('.', 3)[1];
+  if (!payloadPart) {
+    return null;
+  }
+
+  try {
+    const payloadJson = Buffer.from(payloadPart, 'base64url').toString('utf8');
+    const payload = JSON.parse(payloadJson);
+    return payload && typeof payload === 'object' ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+const missingAdminEnv = [];
+if (!readEnvValue('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE URL')) {
+  missingAdminEnv.push('SUPABASE_URL');
+}
+const supabaseServiceRoleKey = readEnvValue(
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_SECRET_KEY',
+  'SUPABASE SERVICE ROLE KEY',
+  'SUPABASE SECRET KEY',
+);
+if (!supabaseServiceRoleKey) {
+  missingAdminEnv.push('SUPABASE_SERVICE_ROLE_KEY');
+}
+if (!readEnvValue('ADMIN_PASSWORD', 'ADMIN PASSWORD')) {
+  missingAdminEnv.push('ADMIN_PASSWORD');
+}
+if (missingAdminEnv.length) {
+  console.warn(`[WARN] Admin CRM env missing: ${missingAdminEnv.join(', ')}`);
+}
+if (supabaseServiceRoleKey) {
+  const payload = decodeJwtPayload(supabaseServiceRoleKey);
+  const roleClaim = payload && typeof payload.role === 'string' ? payload.role.trim() : '';
+  if (roleClaim && roleClaim !== 'service_role') {
+    console.warn(`[WARN] SUPABASE_SERVICE_ROLE_KEY role claim is "${roleClaim}". Expected "service_role".`);
+  }
+  const supabaseAnonKey = readEnvValue('SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE ANON KEY');
+  if (supabaseAnonKey && supabaseAnonKey === supabaseServiceRoleKey) {
+    console.warn('[WARN] SUPABASE_SERVICE_ROLE_KEY matches SUPABASE_ANON_KEY. Use the service_role key from Supabase.');
+  }
+}
 
 // Get and validate API key
 const RESEND_API_KEY = process.env.RESEND_API_KEY?.trim();
@@ -55,8 +129,7 @@ if (!RESEND_API_KEY) {
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 if (RESEND_API_KEY) {
-  console.log('[OK] Resend API initialized successfully');
-  console.log(`[OK] API Key loaded: ${RESEND_API_KEY.substring(0, 10)}...${RESEND_API_KEY.substring(RESEND_API_KEY.length - 4)}`);
+  console.log('[OK] Resend email client initialized');
 } else {
   console.warn('RESEND_API_KEY not set - email functionality will not work');
 }
@@ -64,6 +137,12 @@ if (RESEND_API_KEY) {
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use('/api/admin', (req, res, next) => {
+  if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+    require('dotenv').config({ override: true });
+  }
+  next();
+});
 app.use((err, req, res, next) => {
   if (err && err.type === 'entity.parse.failed') {
     res.status(400).json({
@@ -144,6 +223,8 @@ function toPublicUser(user) {
   return {
     username: user.username,
     displayName: user.displayName || user.username,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
     role: user.role,
   };
 }
@@ -211,6 +292,39 @@ function getNotificationRecipients() {
     return recipients;
   }
   return ['support@attainmentofficeadserv.org'];
+}
+
+async function sendPasswordResetEmail(resetPayload, req) {
+  if (!resetPayload || resetPayload.delivery !== 'email') {
+    return false;
+  }
+
+  if (!resend || !RESEND_API_KEY || !resetPayload.account?.recoveryEmail) {
+    return false;
+  }
+
+  const baseUrl = buildPublicBaseUrl(req);
+  const resetUrl = `${baseUrl}/admin?reset_token=${encodeURIComponent(resetPayload.resetToken || '')}`;
+  const template = buildPasswordResetEmailTemplate({
+    account: resetPayload.account,
+    resetUrl,
+    expiresAt: resetPayload.expiresAt,
+  });
+
+  const { error } = await resend.emails.send({
+    from: 'AOAS CRM <support@attainmentofficeadserv.org>',
+    to: [resetPayload.account.recoveryEmail],
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
+
+  if (error) {
+    console.error('Password reset email failed:', JSON.stringify(error, null, 2));
+    return false;
+  }
+
+  return true;
 }
 
 function buildClientRequestEmailTemplate(request) {
@@ -766,6 +880,65 @@ app.post('/api/admin/login', async (req, res) => {
   }
 });
 
+app.post('/api/admin/signup', async (req, res) => {
+  try {
+    const account = await createPublicAccount(req.body || {});
+    res.status(201).json({
+      success: true,
+      account,
+      message: 'Account created successfully. You can now sign in.',
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.post('/api/admin/password-reset/request', async (req, res) => {
+  try {
+    const resetPayload = await createPasswordResetRequest(req.body || {}, {
+      requestedIp: getRemoteIp(req),
+      requestedUserAgent: req.headers['user-agent'] || '',
+    });
+    res.json({
+      success: true,
+      resetToken: resetPayload.resetToken || '',
+      expiresAt: resetPayload.expiresAt || '',
+      message: 'Secret answers verified. You can now set a new password.',
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.post('/api/admin/password-reset/confirm', async (req, res) => {
+  try {
+    await resetPasswordWithToken(req.body || {});
+    res.json({
+      success: true,
+      message: 'Password updated successfully. You can now sign in.',
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
+app.post('/api/admin/change-password', async (req, res) => {
+  try {
+    const user = await requireAuthenticatedUser(req, res);
+    if (!user) {
+      return;
+    }
+
+    await changeOwnPassword(user, req.body || {});
+    res.json({
+      success: true,
+      message: 'Password updated successfully.',
+    });
+  } catch (error) {
+    sendAdminError(res, error);
+  }
+});
+
 app.get('/api/admin/me', async (req, res) => {
   try {
     const user = await requireAuthenticatedUser(req, res);
@@ -1122,7 +1295,7 @@ app.post('/api/admin/client-requests', async (req, res) => {
 
     if (resend && RESEND_API_KEY) {
       try {
-        const template = buildClientRequestEmailTemplate(requestRecord);
+        const template = buildAdminClientRequestEmailTemplate(requestRecord);
         const { error } = await resend.emails.send({
           from: 'AOAS CRM <support@attainmentofficeadserv.org>',
           to: getNotificationRecipients(),
@@ -1171,10 +1344,50 @@ app.put('/api/admin/client-requests/:id/status', async (req, res) => {
       return;
     }
 
-    const requestRecord = await updateClientRequestStatus(requestId, req.body || {}, user);
+    const result = await updateClientRequestStatus(requestId, req.body || {}, user);
+    let notificationSent = false;
+    let notificationError = '';
+
+    if (resend && RESEND_API_KEY && result.request?.clientEmail) {
+      try {
+        const template = buildClientStatusEmailTemplate(result.request, {
+          event: result.event,
+        });
+        const { error } = await resend.emails.send({
+          from: 'AOAS CRM <support@attainmentofficeadserv.org>',
+          to: [result.request.clientEmail],
+          reply_to: getSupportEmail(),
+          headers: {
+            'Reply-To': getSupportEmail(),
+          },
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
+
+        if (error) {
+          notificationError = error.message || 'Email send failed.';
+          console.error('Client status notification failed:', JSON.stringify(error, null, 2));
+        } else {
+          notificationSent = true;
+        }
+      } catch (emailError) {
+        notificationError = emailError.message || 'Email send failed.';
+        console.error('Client status notification error:', notificationError);
+      }
+    }
+
+    if (result.event?.id) {
+      await markClientRequestEventNotification(result.event.id, {
+        notificationSent,
+        notificationError,
+      });
+    }
+
     res.json({
       success: true,
-      request: requestRecord,
+      request: result.request,
+      notificationSent,
     });
   } catch (error) {
     sendAdminError(res, error);
@@ -1183,7 +1396,7 @@ app.put('/api/admin/client-requests/:id/status', async (req, res) => {
 
 app.post('/api/admin/client-requests/:id/finalize', async (req, res) => {
   try {
-    const user = await requireAuthenticatedUser(req, res);
+    const user = await requireAdminUser(req, res);
     if (!user) {
       return;
     }
@@ -1199,33 +1412,44 @@ app.post('/api/admin/client-requests/:id/finalize', async (req, res) => {
 
     const result = await finalizeClientRequest(requestId, req.body || {}, user);
     let notificationSent = false;
+    let notificationError = '';
 
-    if (resend && RESEND_API_KEY) {
+    if (resend && RESEND_API_KEY && result.request?.clientEmail) {
       try {
-        const template = buildHiringFinalizedEmailTemplate(result.request, result.hiredProfiles || []);
+        const template = buildClientStatusEmailTemplate(result.request, {
+          event: result.event,
+          hiredProfiles: result.hiredProfiles || [],
+        });
         const emailPayload = {
           from: 'AOAS CRM <support@attainmentofficeadserv.org>',
-          to: getNotificationRecipients(),
+          to: [result.request.clientEmail],
+          reply_to: getSupportEmail(),
+          headers: {
+            'Reply-To': getSupportEmail(),
+          },
           subject: template.subject,
           html: template.html,
           text: template.text,
         };
-        if (result.request?.clientEmail) {
-          emailPayload.reply_to = result.request.clientEmail;
-          emailPayload.headers = {
-            'Reply-To': result.request.clientEmail,
-          };
-        }
         const { error } = await resend.emails.send(emailPayload);
 
         if (error) {
+          notificationError = error.message || 'Email send failed.';
           console.error('Hiring finalized notification failed:', JSON.stringify(error, null, 2));
         } else {
           notificationSent = true;
         }
       } catch (emailError) {
+        notificationError = emailError.message || 'Email send failed.';
         console.error('Hiring finalized notification error:', emailError.message || emailError);
       }
+    }
+
+    if (result.event?.id) {
+      await markClientRequestEventNotification(result.event.id, {
+        notificationSent,
+        notificationError,
+      });
     }
 
     res.json({
@@ -1242,12 +1466,9 @@ app.post('/api/admin/client-requests/:id/finalize', async (req, res) => {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   require('dotenv').config({ override: true });
-  const runtimeResendKey = (process.env.RESEND_API_KEY || '').trim();
   res.json({
     status: 'ok',
     message: 'Server is running',
-    resendConfigured: !!runtimeResendKey,
-    apiKeyLength: runtimeResendKey ? runtimeResendKey.length : 0
   });
 });
 
@@ -1259,7 +1480,7 @@ module.exports = app;
 if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
   app.listen(PORT, () => {
     console.log(`\nServer is running on http://localhost:${PORT}`);
-    console.log('Resend API key is configured');
+    console.log(`Resend email status: ${RESEND_API_KEY ? 'configured' : 'not configured'}`);
     console.log(`Contact form endpoint: http://localhost:${PORT}/api/contact`);
     console.log(`\nReady to receive contact form submissions!\n`);
   });
