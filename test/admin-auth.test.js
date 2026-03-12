@@ -151,6 +151,21 @@ test('system admin can sign in without Supabase when environment credentials are
   });
 });
 
+test('legacy AOAS alias can sign in as system admin when password is correct', { concurrency: false }, async (t) => {
+  t.after(restoreEnv);
+  const adminCrm = loadAdminCrmWithEnv({
+    ADMIN_USERNAME: 'systemowner',
+    ADMIN_PASSWORD: 'StrongPass123',
+    SUPABASE_URL: '',
+    SUPABASE_SERVICE_ROLE_KEY: '',
+  });
+
+  const user = await adminCrm.authenticateUser('AOAS', 'StrongPass123');
+  assert.ok(user);
+  assert.equal(user.role, 'admin');
+  assert.equal(user.username, 'systemowner');
+});
+
 test('public signup validates password confirmation before touching Supabase', { concurrency: false }, async (t) => {
   t.after(restoreEnv);
   const app = loadAppWithEnv({

@@ -857,7 +857,6 @@ async function handleClientRequestRevoke(req, res, requestId, hireId) {
 }
 
 module.exports = async (req, res) => {
-  require('dotenv').config({ override: true });
   applySecurityHeaders(req, res);
   const pathname = normalizePath(req);
 
