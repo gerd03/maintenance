@@ -166,44 +166,11 @@ test('legacy AOAS alias can sign in as system admin when password is correct', {
   assert.equal(user.username, 'systemowner');
 });
 
-test('public signup validates password confirmation before touching Supabase', { concurrency: false }, async (t) => {
+test('public signup is blocked by policy', { concurrency: false }, async (t) => {
   t.after(restoreEnv);
   const app = loadAppWithEnv({
     ADMIN_USERNAME: 'admin',
     ADMIN_PASSWORD: 'StrongPass123',
-    ADMIN_SELF_SIGNUP_ENABLED: 'true',
-    SUPABASE_URL: '',
-    SUPABASE_SERVICE_ROLE_KEY: '',
-  });
-
-  await withServer(app, async (baseUrl) => {
-    const signup = await jsonRequest(baseUrl, '/api/admin/signup', {
-      method: 'POST',
-      body: {
-        firstName: 'Test',
-        lastName: 'User',
-        username: 'test-user',
-        secretAnswers: {
-          city_of_birth: 'Manila',
-          first_school: 'Central School',
-          childhood_nickname: 'TJ',
-        },
-        password: 'Password123',
-        confirmPassword: 'Password124',
-      },
-    });
-
-    assert.equal(signup.response.status, 400);
-    assert.match(String(signup.payload.error || ''), /confirmation/i);
-  });
-});
-
-test('public signup requires all three secret answers before touching Supabase', { concurrency: false }, async (t) => {
-  t.after(restoreEnv);
-  const app = loadAppWithEnv({
-    ADMIN_USERNAME: 'admin',
-    ADMIN_PASSWORD: 'StrongPass123',
-    ADMIN_SELF_SIGNUP_ENABLED: 'true',
     SUPABASE_URL: '',
     SUPABASE_SERVICE_ROLE_KEY: '',
   });
@@ -217,16 +184,57 @@ test('public signup requires all three secret answers before touching Supabase',
         username: 'test-user',
         password: 'Password123',
         confirmPassword: 'Password123',
-        secretAnswers: {
-          city_of_birth: 'Manila',
-          first_school: '',
-          childhood_nickname: 'TJ',
-        },
       },
     });
 
-    assert.equal(signup.response.status, 400);
-    assert.match(String(signup.payload.error || ''), /secret question/i);
+    assert.equal(signup.response.status, 403);
+    assert.match(String(signup.payload.error || ''), /public account creation is disabled/i);
+  });
+});
+
+test('system admin aliases return explicit config error when ADMIN_PASSWORD is missing', { concurrency: false }, async (t) => {
+  t.after(restoreEnv);
+  const app = loadAppWithEnv({
+    ADMIN_USERNAME: 'admin',
+    ADMIN_PASSWORD: ' ',
+    SUPABASE_URL: '',
+    SUPABASE_SERVICE_ROLE_KEY: '',
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const login = await jsonRequest(baseUrl, '/api/admin/login', {
+      method: 'POST',
+      body: {
+        username: 'aoas',
+        password: 'StrongPass123',
+      },
+    });
+
+    assert.equal(login.response.status, 503);
+    assert.match(String(login.payload.error || ''), /not configured correctly/i);
+  });
+});
+
+test('system admin aliases return explicit config error when placeholder ADMIN_PASSWORD is still set', { concurrency: false }, async (t) => {
+  t.after(restoreEnv);
+  const app = loadAppWithEnv({
+    ADMIN_USERNAME: 'admin',
+    ADMIN_PASSWORD: 'change-me-StrongPass123',
+    SUPABASE_URL: '',
+    SUPABASE_SERVICE_ROLE_KEY: '',
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const login = await jsonRequest(baseUrl, '/api/admin/login', {
+      method: 'POST',
+      body: {
+        username: 'admin',
+        password: 'change-me-StrongPass123',
+      },
+    });
+
+    assert.equal(login.response.status, 503);
+    assert.match(String(login.payload.error || ''), /not configured correctly/i);
   });
 });
 

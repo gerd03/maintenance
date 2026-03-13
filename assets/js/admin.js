@@ -840,9 +840,9 @@
       },
       signup: {
         counter: '02',
-        label: 'Create access',
-        description: 'Create a viewer account with a stronger recovery setup and clear identity details.',
-        progress: '56%',
+        label: 'Private access',
+        description: 'Account creation is managed by your administrator.',
+        progress: '25%',
       },
       recover: {
         counter: '03',
@@ -1795,7 +1795,7 @@
       return;
     }
 
-    applyTheme('light');
+    applyTheme('dark');
   }
 
   function handleThemeToggle() {
@@ -2541,9 +2541,10 @@
         const status = String(request.status || 'pending').toLowerCase();
         const statusClass = `request-${status}`;
         const interviewAt = request.interviewDateTime ? formatDateTime(request.interviewDateTime) : 'Pick a time';
-        const ceoAt = request.ceoIncluded
-          ? (request.ceoMeetingDateTime ? formatDateTime(request.ceoMeetingDateTime) : 'Included')
-          : 'Off';
+        const ceoMeetingAt = request.ceoIncluded
+          ? (request.ceoMeetingDateTime ? formatDateTime(request.ceoMeetingDateTime) : 'Not set')
+          : 'Not included';
+        const ceoMode = request.ceoIncluded ? 'Included' : 'Off';
         const admin = isAdmin();
         const latestEvent = Array.isArray(request.events) && request.events.length ? request.events[0] : null;
         const requestNote = String(latestEvent?.note || request.approvalNotes || '').trim();
@@ -2575,7 +2576,8 @@
         const summaryItems = [
           { key: 'profiles', label: 'Profiles', value: String(selectedCount), support: profileStackMarkup },
           { key: 'interview', label: 'Interview', value: interviewAt },
-          { key: 'ceo-mode', label: 'CEO', value: ceoAt },
+          { key: 'ceo-meeting', label: 'CEO Meeting', value: ceoMeetingAt },
+          { key: 'ceo-mode', label: 'CEO Mode', value: ceoMode },
         ];
         const summaryMarkup = summaryItems
           .map((item) => `

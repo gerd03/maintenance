@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="description" content="AOAS talent pool CRM dashboard">
   <link rel="icon" type="image/x-icon" href="/assets/icons/favicon.ico">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260312m">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260313a">
 </head>
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
@@ -83,7 +83,6 @@
           </div>
           <div class="auth-switcher" role="tablist" aria-label="Authentication views">
             <button id="authTabLogin" type="button" class="auth-tab active" data-auth-view="login">Sign In</button>
-            <button id="authTabSignup" type="button" class="auth-tab" data-auth-view="signup">Create</button>
             <button id="authTabRecover" type="button" class="auth-tab" data-auth-view="recover">Recover</button>
             <button id="authTabReset" type="button" class="auth-tab" data-auth-view="reset" hidden>Reset</button>
           </div>
@@ -102,69 +101,10 @@
                 <button type="submit" class="btn btn-primary">Continue</button>
               </form>
               <div class="auth-inline-links">
-                <button type="button" class="auth-link-btn" data-auth-view-target="signup">Create account</button>
                 <button type="button" class="auth-link-btn" data-auth-view-target="recover">Forgot password?</button>
               </div>
+              <p class="auth-access-note">Contact your administrator for account access.</p>
               <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
-            </section>
-
-            <section id="authPanelSignup" class="auth-panel" data-auth-panel="signup" hidden>
-              <form id="signupForm" class="login-form signup-form">
-                <div class="auth-stepper signup-stepper" aria-live="polite">
-                  <div class="auth-stepper-copy">
-                    <span id="signupStepCounter" class="auth-stepper-counter">Step 1 of 2</span>
-                    <strong id="signupStepTitle" class="auth-stepper-title">Identity details</strong>
-                  </div>
-                  <div class="auth-stepper-track" aria-hidden="true">
-                    <span id="signupStepProgress" class="auth-stepper-progress"></span>
-                  </div>
-                </div>
-                <div class="auth-form-step is-current" data-signup-step="1">
-                  <label>
-                    First Name
-                    <input id="signupFirstName" name="firstName" type="text" required maxlength="60" autocomplete="given-name" placeholder="First name">
-                  </label>
-                  <label>
-                    Last Name
-                    <input id="signupLastName" name="lastName" type="text" required maxlength="60" autocomplete="family-name" placeholder="Last name">
-                  </label>
-                  <label>
-                    Username
-                    <input id="signupUsername" name="username" type="text" required maxlength="40" autocomplete="username" placeholder="username">
-                  </label>
-                </div>
-                <div class="auth-form-step" data-signup-step="2" hidden>
-                  <label>
-                    Secret Answer: City of Birth
-                    <input id="signupSecretAnswerCity" name="secretAnswerCityOfBirth" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your city of birth">
-                  </label>
-                  <label>
-                    Secret Answer: First School
-                    <input id="signupSecretAnswerSchool" name="secretAnswerFirstSchool" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your first school">
-                  </label>
-                  <label>
-                    Secret Answer: Childhood Nickname
-                    <input id="signupSecretAnswerNickname" name="secretAnswerChildhoodNickname" type="text" required maxlength="120" autocomplete="off" placeholder="Enter your childhood nickname">
-                  </label>
-                  <label>
-                    Password
-                    <input id="signupPassword" name="password" type="password" required maxlength="120" autocomplete="new-password" placeholder="At least 8 chars, with letters and numbers">
-                  </label>
-                  <label>
-                    Confirm Password
-                    <input id="signupConfirmPassword" name="confirmPassword" type="password" required maxlength="120" autocomplete="new-password" placeholder="Repeat password">
-                  </label>
-                </div>
-                <div class="signup-step-actions">
-                  <button id="signupPrevBtn" type="button" class="btn btn-light" hidden>Back</button>
-                  <button id="signupNextBtn" type="button" class="btn btn-light">Next</button>
-                  <button id="signupSubmitBtn" type="submit" class="btn btn-primary" hidden>Create Account</button>
-                </div>
-              </form>
-              <div class="auth-inline-links">
-                <button type="button" class="auth-link-btn" data-auth-view-target="login">Back to sign in</button>
-              </div>
-              <p id="signupMessage" class="message" role="status" aria-live="polite"></p>
             </section>
 
             <section id="authPanelRecover" class="auth-panel" data-auth-panel="recover" hidden>
@@ -959,6 +899,6 @@
     </div>
   </section>
 
-  <script src="/assets/js/admin.js?v=20260312c" defer></script>
+  <script src="/assets/js/admin.js?v=20260313a" defer></script>
 </body>
 </html>

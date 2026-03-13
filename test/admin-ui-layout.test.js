@@ -23,26 +23,26 @@ test('admin shell includes mobile navigation and workflow drawers', () => {
   assert.match(adminHtml, /id="clientRequesterWorkspace"/);
   assert.match(adminHtml, /id="clientAdminWorkspace"/);
   assert.match(adminHtml, /class="modal participant-drawer"/);
-  assert.match(adminHtml, /id="signupSecretAnswerCity"/);
   assert.match(adminHtml, /id="recoverSecretAnswerCity"/);
   assert.match(adminHtml, /id="accountSecretAnswerCity"/);
   assert.match(adminHtml, /id="authStage"/);
   assert.match(adminHtml, /id="authProgressBar"/);
-  assert.match(adminHtml, /id="signupStepCounter"/);
-  assert.match(adminHtml, /id="signupNextBtn"/);
-  assert.match(adminHtml, /id="signupPrevBtn"/);
   assert.match(adminHtml, /class="showcase-preview"/);
   assert.match(adminHtml, /id="participantDetailView"/);
   assert.match(adminHtml, /id="participantModalEditBtn"/);
   assert.match(adminHtml, /id="systemActionNotesField"/);
   assert.match(adminHtml, /id="systemActionChecklistField"/);
+  assert.match(adminHtml, /Contact your administrator for account access\./);
+  assert.doesNotMatch(adminHtml, /id="authTabSignup"/);
+  assert.doesNotMatch(adminHtml, /id="authPanelSignup"/);
+  assert.doesNotMatch(adminHtml, /data-auth-view-target="signup"/);
   assert.doesNotMatch(adminHtml, /id="signupRecoveryEmail"/);
   assert.doesNotMatch(adminHtml, /Account access remains server-side only/);
   assert.doesNotMatch(adminHtml, /fonts\.googleapis\.com|fonts\.gstatic\.com/);
 });
 
-test('admin script defaults to light theme and removes old accordion page-size hooks', () => {
-  assert.match(adminJs, /applyTheme\('light'\)/);
+test('admin script defaults to dark theme and removes old accordion page-size hooks', () => {
+  assert.match(adminJs, /applyTheme\('dark'\)/);
   assert.match(adminJs, /function getAllowedViewIds\(\)/);
   assert.match(adminJs, /function sanitizeViewId\(viewId\)/);
   assert.match(adminJs, /function trapFocusWithinOverlay\(event\)/);
@@ -57,6 +57,8 @@ test('admin script defaults to light theme and removes old accordion page-size h
   assert.match(adminJs, /function safeExternalHref\(value\)/);
   assert.match(adminJs, /class="btn participant-name-cta"/);
   assert.match(adminJs, /class="client-request-summary-grid"/);
+  assert.match(adminJs, /CEO Meeting/);
+  assert.match(adminJs, /CEO Mode/);
   assert.match(adminJs, /document\.body\.classList\.toggle\('is-admin', admin\)/);
   assert.match(adminJs, /function renderClientRequestHero\(\)/);
   assert.match(adminJs, /function jumpToOverviewStatus\(status\)/);
@@ -85,6 +87,7 @@ test('admin stylesheet contains premium shell, drawer, and workspace systems', (
   assert.match(adminCss, /\.participant-name-cta/);
   assert.match(adminCss, /\.modal-head-actions/);
   assert.match(adminCss, /\.client-request-summary-grid/);
+  assert.match(adminCss, /\.auth-access-note/);
   assert.match(adminCss, /body\.admin-drawer-open \.mobile-tabbar/);
   assert.match(adminCss, /\.client-request-history/);
   assert.match(adminCss, /body\.is-viewer \.mobile-tabbar/);

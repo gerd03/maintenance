@@ -10411,3 +10411,33 @@ body.is-viewer .client-request-builder-form .client-request-actions .btn {
     transform: none !important;
   }
 }
+
+.auth-access-note {
+  margin: 0.4rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.client-admin-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.client-admin-workspace .client-requests-list {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
+}
+
+.client-admin-workspace .client-request-item {
+  width: 100%;
+  max-width: none;
+}
+
+.client-request-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .client-request-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
